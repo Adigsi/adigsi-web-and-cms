@@ -4,10 +4,11 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Globe, Menu, X } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [language, setLanguage] = useState('en')
+  const { language, setLanguage, t } = useLanguage()
 
   return (
     <header className="fixed top-0 left-0 right-0 w-full z-[99] bg-white border-b border-[#eeeeee]">
@@ -30,31 +31,31 @@ export function Navbar() {
               href="/"
               className="font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline"
             >
-              Home
+              {t({ en: 'Home', id: 'Beranda' })}
             </Link>
             <Link
               href="/about"
               className="font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline"
             >
-              About Us
+              {t({ en: 'About Us', id: 'Tentang Kami' })}
             </Link>
             <Link
               href="/membership"
               className="font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline"
             >
-              Membership
+              {t({ en: 'Membership', id: 'Keanggotaan' })}
             </Link>
             <Link
               href="/agenda"
               className="font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline"
             >
-              Events
+              {t({ en: 'Events', id: 'Agenda' })}
             </Link>
             <Link
               href="/news"
               className="font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline"
             >
-              Latest News
+              {t({ en: 'Latest News', id: 'Berita Terbaru' })}
             </Link>
           </div>
 
@@ -75,7 +76,7 @@ export function Navbar() {
               href="mailto:info@adigsi.id"
               className="bg-[#3350e6] text-white font-medium text-sm flex items-center border-0 rounded-lg px-4 py-2 hover:bg-[#2a42c7] transition-colors no-underline"
             >
-              Contact Us
+              {t({ en: 'Contact Us', id: 'Hubungi Kami' })}
             </Link>
           </div>
 
@@ -126,35 +127,35 @@ export function Navbar() {
           className="text-[21px] font-bold text-black uppercase my-3 no-underline hover:text-[#3350e6] transition-colors"
           onClick={() => setMobileMenuOpen(false)}
         >
-          Home
+          {t({ en: 'Home', id: 'Beranda' })}
         </Link>
         <Link
           href="/about"
           className="text-[21px] font-bold text-black uppercase my-3 no-underline hover:text-[#3350e6] transition-colors"
           onClick={() => setMobileMenuOpen(false)}
         >
-          About Us
+          {t({ en: 'About Us', id: 'Tentang Kami' })}
         </Link>
         <Link
           href="/membership"
           className="text-[21px] font-bold text-black uppercase my-3 no-underline hover:text-[#3350e6] transition-colors"
           onClick={() => setMobileMenuOpen(false)}
         >
-          Membership
+          {t({ en: 'Membership', id: 'Keanggotaan' })}
         </Link>
         <Link
           href="/agenda"
           className="text-[21px] font-bold text-black uppercase my-3 no-underline hover:text-[#3350e6] transition-colors"
           onClick={() => setMobileMenuOpen(false)}
         >
-          Events
+          {t({ en: 'Events', id: 'Agenda' })}
         </Link>
         <Link
           href="/news"
           className="text-[21px] font-bold text-black uppercase my-3 no-underline hover:text-[#3350e6] transition-colors"
           onClick={() => setMobileMenuOpen(false)}
         >
-          Latest News
+          {t({ en: 'Latest News', id: 'Berita Terbaru' })}
         </Link>
       </div>
     </header>

@@ -1,10 +1,15 @@
+'use client'
+
 import Image from 'next/image'
+import { useLanguage } from '@/contexts/language-context'
 
 export function AboutBanner() {
+  const { t } = useLanguage()
+  
   return (
     <section className="relative w-full h-[620px] flex items-center justify-center overflow-hidden">
       <Image
-        alt="Tentang Kami"
+        alt={t({ en: 'About Us', id: 'Tentang Kami' })}
         src="/images/about-banner.jpg"
         fill
         className="object-cover"
@@ -17,7 +22,7 @@ export function AboutBanner() {
         }}
       />
       <h1 className="relative z-20 text-5xl md:text-[48px] font-bold text-white">
-        Tentang Kami
+        {t({ en: 'About Us', id: 'Tentang Kami' })}
       </h1>
     </section>
   )
