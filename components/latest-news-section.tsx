@@ -97,8 +97,8 @@ export function LatestNewsSection() {
                   alt="Event image"
                   width={350}
                   height={200}
-                  className="w-full object-cover"
-                  style={{ height: '200px' }}
+                  className="object-cover"
+                  style={{ width: '100%', height: '200px' }}
                 />
                 <div className="absolute bottom-3 left-6 bg-white shadow-[0_2px_6px_rgba(0,0,0,0.1)] rounded-lg px-[10px] py-1">
                   <span className="text-xs font-semibold text-[#29294b]">
