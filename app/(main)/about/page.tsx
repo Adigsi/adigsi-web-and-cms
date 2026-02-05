@@ -1,4 +1,5 @@
 import { AboutBanner } from '@/components/about-banner'
+import { OrganizationStructureSection } from '@/components/organization-structure-section'
 import { AboutAdigsiSection } from '@/components/about-adigsi-section'
 
 export const metadata = {
@@ -9,6 +10,7 @@ export const metadata = {
 export default function AboutPage() {
   return (
     <>
+      <OrganizationStructureSection />
       <AboutBanner />
       <AboutAdigsiSection />
     </>
