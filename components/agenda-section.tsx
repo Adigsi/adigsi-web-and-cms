@@ -96,7 +96,8 @@ export function AgendaSection() {
                   alt="Event image"
                   width={350}
                   height={200}
-                  className="w-full h-[200px] object-cover"
+                  className="object-cover"
+                  style={{ width: '100%', height: '200px' }}
                 />
                 <div className="absolute bottom-3 left-6 bg-white shadow-md rounded-lg px-2.5 py-1">
                   <span className="text-xs font-semibold">{event.category}</span>
