@@ -12,7 +12,7 @@ export function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 w-full z-[99] bg-white border-b border-[#eeeeee]">
-      <div className="max-w-[1240px] mx-auto px-5 py-5 lg:mx-[131px]">
+      <div className="max-w-[1240px] mx-auto px-5 lg:px-[131px] py-5">
         <nav className="flex justify-between items-center">
           {/* Logo */}
           <Link href="/" className="text-[#29294b]">
