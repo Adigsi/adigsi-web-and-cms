@@ -1,0 +1,19 @@
+import { HeroSection } from '@/components/hero-section'
+import { WelcomeSection } from '@/components/welcome-section'
+import { LatestNewsSection } from '@/components/latest-news-section'
+import { IndustryReportSection } from '@/components/industry-report-section'
+import { AgendaSection } from '@/components/agenda-section'
+import { AboutAdigsiSection } from '@/components/about-adigsi-section'
+
+export default function Home() {
+  return (
+    <>
+      <HeroSection />
+      <WelcomeSection />
+      <LatestNewsSection />
+      <IndustryReportSection />
+      <AgendaSection />
+      <AboutAdigsiSection />
+    </>
+  )
+}
