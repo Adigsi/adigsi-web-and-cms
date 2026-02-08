@@ -53,11 +53,11 @@ function formatDate(dateString: string) {
   const date = new Date(dateString)
   const now = new Date()
   const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-  
+
   if (diffDays === 0) return 'Today'
   if (diffDays === 1) return '1 day ago'
   if (diffDays < 30) return `${diffDays} days ago`
-  
+
   return date.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
@@ -78,7 +78,7 @@ export default async function NewsDetailPage({
   return (
     <>
       {/* Article Content */}
-      <section className="max-w-[1240px] mx-auto px-5 py-20">
+      <section className="max-w-[1240px] mx-auto px-5 py-20 mt-12">
         <div className="flex flex-col items-center mb-8">
           {/* Category Badge */}
           <div className="mb-4">
@@ -104,7 +104,7 @@ export default async function NewsDetailPage({
         </div>
 
         {/* Article Body */}
-        <div 
+        <div
           className="prose prose-lg max-w-none text-[#29294b]"
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
@@ -113,7 +113,7 @@ export default async function NewsDetailPage({
         {article.source && (
           <div className="mt-8">
             <p className="text-[#29294b] mb-2">Untuk selengkapnya silahkan baca di:</p>
-            <a 
+            <a
               href={article.source.url}
               target="_blank"
               rel="noopener noreferrer"
@@ -128,7 +128,7 @@ export default async function NewsDetailPage({
       {/* Related News */}
       <section className="max-w-[1240px] mx-auto px-5 pb-20">
         <h2 className="text-2xl font-bold text-[#29294b] mb-4">Baca Juga</h2>
-        
+
         <div className="flex gap-4 overflow-x-auto pb-4">
           {relatedNews.map((news) => (
             <Link
