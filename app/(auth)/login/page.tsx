@@ -27,29 +27,18 @@ export default function CMSLoginPage() {
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white">
         <div className="w-full max-w-md">
           {/* Logo */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#3350e6] to-[#5571f5] mb-4">
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="M12 8v4" />
-                <path d="M12 16h.01" />
-              </svg>
-            </div>
-            <h1 className="text-3xl font-bold text-[#29294b] mb-2">
-              ADIGSI CMS
-            </h1>
-            <p className="text-gray-600">
-              Content Management System
-            </p>
+          <div className="mb-4 flex justify-center">
+            <Link href="/" className="text-[#29294b]">
+              <Image
+                alt="logo"
+                src="/images/design-mode/logo-adigsi.png"
+                width={132}
+                height={46}
+                loading="eager"
+                priority
+                style={{ width: '132px', height: '46px' }}
+              />
+            </Link>
           </div>
 
           {/* Welcome Text */}
@@ -147,7 +136,7 @@ export default function CMSLoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <label className="flex items-center">
                 <input
                   type="checkbox"
@@ -161,7 +150,7 @@ export default function CMSLoginPage() {
               >
                 Forgot password?
               </Link>
-            </div>
+            </div> */}
 
             <button
               type="submit"
@@ -183,14 +172,14 @@ export default function CMSLoginPage() {
           </form>
 
           {/* Additional Links */}
-          <div className="mt-6 text-center">
+          {/* <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Need access?{' '}
               <Link href="mailto:admin@adigsi.id" className="font-medium text-[#3350e6] hover:text-[#2a42c7]">
                 Contact Administrator
               </Link>
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -213,21 +202,15 @@ export default function CMSLoginPage() {
         <div className="relative z-10 flex flex-col items-center justify-center w-full px-12 text-white">
           <div className="max-w-md text-center">
             <div className="mb-8">
-              <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
-                <svg
-                  width="48"
-                  height="48"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-[#00c2ff]"
-                >
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
+              <div className="flex justify-center">
+                <Image
+                  src="/images/logo-bottom.png"
+                  alt="ADIGSI Logo"
+                  width={80}
+                  height={80}
+                  className="mb-4"
+                  style={{ width: 'auto', height: '80px' }}
+                />
               </div>
             </div>
             
@@ -235,11 +218,11 @@ export default function CMSLoginPage() {
               Securing Indonesia's Digital Future
             </h2>
             <p className="text-lg text-gray-300 mb-8">
-              Asosiasi Digital dan Keamanan Siber Indonesia
+              Indonesian Association for Digitalization and Cybersecurity
             </p>
             
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 mt-12">
+            {/* <div className="grid grid-cols-3 gap-6 mt-12">
               <div className="text-center">
                 <div className="text-3xl font-bold text-[#00c2ff] mb-1">500+</div>
                 <div className="text-sm text-gray-400">Members</div>
@@ -252,7 +235,7 @@ export default function CMSLoginPage() {
                 <div className="text-3xl font-bold text-[#00c2ff] mb-1">50+</div>
                 <div className="text-sm text-gray-400">Partners</div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
