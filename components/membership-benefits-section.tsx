@@ -5,28 +5,22 @@ import Image from 'next/image'
 import { useLanguage } from '@/contexts/language-context'
 
 function MembershipBadge({ tier }: { tier: string }) {
-  // Using a sprite approach - the full badge image is displayed with CSS to show specific badge
-  // Positioning offsets for each badge from the sprite image
-  const badgePositions: Record<string, { objectPosition: string }> = {
-    platinum: { objectPosition: '0% 50%' },      // leftmost badge
-    gold: { objectPosition: '33.33% 50%' },      // second from left
-    silver: { objectPosition: '66.66% 50%' },    // third from left
-    bronze: { objectPosition: '100% 50%' },      // rightmost badge
+  const badgeImages: Record<string, string> = {
+    platinum: '/images/badges/platinum-membership.png',
+    gold: '/images/badges/gold-membership.png',
+    silver: '/images/badges/silver-membership.png',
+    bronze: '/images/badges/bronze-membership.png',
   }
-
-  const position = badgePositions[tier] || badgePositions.platinum
 
   return (
     <div className="relative w-28 h-28 flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
-      <div className="relative w-full h-full overflow-hidden">
-        <Image
-          src="/images/membership-badges.png"
-          alt={`${tier} membership badge`}
-          fill
-          className="object-cover scale-[4]"
-          style={{ objectPosition: position.objectPosition }}
-        />
-      </div>
+      <Image
+        src={badgeImages[tier] || badgeImages.platinum}
+        alt={`${tier} membership badge`}
+        width={112}
+        height={112}
+        className="w-full h-full object-contain drop-shadow-lg"
+      />
       {/* Glow effect */}
       <div
         className="absolute inset-0 rounded-full blur-2xl opacity-0 group-hover:opacity-50 transition-opacity duration-500"
