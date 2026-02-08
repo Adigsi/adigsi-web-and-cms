@@ -49,7 +49,7 @@ export function Navbar() {
             >
               <button
                 onClick={() => setCommunityDropdownOpen(!communityDropdownOpen)}
-                className="font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline bg-transparent border-0 cursor-pointer flex items-center gap-1"
+                className="font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline bg-transparent border-0 cursor-pointer flex items-center gap-1 py-2"
               >
                 {t({ en: 'Community', id: 'Komunitas' })}
                 <svg 
@@ -63,19 +63,21 @@ export function Navbar() {
                 </svg>
               </button>
               {communityDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white shadow-lg rounded-lg border border-gray-200 py-2 z-50">
-                  <Link
-                    href="/members"
-                    className="block px-4 py-2 text-[#29294b] hover:bg-gray-100 hover:text-[#3350e6] transition-colors no-underline"
-                  >
-                    {t({ en: 'Adigsi Members', id: 'Anggota Adigsi' })}
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="block px-4 py-2 text-[#29294b] hover:bg-gray-100 hover:text-[#3350e6] transition-colors no-underline"
-                  >
-                    {t({ en: 'Register', id: 'Daftar' })}
-                  </Link>
+                <div className="absolute top-full left-0 pt-2 w-48 z-50">
+                  <div className="bg-white shadow-lg rounded-lg border border-gray-200 py-2">
+                    <Link
+                      href="/members"
+                      className="block px-4 py-2 text-[#29294b] hover:bg-gray-100 hover:text-[#3350e6] transition-colors no-underline"
+                    >
+                      {t({ en: 'Adigsi Members', id: 'Anggota Adigsi' })}
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="block px-4 py-2 text-[#29294b] hover:bg-gray-100 hover:text-[#3350e6] transition-colors no-underline"
+                    >
+                      {t({ en: 'Register', id: 'Daftar' })}
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
