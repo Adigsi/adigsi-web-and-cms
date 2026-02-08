@@ -82,7 +82,7 @@ export function Navbar() {
               )}
             </div>
             <Link
-              href="/agenda"
+              href="/events"
               className="font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline"
             >
               {t({ en: 'Events', id: 'Agenda' })}
@@ -130,8 +130,8 @@ export function Navbar() {
       {/* Mobile Menu Overlay */}
       <div
         className={`fixed top-0 right-0 bottom-0 left-0 bg-white z-[999] flex-col justify-center items-center transition-opacity duration-[350ms] ease-in-out ${mobileMenuOpen
-            ? 'flex opacity-100 pointer-events-auto'
-            : 'hidden opacity-0 pointer-events-none'
+          ? 'flex opacity-100 pointer-events-auto'
+          : 'hidden opacity-0 pointer-events-none'
           }`}
       >
         {/* Close Button */}

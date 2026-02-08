@@ -8,7 +8,7 @@ import { ArrowRight } from './icons/arrow-right'
 const events = [
   {
     id: 1,
-    image: '/images/agenda-1.jpg',
+    image: '/images/events-1.jpg',
     category: 'CybersecurityEvent',
     date: '12 Februari 2026',
     location: 'Zoom Meeting',
@@ -17,7 +17,7 @@ const events = [
   },
   {
     id: 2,
-    image: '/images/agenda-2.webp',
+    image: '/images/events-2.webp',
     category: 'CybersecurityEvent',
     date: '22 Juli 2025',
     location: 'Bidakara Hotel, Jakarta',
@@ -26,7 +26,7 @@ const events = [
   },
   {
     id: 3,
-    image: '/images/agenda-3.jpg',
+    image: '/images/events-3.jpg',
     category: 'CybersecurityEvent',
     date: '10 Desember 2025',
     location: 'The Kasablanka Hall, Jakarta',
@@ -67,9 +67,8 @@ export function AgendaSection() {
     >
       <div className="max-w-[1240px] mx-auto px-4 md:px-8 lg:px-[131px]">
         <div
-          className={`flex flex-col items-center justify-center text-center mb-8 ${
-            isVisible ? 'animate-fade-in-up' : 'opacity-0'
-          }`}
+          className={`flex flex-col items-center justify-center text-center mb-8 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
+            }`}
         >
           <h2 className="text-primary text-[21px] uppercase mb-2 font-bold">
             AGENDA
@@ -83,9 +82,8 @@ export function AgendaSection() {
           {events.map((event, index) => (
             <div
               key={event.id}
-              className={`bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col max-w-[350px] w-full transition-all duration-1000 hover:shadow-md ${
-                isVisible ? 'animate-fade-in-up' : 'opacity-0'
-              }`}
+              className={`bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col max-w-[350px] w-full transition-all duration-1000 hover:shadow-md ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
+                }`}
               style={{
                 animationDelay: `${(index + 1) * 100}ms`,
               }}
@@ -130,10 +128,9 @@ export function AgendaSection() {
         </div>
 
         <Link
-          href="/agenda"
-          className={`flex justify-center mt-12 ${
-            isVisible ? 'animate-fade-in-up animate-delay-300' : 'opacity-0'
-          }`}
+          href="/events"
+          className={`flex justify-center mt-12 ${isVisible ? 'animate-fade-in-up animate-delay-300' : 'opacity-0'
+            }`}
         >
           <div className="flex gap-4 items-center justify-center border-b border-[#333333] pb-2">
             <span className="text-sm font-medium text-[#29294b]">See All</span>
