@@ -3,13 +3,13 @@
 import Image from 'next/image'
 import { useLanguage } from '@/contexts/language-context'
 
-export function AboutBanner() {
+export function MembersBanner() {
   const { t } = useLanguage()
 
   return (
     <section className="relative w-full h-[620px] flex items-center justify-center overflow-hidden">
       <Image
-        alt={t({ en: 'About Us', id: 'Tentang Kami' })}
+        alt={t({ en: 'ADIGSI Members', id: 'Anggota ADIGSI' })}
         src="/images/about-banner.png"
         fill
         className="object-cover"
@@ -21,8 +21,8 @@ export function AboutBanner() {
           backgroundImage: 'linear-gradient(rgb(51, 80, 230) 0%, rgb(0, 0, 0) 70%)',
         }}
       />
-      <h1 className="relative z-20 text-5xl md:text-[48px] font-bold text-white">
-        {t({ en: 'About Us', id: 'Tentang Kami' })}
+      <h1 className="relative z-20 text-5xl md:text-[48px] font-bold text-white uppercase">
+        {t({ en: 'ADIGSI MEMBERS', id: 'ANGGOTA ADIGSI' })}
       </h1>
     </section>
   )

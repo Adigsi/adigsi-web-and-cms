@@ -28,11 +28,12 @@ export function Footer() {
           {/* Left Section - About */}
           <div className="flex-1 min-w-[280px]">
             <Image
-              src="/images/design-mode/logo-bottom.png"
+              src="/images/logo-bottom.png"
               alt="ADIGSI Logo"
               width={80}
               height={80}
               className="mb-4"
+              style={{ width: 'auto', height: '80px' }}
             />
             <p className="text-[15.2px] leading-[24.32px] text-[#e0e0e0] mb-6">
               ADIGSI was founded with the vision of becoming a key pillar in

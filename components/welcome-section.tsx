@@ -2,10 +2,12 @@
 
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
+import { useLanguage } from '@/contexts/language-context'
 
 export function WelcomeSection() {
   const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
+  const { t } = useLanguage()
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -32,10 +34,13 @@ export function WelcomeSection() {
     <section ref={sectionRef} className="max-w-[1240px] mx-auto px-4 md:px-8 lg:px-[131px] py-20 w-full">
       <div className={`flex flex-col items-center justify-center text-center mb-12 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
         <h2 className="text-primary text-[21px] uppercase mb-2 font-bold">
-          Welcome to Adigsi
+          {t({ en: 'Welcome to Adigsi', id: 'Selamat Datang di Adigsi' })}
         </h2>
         <h1 className="text-[#29294b] text-2xl md:text-[28px] font-bold">
-          Indonesian Digitalization and Cybersecurity Association
+          {t({ 
+            en: 'Indonesian Digitalization and Cybersecurity Association',
+            id: 'Asosiasi Digital dan Keamanan Siber Indonesia'
+          })}
         </h1>
       </div>
 

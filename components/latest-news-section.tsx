@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRightIcon } from '@/components/icons/arrow-right'
 import { useEffect, useRef, useState } from 'react'
+import { useLanguage } from '@/contexts/language-context'
 
 const newsArticles = [
   {
@@ -35,6 +36,7 @@ const newsArticles = [
 export function LatestNewsSection() {
   const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
+  const { t } = useLanguage()
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -70,10 +72,10 @@ export function LatestNewsSection() {
           }`}
         >
           <h2 className="text-primary text-[21px] uppercase mb-2 font-bold">
-            NEWS & ARTICLES
+            {t({ en: 'NEWS & ARTICLES', id: 'BERITA & ARTIKEL' })}
           </h2>
           <h1 className="text-[#29294b] text-[28px] font-bold">
-            Latest News from ADIGSI
+            {t({ en: 'Latest News from ADIGSI', id: 'Berita Terbaru dari ADIGSI' })}
           </h1>
         </div>
 
@@ -95,7 +97,8 @@ export function LatestNewsSection() {
                   alt="Event image"
                   width={350}
                   height={200}
-                  className="w-full h-[200px] object-cover"
+                  className="object-cover"
+                  style={{ width: '100%', height: '200px' }}
                 />
                 <div className="absolute bottom-3 left-6 bg-white shadow-[0_2px_6px_rgba(0,0,0,0.1)] rounded-lg px-[10px] py-1">
                   <span className="text-xs font-semibold text-[#29294b]">
@@ -124,7 +127,9 @@ export function LatestNewsSection() {
           }`}
         >
           <div className="flex gap-4 items-center justify-center text-[#29294b] border-b border-[#333] pb-2">
-            <span className="text-sm font-medium">See All</span>
+            <span className="text-sm font-medium">
+              {t({ en: 'See All', id: 'Lihat Semua' })}
+            </span>
             <ArrowRightIcon className="w-4 h-4" />
           </div>
         </Link>
