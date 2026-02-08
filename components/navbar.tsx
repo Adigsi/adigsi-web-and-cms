@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/language-context'
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [communityDropdownOpen, setCommunityDropdownOpen] = useState(false)
   const { language, setLanguage, t } = useLanguage()
 
   return (
@@ -41,12 +42,43 @@ export function Navbar() {
             >
               {t({ en: 'About Us', id: 'Tentang Kami' })}
             </Link>
-            <Link
-              href="/membership"
-              className="font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline"
+            <div 
+              className="relative"
+              onMouseEnter={() => setCommunityDropdownOpen(true)}
+              onMouseLeave={() => setCommunityDropdownOpen(false)}
             >
-              {t({ en: 'Membership', id: 'Keanggotaan' })}
-            </Link>
+              <button
+                onClick={() => setCommunityDropdownOpen(!communityDropdownOpen)}
+                className="font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline bg-transparent border-0 cursor-pointer flex items-center gap-1"
+              >
+                {t({ en: 'Community', id: 'Komunitas' })}
+                <svg 
+                  width="12" 
+                  height="8" 
+                  viewBox="0 0 12 8" 
+                  fill="none" 
+                  className={`transition-transform duration-200 ${communityDropdownOpen ? 'rotate-180' : ''}`}
+                >
+                  <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              {communityDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white shadow-lg rounded-lg border border-gray-200 py-2 z-50">
+                  <Link
+                    href="/members"
+                    className="block px-4 py-2 text-[#29294b] hover:bg-gray-100 hover:text-[#3350e6] transition-colors no-underline"
+                  >
+                    {t({ en: 'Adigsi Members', id: 'Anggota Adigsi' })}
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="block px-4 py-2 text-[#29294b] hover:bg-gray-100 hover:text-[#3350e6] transition-colors no-underline"
+                  >
+                    {t({ en: 'Register', id: 'Daftar' })}
+                  </Link>
+                </div>
+              )}
+            </div>
             <Link
               href="/agenda"
               className="font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline"
@@ -138,13 +170,25 @@ export function Navbar() {
         >
           {t({ en: 'About Us', id: 'Tentang Kami' })}
         </Link>
-        <Link
-          href="/membership"
-          className="text-[21px] font-bold text-black uppercase my-3 no-underline hover:text-[#3350e6] transition-colors"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          {t({ en: 'Membership', id: 'Keanggotaan' })}
-        </Link>
+        <div className="flex flex-col my-3">
+          <span className="text-[21px] font-bold text-black uppercase mb-2">
+            {t({ en: 'Community', id: 'Komunitas' })}
+          </span>
+          <Link
+            href="/members"
+            className="text-base font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline ml-4 my-1"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            {t({ en: 'Adigsi Members', id: 'Anggota Adigsi' })}
+          </Link>
+          <Link
+            href="/register"
+            className="text-base font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline ml-4 my-1"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            {t({ en: 'Register', id: 'Daftar' })}
+          </Link>
+        </div>
         <Link
           href="/agenda"
           className="text-[21px] font-bold text-black uppercase my-3 no-underline hover:text-[#3350e6] transition-colors"
