@@ -1,74 +1,40 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import { useLanguage } from '@/contexts/language-context'
 
 function MembershipBadge({ tier }: { tier: string }) {
-  const colors = {
-    bronze: { primary: '#CD7F32', secondary: '#A0522D', glow: 'rgba(205, 127, 50, 0.3)' },
-    silver: { primary: '#C0C0C0', secondary: '#A8A8A8', glow: 'rgba(192, 192, 192, 0.3)' },
-    gold: { primary: '#FFD700', secondary: '#FFA500', glow: 'rgba(255, 215, 0, 0.3)' },
-    platinum: { primary: '#E5E4E2', secondary: '#B9B8B6', glow: 'rgba(229, 228, 226, 0.3)' },
+  // Using a sprite approach - the full badge image is displayed with CSS to show specific badge
+  // Positioning offsets for each badge from the sprite image
+  const badgePositions: Record<string, { objectPosition: string }> = {
+    platinum: { objectPosition: '0% 50%' },      // leftmost badge
+    gold: { objectPosition: '33.33% 50%' },      // second from left
+    silver: { objectPosition: '66.66% 50%' },    // third from left
+    bronze: { objectPosition: '100% 50%' },      // rightmost badge
   }
 
-  const color = colors[tier as keyof typeof colors]
+  const position = badgePositions[tier] || badgePositions.platinum
 
   return (
-    <div className="relative w-24 h-24 flex-shrink-0">
-      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
-        {/* Outer circle */}
-        <circle
-          cx="50"
-          cy="50"
-          r="48"
-          fill={color.primary}
-          stroke={color.secondary}
-          strokeWidth="2"
+    <div className="relative w-28 h-28 flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
+      <div className="relative w-full h-full overflow-hidden">
+        <Image
+          src="/images/membership-badges.png"
+          alt={`${tier} membership badge`}
+          fill
+          className="object-cover scale-[4]"
+          style={{ objectPosition: position.objectPosition }}
         />
-        {/* Inner circle */}
-        <circle
-          cx="50"
-          cy="50"
-          r="42"
-          fill="none"
-          stroke={color.secondary}
-          strokeWidth="1.5"
-          strokeDasharray="4 2"
-        />
-        {/* Center circle */}
-        <circle cx="50" cy="50" r="32" fill={color.secondary} opacity="0.3" />
-        
-        {/* Circular text path */}
-        <defs>
-          <path
-            id={`circle-${tier}`}
-            d="M 50, 50 m -38, 0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
-          />
-        </defs>
-        <text className="text-[6px] font-bold fill-white uppercase tracking-wider">
-          <textPath href={`#circle-${tier}`} startOffset="50%" textAnchor="middle">
-            MEMBERSHIP • {tier.toUpperCase()} •
-          </textPath>
-        </text>
-
-        {/* Center icon */}
-        <g transform="translate(50, 50)">
-          <path
-            d="M-8,-12 L8,-12 L10,-8 L10,8 L8,12 L-8,12 L-10,8 L-10,-8 Z"
-            fill="white"
-            opacity="0.9"
-          />
-          <path
-            d="M-6,-10 L6,-10 L8,-7 L8,6 L6,10 L-6,10 L-8,6 L-8,-7 Z"
-            fill={color.secondary}
-          />
-          <circle cx="0" cy="0" r="4" fill="white" />
-        </g>
-      </svg>
+      </div>
       {/* Glow effect */}
       <div
-        className="absolute inset-0 rounded-full blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-500"
-        style={{ backgroundColor: color.glow }}
+        className="absolute inset-0 rounded-full blur-2xl opacity-0 group-hover:opacity-50 transition-opacity duration-500"
+        style={{ 
+          backgroundColor: tier === 'bronze' ? 'rgba(205, 127, 50, 0.4)' : 
+                         tier === 'silver' ? 'rgba(192, 192, 192, 0.4)' : 
+                         tier === 'gold' ? 'rgba(255, 215, 0, 0.4)' : 'rgba(229, 228, 226, 0.4)' 
+        }}
       />
     </div>
   )
