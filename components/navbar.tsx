@@ -21,7 +21,9 @@ export function Navbar() {
               src="/images/design-mode/logo-adigsi.png"
               width={132}
               height={46}
-              className="w-[132px] h-[46px]"
+              loading="eager"
+              priority
+              style={{ width: '132px', height: '46px' }}
             />
           </Link>
 
