@@ -2,6 +2,7 @@ import { MembersBanner } from '@/components/members-banner'
 import { MemberCategoriesSection } from '@/components/member-categories-section'
 import { DigitalMemberCategoriesSection } from '@/components/digital-member-categories-section'
 import { PartnerLogosSection } from '@/components/partner-logos-section'
+import { MembershipBenefitsSection } from '@/components/membership-benefits-section'
 
 export const metadata = {
   title: 'ADIGSI Members - ADIGSI',
@@ -15,6 +16,7 @@ export default function MembersPage() {
       <MemberCategoriesSection />
       <DigitalMemberCategoriesSection />
       <PartnerLogosSection />
+      <MembershipBenefitsSection />
     </>
   )
 }
