@@ -108,12 +108,11 @@ export function NewsListSection() {
             <Link
               key={article.id}
               href={`/news/${article.id}`}
-              className={`group bg-white rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(0,0,0,0.2)] no-underline ${
-                isVisible ? 'animate-fade-in-up' : 'opacity-0'
-              }`}
-              style={{ 
+              className={`group bg-white rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(0,0,0,0.2)] no-underline ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
+                }`}
+              style={{
                 animationDelay: `${index * 100}ms`,
-                maxWidth: '350px',
+                maxWidth: '450px',
                 margin: '0 auto',
                 width: '100%'
               }}
@@ -133,12 +132,12 @@ export function NewsListSection() {
                   </span>
                 </div>
               </div>
-              
+
               <div className="flex flex-col p-4">
                 <h3 className="text-base font-bold text-black mt-2 leading-tight line-clamp-3">
                   {language === 'en' ? article.title.en : article.title.id}
                 </h3>
-                
+
                 <div className="flex justify-between text-[12.8px] text-[#555] mt-4 mb-1">
                   <span className="block">
                     {language === 'en' ? article.readTime.en : article.readTime.id}
