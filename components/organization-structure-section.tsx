@@ -157,14 +157,12 @@ export function OrganizationStructureSection() {
                 className={`${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
                 style={{ animationDelay: `${(index + 2) * 100}ms` }}
               >
-                <div className="relative rounded-lg overflow-hidden mb-4">
+                <div className="relative rounded-lg overflow-hidden mb-4" style={{ width: '100%', height: '250px' }}>
                   <Image
                     src={member.image}
                     alt={member.name}
-                    width={222}
-                    height={250}
+                    fill
                     className="object-cover object-top"
-                    style={{ width: '100%', height: '250px' }}
                   />
                 </div>
                 <h3 className="font-bold text-[#29294b] mb-1">{member.name}</h3>
@@ -183,14 +181,12 @@ export function OrganizationStructureSection() {
                 className={`${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
                 style={{ animationDelay: `${(index + 6) * 100}ms` }}
               >
-                <div className="relative rounded-lg overflow-hidden mb-4">
+                <div className="relative rounded-lg overflow-hidden mb-4" style={{ width: '100%', height: '250px' }}>
                   <Image
                     src={member.image}
                     alt={member.name}
-                    width={222}
-                    height={250}
+                    fill
                     className="object-cover object-top"
-                    style={{ width: '100%', height: '250px' }}
                   />
                 </div>
                 <h3 className="font-bold text-[#29294b] mb-1">{member.name}</h3>
@@ -206,14 +202,12 @@ export function OrganizationStructureSection() {
                 className={`${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}
                 style={{ animationDelay: `${(index + 11) * 100}ms` }}
               >
-                <div className="relative rounded-lg overflow-hidden mb-4">
+                <div className="relative rounded-lg overflow-hidden mb-4" style={{ width: '100%', height: '250px' }}>
                   <Image
                     src={member.image}
                     alt={member.name}
-                    width={222}
-                    height={250}
+                    fill
                     className="object-cover object-top"
-                    style={{ width: '100%', height: '250px' }}
                   />
                 </div>
                 <h3 className="font-bold text-[#29294b] mb-1">{member.name}</h3>
