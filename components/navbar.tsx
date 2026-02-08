@@ -42,7 +42,7 @@ export function Navbar() {
             >
               {t({ en: 'About Us', id: 'Tentang Kami' })}
             </Link>
-            <div 
+            <div
               className="relative"
               onMouseEnter={() => setCommunityDropdownOpen(true)}
               onMouseLeave={() => setCommunityDropdownOpen(false)}
@@ -52,14 +52,14 @@ export function Navbar() {
                 className="font-medium text-[#29294b] hover:text-[#3350e6] transition-colors no-underline bg-transparent border-0 cursor-pointer flex items-center gap-1 py-2"
               >
                 {t({ en: 'Community', id: 'Komunitas' })}
-                <svg 
-                  width="12" 
-                  height="8" 
-                  viewBox="0 0 12 8" 
-                  fill="none" 
+                <svg
+                  width="12"
+                  height="8"
+                  viewBox="0 0 12 8"
+                  fill="none"
                   className={`transition-transform duration-200 ${communityDropdownOpen ? 'rotate-180' : ''}`}
                 >
-                  <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
               {communityDropdownOpen && (
@@ -129,11 +129,10 @@ export function Navbar() {
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`fixed top-0 right-0 bottom-0 left-0 bg-white z-[999] flex-col justify-center items-center transition-opacity duration-[350ms] ease-in-out ${
-          mobileMenuOpen
+        className={`fixed top-0 right-0 bottom-0 left-0 bg-white z-[999] flex-col justify-center items-center transition-opacity duration-[350ms] ease-in-out ${mobileMenuOpen
             ? 'flex opacity-100 pointer-events-auto'
             : 'hidden opacity-0 pointer-events-none'
-        }`}
+          }`}
       >
         {/* Close Button */}
         <button
@@ -192,7 +191,7 @@ export function Navbar() {
           </Link>
         </div>
         <Link
-          href="/agenda"
+          href="/events"
           className="text-[21px] font-bold text-black uppercase my-3 no-underline hover:text-[#3350e6] transition-colors"
           onClick={() => setMobileMenuOpen(false)}
         >
