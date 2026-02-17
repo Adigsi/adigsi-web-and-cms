@@ -185,10 +185,10 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <div className="mx-auto flex min-h-screen max-w-screen-2xl">
+      <div className="mx-auto flex min-h-screen max-w-screen-2xl relative">
         <aside
           className={cn(
-            'hidden border-r border-border bg-card/70 transition-all duration-300 md:flex md:flex-col md:backdrop-blur',
+            'fixed left-0 top-0 h-screen border-r border-border bg-card/70 transition-all duration-300 md:flex md:flex-col md:backdrop-blur z-50',
             isSidebarCollapsed ? 'w-20' : 'w-72',
           )}
         >
@@ -233,7 +233,7 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          <nav className="flex-1 space-y-2 p-4">
+          <nav className="flex-1 space-y-2 overflow-y-auto p-4">
             {cmsNavigation.map((item) => renderNavItem(item))}
           </nav>
 
@@ -288,7 +288,10 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className={cn(
+          'flex min-w-0 flex-1 flex-col transition-all duration-300',
+          isSidebarCollapsed ? 'md:ml-20' : 'md:ml-72'
+        )}>
           <main className="flex-1 px-4 py-5 sm:px-6 md:px-8 md:py-8">
             <nav className="mb-4 flex gap-2 overflow-x-auto border-b border-border pb-4 md:hidden">
               {cmsNavigation.map((item) =>
