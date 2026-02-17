@@ -10,6 +10,21 @@ import { useLanguage } from '@/contexts/language-context'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
 
+interface Logo {
+  alt: string
+  imageUrl: string
+}
+
+interface Category {
+  titleEn: string
+  titleId: string
+  logos: Logo[]
+}
+
+interface PartnersData {
+  categories: Category[]
+}
+
 export default function CMSAboutPage() {
   const { t } = useLanguage()
   const [isSaving, setIsSaving] = useState<string | null>(null)
@@ -57,19 +72,40 @@ export default function CMSAboutPage() {
   })
 
   // Partners section state
-  const [partnersData, setPartnersData] = useState({
-    title: 'Our Partners',
-    description: 'We collaborate with leading organizations',
+  const [partnersData, setPartnersData] = useState<PartnersData>({
+    categories: [
+      {
+        titleEn: 'Government Organizations',
+        titleId: 'Organisasi Pemerintah',
+        logos: []
+      },
+      {
+        titleEn: 'International Institutions',
+        titleId: 'Institusi Internasional',
+        logos: []
+      },
+      {
+        titleEn: 'Associations',
+        titleId: 'Asosiasi',
+        logos: []
+      },
+      {
+        titleEn: 'Companies',
+        titleId: 'Perusahaan',
+        logos: []
+      }
+    ]
   })
 
-  // Fetch banner, organization, and about data on mount
+  // Fetch banner, organization, about, and partners data on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [bannerRes, orgRes, aboutRes] = await Promise.all([
+        const [bannerRes, orgRes, aboutRes, partnersRes] = await Promise.all([
           fetch('/api/cms/about/banner'),
           fetch('/api/cms/about/organization'),
-          fetch('/api/cms/about/about')
+          fetch('/api/cms/about/about'),
+          fetch('/api/cms/about/partners')
         ])
 
         if (bannerRes.ok) {
@@ -100,6 +136,13 @@ export default function CMSAboutPage() {
               visionId: data.visionId,
               missions: data.missions || [{ en: '', id: '' }]
             })
+          }
+        }
+
+        if (partnersRes.ok) {
+          const data = await partnersRes.json()
+          if (data.categories && data.categories.length > 0) {
+            setPartnersData({ categories: data.categories })
           }
         }
       } catch (error) {
@@ -189,13 +232,30 @@ export default function CMSAboutPage() {
         setTimeout(() => {
           setSaveStatus({ section: null, type: null, message: '' })
         }, 3000)
-      } else {
-        // Handle other sections (to be implemented)
-        const sectionData: Record<string, unknown> = {
-          partners: partnersData,
+      } else if (section === 'partners') {
+        const response = await fetch('/api/cms/about/partners', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(partnersData),
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to save partners')
         }
 
-        console.log(`Saving ${section}:`, sectionData[section])
+        setSaveStatus({
+          section: 'partners',
+          type: 'success',
+          message: t({ en: 'Partners data saved successfully', id: 'Data mitra berhasil disimpan' }),
+        })
+
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSaveStatus({ section: null, type: null, message: '' })
+        }, 3000)
       }
     } catch (error) {
       console.error(`Error saving ${section}:`, error)
@@ -720,31 +780,167 @@ export default function CMSAboutPage() {
             <div className="mb-6 border-b border-border pb-4">
               <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Partners', id: 'Mitra' })}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {t({ en: 'Manage the partners section', id: 'Kelola section mitra' })}
+                {t({ en: 'Manage partner categories and logos', id: 'Kelola kategori mitra dan logo' })}
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="partners-title">{t({ en: 'Title', id: 'Judul' })}</Label>
-                <Input
-                  id="partners-title"
-                  value={partnersData.title}
-                  onChange={(e) => setPartnersData({ ...partnersData, title: e.target.value })}
-                  placeholder={t({ en: 'Enter section title', id: 'Masukkan judul section' })}
-                />
-              </div>
+            {saveStatus.section === 'partners' && saveStatus.type && (
+              <Alert className={`mb-4 ${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
+                {saveStatus.type === 'success' ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                )}
+                <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+                  {saveStatus.message}
+                </AlertDescription>
+              </Alert>
+            )}
 
-              <div>
-                <Label htmlFor="partners-description">{t({ en: 'Description', id: 'Deskripsi' })}</Label>
-                <Textarea
-                  id="partners-description"
-                  value={partnersData.description}
-                  onChange={(e) => setPartnersData({ ...partnersData, description: e.target.value })}
-                  placeholder={t({ en: 'Enter partners description', id: 'Masukkan deskripsi mitra' })}
-                  rows={5}
-                />
-              </div>
+            <div className="space-y-6">
+              {partnersData.categories.map((category, categoryIndex) => (
+                <div key={categoryIndex} className="border border-border rounded-lg p-4 space-y-4">
+                  <div className="border-b pb-4 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-foreground">{t({ en: 'Category', id: 'Kategori' })} {categoryIndex + 1}</h3>
+                    {partnersData.categories.length > 1 && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          const newCategories = partnersData.categories.filter((_, i) => i !== categoryIndex)
+                          setPartnersData({ ...partnersData, categories: newCategories })
+                        }}
+                      >
+                        {t({ en: 'Remove Category', id: 'Hapus Kategori' })}
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs">{t({ en: 'Category Name (English)', id: 'Nama Kategori (English)' })}</Label>
+                      <Input
+                        value={category.titleEn}
+                        onChange={(e) => {
+                          const newCategories = [...partnersData.categories]
+                          newCategories[categoryIndex].titleEn = e.target.value
+                          setPartnersData({ ...partnersData, categories: newCategories })
+                        }}
+                        placeholder="e.g., Government Organizations"
+                        className="text-xs h-8 mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">{t({ en: 'Category Name (Indonesian)', id: 'Nama Kategori (Indonesia)' })}</Label>
+                      <Input
+                        value={category.titleId}
+                        onChange={(e) => {
+                          const newCategories = [...partnersData.categories]
+                          newCategories[categoryIndex].titleId = e.target.value
+                          setPartnersData({ ...partnersData, categories: newCategories })
+                        }}
+                        placeholder="misal, Organisasi Pemerintah"
+                        className="text-xs h-8 mt-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-foreground">{t({ en: 'Logos', id: 'Logo' })}</h4>
+                    
+                    {category.logos.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {category.logos.map((logo, logoIndex) => (
+                          <div key={logoIndex} className="border border-dashed border-border rounded-lg p-3 space-y-2 flex flex-col">
+                            {logo.imageUrl && (
+                              <div className="flex-1 flex items-center justify-center bg-gray-50 rounded h-20">
+                                <img src={logo.imageUrl} alt={logo.alt} className="h-16 w-auto object-contain" />
+                              </div>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (file) {
+                                  const reader = new FileReader()
+                                  reader.onload = (event) => {
+                                    const base64 = event.target?.result as string
+                                    const newCategories = [...partnersData.categories]
+                                    newCategories[categoryIndex].logos[logoIndex].imageUrl = base64
+                                    // Auto-generate alt text from filename without extension
+                                    const filename = file.name.split('.')[0].replace(/[-_]/g, ' ')
+                                    newCategories[categoryIndex].logos[logoIndex].alt = filename
+                                    setPartnersData({ ...partnersData, categories: newCategories })
+                                  }
+                                  reader.readAsDataURL(file)
+                                }
+                              }}
+                              className="hidden"
+                              id={`logo-upload-${categoryIndex}-${logoIndex}`}
+                            />
+                            <label htmlFor={`logo-upload-${categoryIndex}-${logoIndex}`} className="cursor-pointer">
+                              <div className="text-xs text-center text-muted-foreground hover:text-foreground transition-colors">
+                                {logo.imageUrl ? t({ en: 'Change', id: 'Ubah' }) : t({ en: 'Upload', id: 'Upload' })}
+                              </div>
+                            </label>
+                            {category.logos.length > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-full p-0 text-xs"
+                                onClick={() => {
+                                  const newCategories = [...partnersData.categories]
+                                  newCategories[categoryIndex].logos = newCategories[categoryIndex].logos.filter((_, i) => i !== logoIndex)
+                                  setPartnersData({ ...partnersData, categories: newCategories })
+                                }}
+                              >
+                                {t({ en: 'Remove', id: 'Hapus' })}
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => {
+                        const newCategories = [...partnersData.categories]
+                        newCategories[categoryIndex].logos.push({
+                          alt: '',
+                          imageUrl: ''
+                        })
+                        setPartnersData({ ...partnersData, categories: newCategories })
+                      }}
+                    >
+                      {t({ en: '+ Add Logo', id: '+ Tambah Logo' })}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              <Button
+                variant="outline"
+                className='mr-4'
+                onClick={() => {
+                  setPartnersData({
+                    ...partnersData,
+                    categories: [
+                      ...partnersData.categories,
+                      {
+                        titleEn: '',
+                        titleId: '',
+                        logos: []
+                      }
+                    ]
+                  })
+                }}
+              >
+                {t({ en: '+ Add New Category', id: '+ Tambah Kategori Baru' })}
+              </Button>
 
               <Button onClick={() => handleSave('partners')} disabled={isSaving === 'partners'}>
                 {isSaving === 'partners' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
