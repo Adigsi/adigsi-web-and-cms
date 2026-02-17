@@ -21,8 +21,8 @@ import { Label } from '@/components/ui/label'
 
 export default function CMSLoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('admin@adigsi.id')
+  const [password, setPassword] = useState('admin123')
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
