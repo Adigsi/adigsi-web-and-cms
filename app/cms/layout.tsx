@@ -1,6 +1,9 @@
 import React from "react"
 import type { Metadata } from 'next'
 
+import { CMSLogoutButton } from '@/components/cms-logout-button'
+import { Button } from '@/components/ui/button'
+
 export const metadata: Metadata = {
   title: 'CMS - ADIGSI',
   description: 'Content Management System for ADIGSI',
@@ -57,12 +60,10 @@ export default function CMSLayout({
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold text-gray-800">Content Management</h2>
               <div className="flex items-center gap-4">
-                <button className="text-gray-600 hover:text-gray-800">
+                <Button variant="ghost" className="text-gray-600 hover:text-gray-800">
                   Profile
-                </button>
-                <button className="text-gray-600 hover:text-gray-800">
-                  Logout
-                </button>
+                </Button>
+                <CMSLogoutButton />
               </div>
             </div>
           </header>
