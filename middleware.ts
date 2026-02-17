@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-import { CMS_AUTH_COOKIE } from '@/lib/cms-auth'
+import { CMS_AUTH_COOKIE } from '@/lib/cms-auth-constants'
+import { verifyCmsSessionToken } from '@/lib/cms-session'
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get(CMS_AUTH_COOKIE)?.value
-  const isLoggedIn = sessionCookie === 'authenticated'
+  const session = sessionCookie
+    ? await verifyCmsSessionToken(sessionCookie).catch((error) => {
+        console.error('[Middleware Session Verify Error]', error instanceof Error ? error.message : error)
+        return null
+      })
+    : null
+  const isLoggedIn = Boolean(session)
   const { pathname } = request.nextUrl
 
   if (pathname.startsWith('/cms') && !isLoggedIn) {

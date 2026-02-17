@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { CMS_AUTH_COOKIE } from '@/lib/cms-auth'
+import { CMS_AUTH_COOKIE } from '@/lib/cms-auth-constants'
 
 export async function POST() {
   const response = NextResponse.json({ message: 'Logout berhasil.' })
