@@ -4,10 +4,58 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { CheckCircle } from '@/components/icons/check-circle'
+import { useLanguage } from '@/contexts/language-context'
+
+interface AboutData {
+  titleEn: string
+  titleId: string
+  descriptionEn: string
+  descriptionId: string
+  visionEn: string
+  visionId: string
+  missions: Array<{ en: string; id: string }>
+}
 
 export function AboutAdigsiSection() {
   const [isVisible, setIsVisible] = useState(false)
+  const [aboutData, setAboutData] = useState<AboutData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const sectionRef = useRef<HTMLElement>(null)
+  const { t, language } = useLanguage()
+
+  const staticGovLogos = [
+    { src: '/images/logos/image-16.png', alt: 'Government Logo 1' },
+    { src: '/images/logos/image-17.png', alt: 'Government Logo 2' },
+    { src: '/images/logos/image-18.png', alt: 'Government Logo 3' },
+    { src: '/images/logos/image-19.png', alt: 'Government Logo 4' },
+  ]
+
+  const staticIntlLogos = [
+    { src: '/images/logos/image-25.png', alt: 'USTDA' },
+    { src: '/images/logos/image-26.png', alt: 'Australian Embassy' },
+    { src: '/images/logos/image-27.png', alt: 'British Embassy' },
+    { src: '/images/logos/image-28.png', alt: 'Cyberus' },
+    { src: '/images/logos/image-29.png', alt: 'GASA' },
+    { src: '/images/logos/image-30.png', alt: 'US-ASEAN' },
+  ]
+
+  const staticAssocLogos = [
+    { src: '/images/logos/image-31.png', alt: 'APJII' },
+    { src: '/images/logos/image-32.png', alt: 'Fintech Indonesia' },
+    { src: '/images/logos/image-33.png', alt: 'APTIKNAS' },
+    { src: '/images/logos/image-34.png', alt: 'PANDI' },
+  ]
+
+  const staticCompanyLogos = [
+    { src: '/images/companies/image-6.png', alt: 'Company Logo 6' },
+    { src: '/images/companies/image-7.png', alt: 'Company Logo 7' },
+    { src: '/images/companies/image-8.png', alt: 'Company Logo 8' },
+    { src: '/images/companies/image-9.png', alt: 'Company Logo 9' },
+    { src: '/images/companies/image-10.png', alt: 'Company Logo 10' },
+    { src: '/images/companies/image-11.png', alt: 'Company Logo 11' },
+    { src: '/images/companies/image-12.png', alt: 'Company Logo 12' },
+    { src: '/images/companies/image-13.png', alt: 'Company Logo 13' },
+  ]
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -30,49 +78,50 @@ export function AboutAdigsiSection() {
     }
   }, [])
 
-  const missions = [
-    'Enhancing the capacity of the cybersecurity industry',
-    'Strengthening partnerships with government and related institutions',
-    'Building awareness and compliance with cybersecurity regulations',
-    'Developing a resilient cybersecurity ecosystem',
-    'Promoting certification and standardization in cybersecurity',
-    'Promoting innovation and entrepreneurship in cybersecurity',
-    'Contributing to the protection of national critical infrastructure',
-  ]
+  useEffect(() => {
+    const fetchAboutData = async () => {
+      try {
+        const response = await fetch('/api/cms/about/about')
+        if (response.ok) {
+          const data = await response.json()
+          setAboutData({
+            titleEn: data.titleEn || 'Indonesian Association for Digitalization and Cybersecurity',
+            titleId: data.titleId || 'Asosiasi Indonesia untuk Digitalisasi dan Keamanan Siber',
+            descriptionEn: data.descriptionEn || '',
+            descriptionId: data.descriptionId || '',
+            visionEn: data.visionEn || '',
+            visionId: data.visionId || '',
+            missions: (data.missions && data.missions.length > 0) ? data.missions : [{ en: '', id: '' }]
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching about data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-  const govLogos = [
-    { src: '/images/logos/image-16.png', alt: 'Government Logo 1' },
-    { src: '/images/logos/image-17.png', alt: 'Government Logo 2' },
-    { src: '/images/logos/image-18.png', alt: 'Government Logo 3' },
-    { src: '/images/logos/image-19.png', alt: 'Government Logo 4' },
-  ]
+    fetchAboutData()
+  }, [])
 
-  const intlLogos = [
-    { src: '/images/logos/image-25.png', alt: 'USTDA' },
-    { src: '/images/logos/image-26.png', alt: 'Australian Embassy' },
-    { src: '/images/logos/image-27.png', alt: 'British Embassy' },
-    { src: '/images/logos/image-28.png', alt: 'Cyberus' },
-    { src: '/images/logos/image-29.png', alt: 'GASA' },
-    { src: '/images/logos/image-30.png', alt: 'US-ASEAN' },
-  ]
+  if (isLoading) {
+    return (
+      <section ref={sectionRef} className="w-full max-w-[1240px] mx-auto px-4 md:px-8 lg:px-[131px] py-20">
+        <div className="text-center py-8 text-[#29294b]">
+          {t({ en: 'Loading...', id: 'Memuat...' })}
+        </div>
+      </section>
+    )
+  }
 
-  const assocLogos = [
-    { src: '/images/logos/image-31.png', alt: 'APJII' },
-    { src: '/images/logos/image-32.png', alt: 'Fintech Indonesia' },
-    { src: '/images/logos/image-33.png', alt: 'APTIKNAS' },
-    { src: '/images/logos/image-34.png', alt: 'PANDI' },
-  ]
+  if (!aboutData) {
+    return null
+  }
 
-  const companyLogos = [
-    { src: '/images/companies/image-6.png', alt: 'Company Logo 6' },
-    { src: '/images/companies/image-7.png', alt: 'Company Logo 7' },
-    { src: '/images/companies/image-8.png', alt: 'Company Logo 8' },
-    { src: '/images/companies/image-9.png', alt: 'Company Logo 9' },
-    { src: '/images/companies/image-10.png', alt: 'Company Logo 10' },
-    { src: '/images/companies/image-11.png', alt: 'Company Logo 11' },
-    { src: '/images/companies/image-12.png', alt: 'Company Logo 12' },
-    { src: '/images/companies/image-13.png', alt: 'Company Logo 13' },
-  ]
+  const title = language === 'en' ? aboutData.titleEn : aboutData.titleId
+  const description = language === 'en' ? aboutData.descriptionEn : aboutData.descriptionId
+  const vision = language === 'en' ? aboutData.visionEn : aboutData.visionId
+  const missions = aboutData.missions.map(m => language === 'en' ? m.en : m.id).filter(m => m.length > 0)
 
   return (
     <section ref={sectionRef} className="w-full max-w-[1240px] mx-auto px-4 md:px-8 lg:px-[131px] py-20">
@@ -80,23 +129,17 @@ export function AboutAdigsiSection() {
         <div className="flex-grow min-w-[320px]">
           <h2 className="text-primary text-[19.2px] font-bold text-center mb-4">ABOUT ADIGSI</h2>
           <h1 className="text-[#29294b] text-[28.8px] font-bold text-center mb-4">
-            Indonesian Association for Digitalization and Cybersecurity
+            {title}
           </h1>
           
           <p className="text-[#29294b] leading-relaxed mb-6">
-            ADIGSI is a national organization established to strengthen and protect Indonesia's digital 
-            infrastructure. Amid rapid digital transformation, ADIGSI focuses on enhancing the capacity 
-            of the cybersecurity industry through industry player capability development, technology 
-            mastery, and cross-sector collaboration, so that the national digital ecosystem can withstand 
-            increasingly complex cyber threats.
+            {description}
           </p>
 
           <div className="mb-8">
             <h3 className="text-[#29294b] text-lg font-semibold mb-2">Vision:</h3>
             <p className="text-[#29294b] leading-relaxed mb-6">
-              To become a key pillar in building and strengthening a resilient, innovative, and 
-              sustainable cybersecurity ecosystem in Indonesia, protecting national digital sovereignty, 
-              and supporting Indonesia's economic growth.
+              {vision}
             </p>
 
             <h3 className="text-[#29294b] text-lg font-semibold mb-2">Mission:</h3>
@@ -117,7 +160,7 @@ export function AboutAdigsiSection() {
                 Partnering with Government Organizations
               </h3>
               <div className="flex flex-wrap gap-6 items-center justify-center md:justify-end">
-                {govLogos.map((logo, index) => (
+                {staticGovLogos.map((logo, index) => (
                   <div key={index} className="w-[100px] h-[60px] relative">
                     <Image
                       src={logo.src || "/placeholder.svg"}
@@ -138,7 +181,7 @@ export function AboutAdigsiSection() {
                 Partnering with International Institutions
               </h3>
               <div className="flex flex-wrap gap-6 items-center justify-center md:justify-end">
-                {intlLogos.map((logo, index) => (
+                {staticIntlLogos.map((logo, index) => (
                   <div key={index} className="w-[100px] h-[60px] relative">
                     <Image
                       src={logo.src || "/placeholder.svg"}
@@ -159,7 +202,7 @@ export function AboutAdigsiSection() {
                 Partnering with Associations
               </h3>
               <div className="flex flex-wrap gap-6 items-center justify-center md:justify-end">
-                {assocLogos.map((logo, index) => (
+                {staticAssocLogos.map((logo, index) => (
                   <div key={index} className="w-[100px] h-[60px] relative">
                     <Image
                       src={logo.src || "/placeholder.svg"}
@@ -180,7 +223,7 @@ export function AboutAdigsiSection() {
                 Partnering with Companies
               </h3>
               <div className="flex flex-wrap gap-6 items-center justify-center md:justify-end">
-                {companyLogos.map((logo, index) => (
+                {staticCompanyLogos.map((logo, index) => (
                   <div key={index} className="w-[125px] h-[60px] relative">
                     <Image
                       src={logo.src || "/placeholder.svg"}
