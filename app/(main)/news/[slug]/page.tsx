@@ -25,7 +25,7 @@ export default function NewsDetailPage({
 }: {
   params: Promise<{ slug: string }>
 }) {
-  const { language, t } = useLanguage()
+  const { language } = useLanguage()
   const [article, setArticle] = useState<NewsData | null>(null)
   const [relatedNews, setRelatedNews] = useState<NewsData[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -53,7 +53,6 @@ export default function NewsDetailPage({
 
           if (!currentNews) {
             notFound()
-            return
           }
 
           setArticle(currentNews)
@@ -76,7 +75,7 @@ export default function NewsDetailPage({
 
   if (isLoading) {
     return (
-      <div className="max-w-[1240px] mx-auto px-5 py-20 mt-12 text-center">
+      <div className="max-w-310 mx-auto px-5 py-20 mt-12 text-center">
         <p className="text-muted-foreground">
           {language === 'en' ? 'Loading...' : 'Memuat...'}
         </p>
@@ -91,7 +90,7 @@ export default function NewsDetailPage({
   return (
     <>
       {/* Article Content */}
-      <section className="max-w-[1240px] mx-auto px-5 py-20 mt-12">
+      <section className="max-w-310 mx-auto px-5 py-20 mt-12">
         <div className="flex flex-col items-center mb-8">
           {/* Category Badge */}
           <div className="mb-4">
@@ -108,7 +107,7 @@ export default function NewsDetailPage({
           </h1>
 
           {/* Featured Image */}
-          <div className="relative w-full max-w-[800px] h-[400px] my-4">
+          <div className="relative w-full max-w-200 h-100 my-4">
             <Image
               src={article.image}
               alt={language === 'en' ? article.titleEn : article.titleId}
@@ -128,7 +127,7 @@ export default function NewsDetailPage({
 
       {/* Related News */}
       {relatedNews.length > 0 && (
-        <section className="max-w-[1240px] mx-auto px-5 pb-20">
+        <section className="max-w-310 mx-auto px-5 pb-20">
           <h2 className="text-2xl font-bold text-[#29294b] mb-4">
             {language === 'en' ? 'Read Also' : 'Baca Juga'}
           </h2>
@@ -138,10 +137,10 @@ export default function NewsDetailPage({
               <Link
                 key={news._id}
                 href={`/news/${news.slug}`}
-                className="flex flex-col bg-white rounded-xl min-w-[300px] max-w-[300px] hover:shadow-lg transition-all duration-200 no-underline"
+                className="flex flex-col bg-white rounded-xl min-w-75 max-w-[300px] hover:shadow-lg transition-all duration-200 no-underline"
               >
                 <div className="relative">
-                  <div className="relative w-full h-[180px]">
+                  <div className="relative w-full h-45">
                     <Image
                       src={news.image}
                       alt={language === 'en' ? news.titleEn : news.titleId}
