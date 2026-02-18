@@ -29,6 +29,7 @@ export default function CMSAboutPage() {
   const { t } = useLanguage()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [draggedItem, setDraggedItem] = useState<{ groupIndex: number; memberIndex: number } | null>(null)
   const [expandedSections, setExpandedSections] = useState({
     banner: false,
     organization: false,
@@ -477,7 +478,26 @@ export default function CMSAboutPage() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                           {group.members.map((member, memberIndex) => (
-                            <div key={memberIndex} className="border border-dashed border-border rounded-lg p-4 space-y-3">
+                            <div
+                              key={memberIndex}
+                              draggable
+                              onDragStart={() => setDraggedItem({ groupIndex, memberIndex })}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={() => {
+                                if (draggedItem && draggedItem.groupIndex === groupIndex && draggedItem.memberIndex !== memberIndex) {
+                                  const newGroups = [...orgData.groups]
+                                  const [draggedMember] = newGroups[groupIndex].members.splice(draggedItem.memberIndex, 1)
+                                  newGroups[groupIndex].members.splice(memberIndex, 0, draggedMember)
+                                  setOrgData({ ...orgData, groups: newGroups })
+                                  setDraggedItem(null)
+                                }
+                              }}
+                              className={`border rounded-lg p-4 space-y-3 cursor-grab active:cursor-grabbing transition-opacity ${
+                                draggedItem?.groupIndex === groupIndex && draggedItem?.memberIndex === memberIndex
+                                  ? 'border-dashed border-primary bg-primary/5 opacity-50'
+                                  : 'border-dashed border-border'
+                              }`}
+                            >
                               <div className="flex items-center justify-between">
                                 <span className="text-xs font-medium text-muted-foreground">
                                   {t({ en: `Member ${memberIndex + 1}`, id: `Anggota ${memberIndex + 1}` })}
