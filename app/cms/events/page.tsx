@@ -448,6 +448,7 @@ export default function CMSEventsPage() {
                       variant="outline"
                       onClick={handleCancelBanner}
                       disabled={isSaving === 'banner'}
+                      className='ml-4'
                     >
                       {t({ en: 'Cancel Changes', id: 'Batalkan Perubahan' })}
                     </Button>
