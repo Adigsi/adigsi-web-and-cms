@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     const news = await collection
       .find({ section: 'news' })
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: -1 })
       .skip(skip)
       .limit(limit)
       .toArray()
@@ -59,21 +59,25 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: news.map((item) => ({
-        _id: item._id.toString(),
-        slug: item.slug,
-        titleEn: item.titleEn,
-        titleId: item.titleId,
-        categoryEn: item.categoryEn,
-        categoryId: item.categoryId,
-        contentEn: item.contentEn,
-        contentId: item.contentId,
-        image: item.image,
-        readTimeEn: item.readTimeEn,
-        readTimeId: item.readTimeId,
-        sourceUrl: item.sourceUrl,
-        published: item.published,
-      })),
+      data: news.map((item) => {
+        const createdAt = item.createdAt 
+          ? new Date(item.createdAt).toISOString()
+          : new Date(item._id.getTimestamp()).toISOString()
+        
+        return {
+          _id: item._id.toString(),
+          slug: item.slug,
+          titleEn: item.titleEn,
+          titleId: item.titleId,
+          categoryEn: item.categoryEn,
+          categoryId: item.categoryId,
+          contentEn: item.contentEn,
+          contentId: item.contentId,
+          image: item.image,
+          published: item.published,
+          createdAt,
+        }
+      }),
       pagination: {
         page,
         limit,
