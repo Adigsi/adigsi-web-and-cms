@@ -208,7 +208,7 @@ export function PartnersSection() {
 
   return (
     <section ref={sectionRef} className="w-full max-w-310uto px-4 md:px-8 lg:px-32.75 pb-20">
-      <div className={`px-8 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+      <div className={`${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
         <div className="grow min-w-[320px]">
           <div className="bg-white p-5 md:p-10 space-y-10">
             {partnersData?.categories.map((category, categoryIndex) => (
