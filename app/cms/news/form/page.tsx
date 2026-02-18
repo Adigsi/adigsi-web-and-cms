@@ -354,10 +354,8 @@ interface NewsData {
   contentEn: string
   contentId: string
   image: string
-  readTimeEn: string
-  readTimeId: string
-  sourceUrl?: string
   published: boolean
+  createdAt?: string
 }
 
 function NewsFormContent() {
@@ -380,9 +378,6 @@ function NewsFormContent() {
     contentEn: '',
     contentId: '',
     image: '',
-    readTimeEn: '',
-    readTimeId: '',
-    sourceUrl: '',
     published: true,
   })
 
@@ -495,7 +490,7 @@ function NewsFormContent() {
 
   const handleSave = async () => {
     if (!formData.titleEn || !formData.titleId || !formData.categoryEn || !formData.categoryId || 
-        !formData.contentEn || !formData.contentId || !formData.image || !formData.readTimeEn || !formData.readTimeId) {
+        !formData.contentEn || !formData.contentId || !formData.image) {
       setSaveStatus({
         type: 'error',
         message: t({ en: 'All required fields must be filled', id: 'Semua field wajib harus diisi' }),
@@ -736,44 +731,12 @@ function NewsFormContent() {
             </div>
           </div>
 
-          {/* Metadata Section */}
+          {/* Publish Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-foreground border-b pb-2">
-              {t({ en: 'Metadata', id: 'Metadata' })}
+              {t({ en: 'Publish Settings', id: 'Pengaturan Publikasi' })}
             </h3>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="readtime-en">{t({ en: 'Read Time (English)', id: 'Waktu Baca (English)' })} *</Label>
-                <Input
-                  id="readtime-en"
-                  value={formData.readTimeEn}
-                  onChange={(e) => setFormData({ ...formData, readTimeEn: e.target.value })}
-                  placeholder={t({ en: 'e.g., 5 min read', id: 'e.g., 5 min read' })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="readtime-id">{t({ en: 'Read Time (Bahasa Indonesia)', id: 'Waktu Baca (Bahasa Indonesia)' })} *</Label>
-                <Input
-                  id="readtime-id"
-                  value={formData.readTimeId}
-                  onChange={(e) => setFormData({ ...formData, readTimeId: e.target.value })}
-                  placeholder={t({ en: 'e.g., 5 menit baca', id: 'e.g., 5 menit baca' })}
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="source-url">{t({ en: 'Source URL (Optional)', id: 'URL Sumber (Opsional)' })}</Label>
-              <Input
-                id="source-url"
-                value={formData.sourceUrl || ''}
-                onChange={(e) => setFormData({ ...formData, sourceUrl: e.target.value })}
-                placeholder={t({ en: 'Enter source URL', id: 'Masukkan URL sumber' })}
-              />
-            </div>
-
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"

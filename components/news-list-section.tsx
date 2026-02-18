@@ -16,10 +16,8 @@ interface NewsData {
   contentEn: string
   contentId: string
   image: string
-  readTimeEn: string
-  readTimeId: string
-  sourceUrl?: string
   published: boolean
+  createdAt: string
 }
 
 export function NewsListSection() {
@@ -30,6 +28,46 @@ export function NewsListSection() {
   const [isLoading, setIsLoading] = useState(true)
   const sectionRef = useRef<HTMLElement>(null)
   const { language, t } = useLanguage()
+
+  const getTimeAgo = (dateString: string) => {
+    const now = new Date()
+    const past = new Date(dateString)
+    const diffMs = now.getTime() - past.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+    const diffWeeks = Math.floor(diffDays / 7)
+    const diffMonths = Math.floor(diffDays / 30)
+    const diffYears = Math.floor(diffDays / 365)
+
+    if (diffMins < 1) {
+      return language === 'en' ? 'Just now' : 'Baru saja'
+    } else if (diffMins < 60) {
+      return language === 'en' 
+        ? `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`
+        : `${diffMins} menit yang lalu`
+    } else if (diffHours < 24) {
+      return language === 'en'
+        ? `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+        : `${diffHours} jam yang lalu`
+    } else if (diffDays < 7) {
+      return language === 'en'
+        ? `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+        : `${diffDays} hari yang lalu`
+    } else if (diffWeeks < 4) {
+      return language === 'en'
+        ? `${diffWeeks} week${diffWeeks > 1 ? 's' : ''} ago`
+        : `${diffWeeks} minggu yang lalu`
+    } else if (diffMonths < 12) {
+      return language === 'en'
+        ? `${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`
+        : `${diffMonths} bulan yang lalu`
+    } else {
+      return language === 'en'
+        ? `${diffYears} year${diffYears > 1 ? 's' : ''} ago`
+        : `${diffYears} tahun yang lalu`
+    }
+  }
 
   const fetchNews = async (page: number) => {
     setIsLoading(true)
@@ -122,7 +160,7 @@ export function NewsListSection() {
 
                     <div className="flex justify-between text-[12.8px] text-[#555] mt-4 mb-1">
                       <span className="block">
-                        {language === 'en' ? article.readTimeEn : article.readTimeId}
+                        {article.createdAt && getTimeAgo(article.createdAt)}
                       </span>
                     </div>
                   </div>

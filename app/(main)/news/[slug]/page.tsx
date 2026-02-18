@@ -16,10 +16,8 @@ interface NewsData {
   contentEn: string
   contentId: string
   image: string
-  readTimeEn: string
-  readTimeId: string
-  sourceUrl?: string
   published: boolean
+  createdAt: string
 }
 
 export default function NewsDetailPage({
@@ -126,25 +124,6 @@ export default function NewsDetailPage({
             __html: language === 'en' ? article.contentEn : article.contentId 
           }} />
         </div>
-
-        {/* Source Link */}
-        {article.sourceUrl && (
-          <div className="mt-8">
-            <p className="text-[#29294b] mb-2">
-              {language === 'en' 
-                ? 'For more details, please read at:' 
-                : 'Untuk selengkapnya silahkan baca di:'}
-            </p>
-            <a
-              href={article.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline hover:text-secondary transition-colors break-all"
-            >
-              {article.sourceUrl}
-            </a>
-          </div>
-        )}
       </section>
 
       {/* Related News */}
@@ -181,9 +160,6 @@ export default function NewsDetailPage({
                   <h3 className="text-base font-bold text-black mb-4 line-clamp-2">
                     {language === 'en' ? news.titleEn : news.titleId}
                   </h3>
-                  <div className="flex justify-between text-xs text-[#555]">
-                    <span>{language === 'en' ? news.readTimeEn : news.readTimeId}</span>
-                  </div>
                 </div>
               </Link>
             ))}

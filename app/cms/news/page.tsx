@@ -27,10 +27,8 @@ interface NewsData {
   contentEn: string
   contentId: string
   image: string
-  readTimeEn: string
-  readTimeId: string
-  sourceUrl?: string
   published: boolean
+  createdAt?: string
 }
 
 interface NewsResponse {
@@ -427,9 +425,6 @@ export default function CMSNewsPage() {
                               {t({ en: 'Category', id: 'Kategori' })}
                             </th>
                             <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                              {t({ en: 'Read Time', id: 'Waktu Baca' })}
-                            </th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
                               {t({ en: 'Status', id: 'Status' })}
                             </th>
                             <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
@@ -471,14 +466,6 @@ export default function CMSNewsPage() {
                                 </div>
                                 <div className="text-sm text-foreground mt-1">
                                   <span className="font-bold">ID:</span> {newsItem.categoryId}
-                                </div>
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="text-sm text-foreground">
-                                  <span className="font-bold">EN:</span> {newsItem.readTimeEn}
-                                </div>
-                                <div className="text-sm text-foreground mt-1">
-                                  <span className="font-bold">ID:</span> {newsItem.readTimeId}
                                 </div>
                               </td>
                               <td className="px-4 py-3">

@@ -10,11 +10,9 @@ interface NewsData {
   contentEn: string
   contentId: string
   image: string
-  readTimeEn: string
-  readTimeId: string
-  sourceUrl?: string
   published: boolean
   slug?: string
+  createdAt?: Date
 }
 
 function generateSlug(title: string): string {
@@ -95,9 +93,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const data: NewsData & { _id?: string } = await request.json()
-    const { _id, titleEn, titleId, categoryEn, categoryId, contentEn, contentId, image, readTimeEn, readTimeId, sourceUrl, published } = data
+    const { _id, titleEn, titleId, categoryEn, categoryId, contentEn, contentId, image, published } = data
 
-    if (!titleEn || !titleId || !categoryEn || !categoryId || !contentEn || !contentId || !image || !readTimeEn || !readTimeId) {
+    if (!titleEn || !titleId || !categoryEn || !categoryId || !contentEn || !contentId || !image) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
@@ -120,9 +118,6 @@ export async function POST(request: NextRequest) {
             contentEn,
             contentId,
             image,
-            readTimeEn,
-            readTimeId,
-            sourceUrl,
             published,
             updatedAt: new Date(),
           },
@@ -143,9 +138,6 @@ export async function POST(request: NextRequest) {
         contentEn,
         contentId,
         image,
-        readTimeEn,
-        readTimeId,
-        sourceUrl,
         published,
         createdAt: new Date(),
         updatedAt: new Date(),
