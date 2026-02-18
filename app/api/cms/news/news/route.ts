@@ -14,6 +14,30 @@ interface NewsData {
   readTimeId: string
   sourceUrl?: string
   published: boolean
+  slug?: string
+}
+
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+}
+
+async function ensureUniqueSlug(baseSlug: string, collection: any): Promise<string> {
+  let slug = baseSlug
+  let counter = 1
+  
+  while (true) {
+    const existing = await collection.findOne({ slug, section: 'news' })
+    if (!existing) {
+      return slug
+    }
+    slug = `${baseSlug}-${counter}`
+    counter++
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -39,6 +63,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: news.map((item) => ({
         _id: item._id.toString(),
+        slug: item.slug,
         titleEn: item.titleEn,
         titleId: item.titleId,
         categoryEn: item.categoryEn,
@@ -83,7 +108,7 @@ export async function POST(request: NextRequest) {
     const collection = db.collection('news_content')
 
     if (_id) {
-      // Update existing news
+      // Update existing news (slug is NOT updated)
       await collection.updateOne(
         { _id: new ObjectId(_id) },
         {
@@ -104,9 +129,13 @@ export async function POST(request: NextRequest) {
         }
       )
     } else {
-      // Create new news
+      // Create new news - generate slug from titleEn
+      const baseSlug = generateSlug(titleEn)
+      const uniqueSlug = await ensureUniqueSlug(baseSlug, collection)
+      
       await collection.insertOne({
         section: 'news',
+        slug: uniqueSlug,
         titleEn,
         titleId,
         categoryEn,

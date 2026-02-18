@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/language-context'
 
 interface NewsData {
   _id: string
+  slug: string
   titleEn: string
   titleId: string
   categoryEn: string
@@ -24,22 +25,22 @@ interface NewsData {
 export default function NewsDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }) {
   const { language, t } = useLanguage()
   const [article, setArticle] = useState<NewsData | null>(null)
   const [relatedNews, setRelatedNews] = useState<NewsData[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [newsId, setNewsId] = useState<string>('')
+  const [newsSlug, setNewsSlug] = useState<string>('')
 
   useEffect(() => {
-    params.then(({ id }) => {
-      setNewsId(id)
+    params.then(({ slug }) => {
+      setNewsSlug(slug)
     })
   }, [params])
 
   useEffect(() => {
-    if (!newsId) return
+    if (!newsSlug) return
 
     const fetchNewsDetail = async () => {
       setIsLoading(true)
@@ -50,7 +51,7 @@ export default function NewsDetailPage({
 
         if (data.success) {
           const publishedNews = data.data.filter((item: NewsData) => item.published)
-          const currentNews = publishedNews.find((item: NewsData) => item._id === newsId)
+          const currentNews = publishedNews.find((item: NewsData) => item.slug === newsSlug)
 
           if (!currentNews) {
             notFound()
@@ -61,7 +62,7 @@ export default function NewsDetailPage({
           
           // Get 3 related news (excluding current)
           const related = publishedNews
-            .filter((item: NewsData) => item._id !== newsId)
+            .filter((item: NewsData) => item._id !== currentNews._id)
             .slice(0, 3)
           setRelatedNews(related)
         }
@@ -73,7 +74,7 @@ export default function NewsDetailPage({
     }
 
     fetchNewsDetail()
-  }, [newsId])
+  }, [newsSlug])
 
   if (isLoading) {
     return (
@@ -157,7 +158,7 @@ export default function NewsDetailPage({
             {relatedNews.map((news) => (
               <Link
                 key={news._id}
-                href={`/news/${news._id}`}
+                href={`/news/${news.slug}`}
                 className="flex flex-col bg-white rounded-xl min-w-[300px] max-w-[300px] hover:shadow-lg transition-all duration-200 no-underline"
               >
                 <div className="relative">

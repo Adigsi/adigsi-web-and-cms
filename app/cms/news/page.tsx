@@ -19,6 +19,7 @@ interface BannerData {
 
 interface NewsData {
   _id?: string
+  slug?: string
   titleEn: string
   titleId: string
   categoryEn: string
@@ -525,6 +526,9 @@ export default function CMSNewsPage() {
                             <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
                               {t({ en: 'Title', id: 'Judul' })}
                             </th>
+                            {/* <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                              {t({ en: 'Slug', id: 'Slug' })}
+                            </th> */}
                             <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
                               {t({ en: 'Category', id: 'Kategori' })}
                             </th>
@@ -562,6 +566,11 @@ export default function CMSNewsPage() {
                                   </div>
                                 </div>
                               </td>
+                              {/* <td className="px-4 py-3">
+                                <div className="text-sm text-muted-foreground font-mono">
+                                  {newsItem.slug}
+                                </div>
+                              </td> */}
                               <td className="px-4 py-3">
                                 <div className="text-sm text-foreground">
                                   <span className="font-bold">EN:</span> {newsItem.categoryEn}
@@ -684,6 +693,25 @@ export default function CMSNewsPage() {
                   placeholder={t({ en: 'Enter title in Indonesian', id: 'Masukkan judul dalam Indonesia' })}
                 />
               </div>
+
+              {/* {editingNews && formData.slug && (
+                <div>
+                  <Label htmlFor="news-slug">{t({ en: 'Slug (URL)', id: 'Slug (URL)' })}</Label>
+                  <Input
+                    id="news-slug"
+                    value={formData.slug}
+                    readOnly
+                    disabled
+                    className="bg-muted cursor-not-allowed"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t({ 
+                      en: 'Slug is auto-generated from title and cannot be changed', 
+                      id: 'Slug dibuat otomatis dari judul dan tidak dapat diubah' 
+                    })}
+                  </p>
+                </div>
+              )} */}
 
               <div>
                 <Label htmlFor="news-category-en">{t({ en: 'Category (English)', id: 'Kategori (English)' })}</Label>

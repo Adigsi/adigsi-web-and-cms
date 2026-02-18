@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 
 interface NewsData {
   _id: string
+  slug: string
   titleEn: string
   titleId: string
   categoryEn: string
@@ -88,7 +89,7 @@ export function NewsListSection() {
               {news.map((article, index) => (
                 <Link
                   key={article._id}
-                  href={`/news/${article._id}`}
+                  href={`/news/${article.slug}`}
                   className={`group bg-white rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(0,0,0,0.2)] no-underline ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
                     }`}
                   style={{
