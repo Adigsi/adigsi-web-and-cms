@@ -122,9 +122,9 @@ export default function NewsDetailPage({
 
         {/* Article Body */}
         <div className="prose prose-lg max-w-none text-[#29294b]">
-          <div style={{ whiteSpace: 'pre-wrap' }}>
-            {language === 'en' ? article.contentEn : article.contentId}
-          </div>
+          <div dangerouslySetInnerHTML={{ 
+            __html: language === 'en' ? article.contentEn : article.contentId 
+          }} />
         </div>
 
         {/* Source Link */}

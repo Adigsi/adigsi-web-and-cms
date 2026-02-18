@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { ChevronDown, CheckCircle2, AlertCircle, Edit2, Trash2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,7 +9,6 @@ import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
 import { useLanguage } from '@/contexts/language-context'
 
 interface BannerData {
@@ -45,6 +45,7 @@ interface NewsResponse {
 }
 
 export default function CMSNewsPage() {
+  const router = useRouter()
   const { t } = useLanguage()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -71,22 +72,7 @@ export default function CMSNewsPage() {
   const [news, setNews] = useState<NewsData[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [isEditingModal, setIsEditingModal] = useState(false)
-  const [editingNews, setEditingNews] = useState<NewsData | null>(null)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
-  const [formData, setFormData] = useState<NewsData>({
-    titleEn: '',
-    titleId: '',
-    categoryEn: '',
-    categoryId: '',
-    contentEn: '',
-    contentId: '',
-    image: '',
-    readTimeEn: '',
-    readTimeId: '',
-    sourceUrl: '',
-    published: true,
-  })
 
   // Fetch banner data on mount
   useEffect(() => {
@@ -187,99 +173,7 @@ export default function CMSNewsPage() {
     }
   }, [expandedSections.news])
 
-  const handleOpenModal = (newsItem?: NewsData) => {
-    if (newsItem) {
-      setEditingNews(newsItem)
-      setFormData(newsItem)
-    } else {
-      setEditingNews(null)
-      setFormData({
-        titleEn: '',
-        titleId: '',
-        categoryEn: '',
-        categoryId: '',
-        contentEn: '',
-        contentId: '',
-        image: '',
-        readTimeEn: '',
-        readTimeId: '',
-        sourceUrl: '',
-        published: true,
-      })
-    }
-    setIsEditingModal(true)
-  }
 
-  const handleCloseModal = () => {
-    setIsEditingModal(false)
-    setEditingNews(null)
-    setFormData({
-      titleEn: '',
-      titleId: '',
-      categoryEn: '',
-      categoryId: '',
-      contentEn: '',
-      contentId: '',
-      image: '',
-      readTimeEn: '',
-      readTimeId: '',
-      sourceUrl: '',
-      published: true,
-    })
-  }
-
-  const handleSaveNews = async () => {
-    if (!formData.titleEn || !formData.titleId || !formData.categoryEn || !formData.categoryId || 
-        !formData.contentEn || !formData.contentId || !formData.image || !formData.readTimeEn || !formData.readTimeId) {
-      setSaveStatus({
-        section: 'news-form',
-        type: 'error',
-        message: t({ en: 'All fields are required', id: 'Semua field harus diisi' }),
-      })
-      return
-    }
-
-    setIsSaving('news')
-
-    try {
-      const response = await fetch('/api/cms/news/news', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to save news')
-      }
-
-      setSaveStatus({
-        section: 'news',
-        type: 'success',
-        message: editingNews
-          ? t({ en: 'News updated successfully', id: 'Berita berhasil diperbarui' })
-          : t({ en: 'News created successfully', id: 'Berita berhasil dibuat' }),
-      })
-
-      handleCloseModal()
-      fetchNews(1)
-
-      setTimeout(() => {
-        setSaveStatus({ section: null, type: null, message: '' })
-      }, 3000)
-    } catch (error) {
-      console.error('Error saving news:', error)
-      setSaveStatus({
-        section: 'news-form',
-        type: 'error',
-        message: error instanceof Error ? error.message : t({ en: 'Failed to save news', id: 'Gagal menyimpan berita' }),
-      })
-    } finally {
-      setIsSaving(null)
-    }
-  }
 
   const handleDeleteNews = async (id: string) => {
     if (!confirm(t({ en: 'Are you sure you want to delete this news?', id: 'Apakah Anda yakin ingin menghapus berita ini?' }))) {
@@ -511,7 +405,7 @@ export default function CMSNewsPage() {
                 )}
 
                 <div className="mt-4">
-                  <Button onClick={() => handleOpenModal()}>
+                  <Button onClick={() => router.push('/cms/news/form')}>
                     <Plus className="h-4 w-4 mr-2" />
                     {t({ en: 'Add News', id: 'Tambah Berita' })}
                   </Button>
@@ -608,7 +502,7 @@ export default function CMSNewsPage() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleOpenModal(newsItem)}
+                                    onClick={() => router.push(`/cms/news/form?id=${newsItem._id}`)}
                                   >
                                     <Edit2 className="h-4 w-4" />
                                   </Button>
@@ -661,186 +555,6 @@ export default function CMSNewsPage() {
             )}
           </Card>
         </>
-      )}
-
-      {/* News Modal */}
-      {isEditingModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-semibold mb-4">
-              {editingNews
-                ? t({ en: 'Edit News', id: 'Edit Berita' })
-                : t({ en: 'Add News', id: 'Tambah Berita' })}
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="news-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
-                <Input
-                  id="news-title-en"
-                  value={formData.titleEn}
-                  onChange={(e) => setFormData({ ...formData, titleEn: e.target.value })}
-                  placeholder={t({ en: 'Enter title in English', id: 'Masukkan judul dalam English' })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="news-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
-                <Input
-                  id="news-title-id"
-                  value={formData.titleId}
-                  onChange={(e) => setFormData({ ...formData, titleId: e.target.value })}
-                  placeholder={t({ en: 'Enter title in Indonesian', id: 'Masukkan judul dalam Indonesia' })}
-                />
-              </div>
-
-              {/* {editingNews && formData.slug && (
-                <div>
-                  <Label htmlFor="news-slug">{t({ en: 'Slug (URL)', id: 'Slug (URL)' })}</Label>
-                  <Input
-                    id="news-slug"
-                    value={formData.slug}
-                    readOnly
-                    disabled
-                    className="bg-muted cursor-not-allowed"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {t({ 
-                      en: 'Slug is auto-generated from title and cannot be changed', 
-                      id: 'Slug dibuat otomatis dari judul dan tidak dapat diubah' 
-                    })}
-                  </p>
-                </div>
-              )} */}
-
-              <div>
-                <Label htmlFor="news-category-en">{t({ en: 'Category (English)', id: 'Kategori (English)' })}</Label>
-                <Input
-                  id="news-category-en"
-                  value={formData.categoryEn}
-                  onChange={(e) => setFormData({ ...formData, categoryEn: e.target.value })}
-                  placeholder={t({ en: 'Enter category in English', id: 'Masukkan kategori dalam English' })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="news-category-id">{t({ en: 'Category (Bahasa Indonesia)', id: 'Kategori (Bahasa Indonesia)' })}</Label>
-                <Input
-                  id="news-category-id"
-                  value={formData.categoryId}
-                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                  placeholder={t({ en: 'Enter category in Indonesian', id: 'Masukkan kategori dalam Indonesia' })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="news-content-en">{t({ en: 'Content (English)', id: 'Konten (English)' })}</Label>
-                <Textarea
-                  id="news-content-en"
-                  value={formData.contentEn}
-                  onChange={(e) => setFormData({ ...formData, contentEn: e.target.value })}
-                  placeholder={t({ en: 'Enter content in English', id: 'Masukkan konten dalam English' })}
-                  rows={6}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="news-content-id">{t({ en: 'Content (Bahasa Indonesia)', id: 'Konten (Bahasa Indonesia)' })}</Label>
-                <Textarea
-                  id="news-content-id"
-                  value={formData.contentId}
-                  onChange={(e) => setFormData({ ...formData, contentId: e.target.value })}
-                  placeholder={t({ en: 'Enter content in Indonesian', id: 'Masukkan konten dalam Indonesia' })}
-                  rows={6}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="news-image">{t({ en: 'Image', id: 'Gambar' })}</Label>
-                <div className="mt-2">
-                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
-                    {formData.image && (
-                      <div className="mb-4">
-                        <img src={formData.image} alt="Preview" className="h-32 w-auto mx-auto rounded object-cover" />
-                      </div>
-                    )}
-                    <input
-                      id="news-image"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) {
-                          const reader = new FileReader()
-                          reader.onloadend = () => {
-                            setFormData({ ...formData, image: reader.result as string })
-                          }
-                          reader.readAsDataURL(file)
-                        }
-                      }}
-                      className="hidden"
-                    />
-                    <label htmlFor="news-image" className="cursor-pointer">
-                      <div className="text-sm text-muted-foreground">
-                        {t({ en: 'Click to upload image', id: 'Klik untuk upload gambar' })}
-                      </div>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="news-readtime-en">{t({ en: 'Read Time (English)', id: 'Waktu Baca (English)' })}</Label>
-                <Input
-                  id="news-readtime-en"
-                  value={formData.readTimeEn}
-                  onChange={(e) => setFormData({ ...formData, readTimeEn: e.target.value })}
-                  placeholder={t({ en: 'e.g., 5 min read', id: 'e.g., 5 min read' })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="news-readtime-id">{t({ en: 'Read Time (Bahasa Indonesia)', id: 'Waktu Baca (Bahasa Indonesia)' })}</Label>
-                <Input
-                  id="news-readtime-id"
-                  value={formData.readTimeId}
-                  onChange={(e) => setFormData({ ...formData, readTimeId: e.target.value })}
-                  placeholder={t({ en: 'e.g., 5 menit baca', id: 'e.g., 5 menit baca' })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="news-source-url">{t({ en: 'Source URL (Optional)', id: 'URL Sumber (Opsional)' })}</Label>
-                <Input
-                  id="news-source-url"
-                  value={formData.sourceUrl || ''}
-                  onChange={(e) => setFormData({ ...formData, sourceUrl: e.target.value })}
-                  placeholder={t({ en: 'Enter source URL', id: 'Masukkan URL sumber' })}
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="news-published"
-                  checked={formData.published}
-                  onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
-                  className="rounded"
-                />
-                <Label htmlFor="news-published">{t({ en: 'Published', id: 'Diterbitkan' })}</Label>
-              </div>
-            </div>
-
-            <div className="mt-6 flex gap-2 justify-end">
-              <Button variant="outline" onClick={handleCloseModal}>
-                {t({ en: 'Cancel', id: 'Batal' })}
-              </Button>
-              <Button onClick={handleSaveNews}>
-                {t({ en: 'Save', id: 'Simpan' })}
-              </Button>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* Image Preview Modal */}
