@@ -93,7 +93,7 @@ export function AboutAdigsiSection() {
 
   if (isLoading) {
     return (
-      <section ref={sectionRef} className="w-full max-w-[1240px] mx-auto px-4 md:px-8 lg:px-[131px] py-20">
+      <section ref={sectionRef} className="w-full max-w-310 mx-auto px-4 md:px-8 lg:px-32.75 py-20">
         <div className="text-center py-8 text-[#29294b]">
           {t({ en: 'Loading...', id: 'Memuat...' })}
         </div>
@@ -111,9 +111,9 @@ export function AboutAdigsiSection() {
   const missions = aboutData.missions.map(m => language === 'en' ? m.en : m.id).filter(m => m.length > 0)
 
   return (
-    <section ref={sectionRef} className="w-full max-w-[1240px] mx-auto px-4 md:px-8 lg:px-[131px] py-20">
+    <section ref={sectionRef} className="w-full max-w-310uto px-4 md:px-8 lg:px-32.75 py-20">
       <div className={`p-8 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
-        <div className="flex-grow min-w-[320px]">
+        <div className="grow min-w-[320px]">
           <h2 className="text-primary text-[19.2px] font-bold text-center mb-4">ABOUT ADIGSI</h2>
           <h1 className="text-[#29294b] text-[28.8px] font-bold text-center mb-4">
             {title}
@@ -133,7 +133,7 @@ export function AboutAdigsiSection() {
             <ul className="list-none p-0 m-0 space-y-3">
               {missions.map((mission, index) => (
                 <li key={index} className="flex items-center gap-2 text-[#29294b]">
-                  <CheckCircle className="w-6 h-6 text-primary flex-shrink-0" />
+                  <CheckCircle className="w-6 h-6 text-primary shrink-0" />
                   <span>{mission}</span>
                 </li>
               ))}
@@ -149,12 +149,13 @@ export function AboutAdigsiSection() {
                 <div className="flex flex-wrap gap-6 items-center justify-center md:justify-end">
                   {category.logos && category.logos.length > 0 ? (
                     category.logos.map((logo, logoIndex) => (
-                      <div key={logoIndex} className="w-[100px] h-[100px] relative">
+                      <div key={logoIndex} className="h-25 max-w-37.5 relative">
                         <Image
                           src={logo.imageUrl || "/placeholder.svg"}
                           alt={logo.alt}
-                          fill
-                          className="object-contain"
+                          height={100}
+                          width={200}
+                          className="object-contain h-full w-auto"
                         />
                       </div>
                     ))
