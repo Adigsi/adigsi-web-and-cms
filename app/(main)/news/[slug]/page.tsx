@@ -137,7 +137,7 @@ export default function NewsDetailPage({
               <Link
                 key={news._id}
                 href={`/news/${news.slug}`}
-                className="flex flex-col bg-white rounded-xl min-w-75 max-w-[300px] hover:shadow-lg transition-all duration-200 no-underline"
+                className="flex flex-col bg-white rounded-xl min-w-75 max-w-75 hover:shadow-lg transition-all duration-200 no-underline"
               >
                 <div className="relative">
                   <div className="relative w-full h-45">
