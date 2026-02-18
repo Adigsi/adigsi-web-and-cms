@@ -30,6 +30,7 @@ export default function CMSAboutPage() {
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [draggedItem, setDraggedItem] = useState<{ groupIndex: number; memberIndex: number } | null>(null)
+  const [draggedLogo, setDraggedLogo] = useState<{ categoryIndex: number; logoIndex: number } | null>(null)
   const [expandedSections, setExpandedSections] = useState({
     banner: false,
     organization: false,
@@ -927,7 +928,26 @@ export default function CMSAboutPage() {
                         {category.logos.length > 0 && (
                           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                             {category.logos.map((logo, logoIndex) => (
-                              <div key={logoIndex} className="border border-dashed border-border rounded-lg p-3 space-y-2 flex flex-col">
+                              <div
+                                key={logoIndex}
+                                draggable
+                                onDragStart={() => setDraggedLogo({ categoryIndex, logoIndex })}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={() => {
+                                  if (draggedLogo && draggedLogo.categoryIndex === categoryIndex && draggedLogo.logoIndex !== logoIndex) {
+                                    const newCategories = [...partnersData.categories]
+                                    const [draggedLogoItem] = newCategories[categoryIndex].logos.splice(draggedLogo.logoIndex, 1)
+                                    newCategories[categoryIndex].logos.splice(logoIndex, 0, draggedLogoItem)
+                                    setPartnersData({ ...partnersData, categories: newCategories })
+                                    setDraggedLogo(null)
+                                  }
+                                }}
+                                className={`border rounded-lg p-3 space-y-2 flex flex-col cursor-grab active:cursor-grabbing transition-opacity ${
+                                  draggedLogo?.categoryIndex === categoryIndex && draggedLogo?.logoIndex === logoIndex
+                                    ? 'border-dashed border-primary bg-primary/5 opacity-50'
+                                    : 'border-dashed border-border'
+                                }`}
+                              >
                                 {logo.imageUrl && (
                                   <div className="flex-1 flex items-center justify-center bg-gray-50 rounded h-20">
                                     <img src={logo.imageUrl} alt={logo.alt} className="h-16 w-auto object-contain" />
