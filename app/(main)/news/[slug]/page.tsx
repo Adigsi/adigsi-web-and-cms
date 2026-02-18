@@ -121,7 +121,7 @@ export default function NewsDetailPage({
         </div>
 
         {/* Article Body */}
-        <div className="prose prose-lg max-w-none text-[#29294b]">
+        <div className="article-content prose prose-lg max-w-none text-[#29294b]">
           <div dangerouslySetInnerHTML={{ 
             __html: language === 'en' ? article.contentEn : article.contentId 
           }} />
