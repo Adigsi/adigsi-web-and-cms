@@ -22,11 +22,54 @@ import { useLanguage } from '@/contexts/language-context'
 
 export default function CMSLoginPage() {
   const router = useRouter()
-  const { setLanguage } = useLanguage()
+  const { language, setLanguage } = useLanguage()
   const [email, setEmail] = useState('admin@adigsi.id')
   const [password, setPassword] = useState('admin12345')
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+
+  const content = {
+    en: {
+      loginFailed: 'Login failed. Please try again.',
+      connectionError: 'Connection error occurred. Please try again.',
+      leftTitle: 'Manage website content faster.',
+      leftDescription:
+        'One place to manage ADIGSI news, events, and membership information securely.',
+      secureAccess: 'Secure admin access',
+      feature1: 'Manage articles and events from one dashboard',
+      feature2: 'Changes appear instantly on the main website',
+      feature3: 'Session login protected by httpOnly cookie',
+      loginTitle: 'Sign in to CMS',
+      loginDescription: 'Use an admin account to manage ADIGSI content.',
+      email: 'Email',
+      password: 'Password',
+      passwordPlaceholder: 'Enter password',
+      processing: 'Processing...',
+      loginButton: 'Sign in to Dashboard',
+      adminOnly: 'This page is for ADIGSI administrators only.',
+    },
+    id: {
+      loginFailed: 'Login gagal. Silakan coba lagi.',
+      connectionError: 'Terjadi kesalahan koneksi. Silakan coba lagi.',
+      leftTitle: 'Kelola konten website dengan lebih cepat.',
+      leftDescription:
+        'Satu tempat untuk mengatur berita, agenda, dan informasi keanggotaan ADIGSI secara aman.',
+      secureAccess: 'Akses aman untuk admin',
+      feature1: 'Kelola artikel dan agenda dari satu dashboard',
+      feature2: 'Perubahan tampil langsung di website utama',
+      feature3: 'Session login terlindungi cookie httpOnly',
+      loginTitle: 'Masuk ke CMS',
+      loginDescription: 'Gunakan akun admin untuk mengelola konten ADIGSI.',
+      email: 'Email',
+      password: 'Password',
+      passwordPlaceholder: 'Masukkan password',
+      processing: 'Memproses...',
+      loginButton: 'Masuk ke Dashboard',
+      adminOnly: 'Halaman ini hanya untuk administrator ADIGSI.',
+    },
+  } as const
+
+  const t = content[language]
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -46,7 +89,7 @@ export default function CMSLoginPage() {
         const data = (await response.json().catch(() => null)) as {
           message?: string
         } | null
-        setErrorMessage(data?.message ?? 'Login gagal. Silakan coba lagi.')
+        setErrorMessage(data?.message ?? t.loginFailed)
         return
       }
 
@@ -69,7 +112,7 @@ export default function CMSLoginPage() {
       router.push('/cms/dashboard')
       router.refresh()
     } catch {
-      setErrorMessage('Terjadi kesalahan koneksi. Silakan coba lagi.')
+      setErrorMessage(t.connectionError)
     } finally {
       setIsLoading(false)
     }
@@ -93,11 +136,10 @@ export default function CMSLoginPage() {
                 </Badge>
                 <div className="space-y-3">
                   <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-                    Kelola konten website dengan lebih cepat.
+                    {t.leftTitle}
                   </h1>
                   <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-                    Satu tempat untuk mengatur berita, agenda, dan informasi
-                    keanggotaan ADIGSI secara aman.
+                    {t.leftDescription}
                   </p>
                 </div>
               </div>
@@ -105,12 +147,12 @@ export default function CMSLoginPage() {
               <div className="space-y-4 rounded-xl border border-border/60 bg-background/70 p-4">
                 <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <ShieldCheck className="size-4 text-primary" />
-                  Akses aman untuk admin
+                  {t.secureAccess}
                 </div>
                 <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Kelola artikel dan agenda dari satu dashboard</li>
-                  <li>• Perubahan tampil langsung di website utama</li>
-                  <li>• Session login terlindungi cookie httpOnly</li>
+                  <li>• {t.feature1}</li>
+                  <li>• {t.feature2}</li>
+                  <li>• {t.feature3}</li>
                 </ul>
               </div>
             </div>
@@ -128,9 +170,9 @@ export default function CMSLoginPage() {
                 </Link>
 
                 <div className="space-y-1.5">
-                  <CardTitle className="text-2xl">Masuk ke CMS</CardTitle>
+                  <CardTitle className="text-2xl">{t.loginTitle}</CardTitle>
                   <CardDescription>
-                    Gunakan akun admin untuk mengelola konten ADIGSI.
+                    {t.loginDescription}
                   </CardDescription>
                 </div>
               </CardHeader>
@@ -138,7 +180,7 @@ export default function CMSLoginPage() {
               <CardContent className="px-0 pb-0">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{t.email}</Label>
                     <div className="relative">
                       <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
@@ -155,13 +197,13 @@ export default function CMSLoginPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">{t.password}</Label>
                     <div className="relative">
                       <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
                         id="password"
                         type="password"
-                        placeholder="Masukkan password"
+                        placeholder={t.passwordPlaceholder}
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
                         required
@@ -179,11 +221,11 @@ export default function CMSLoginPage() {
                   ) : null}
 
                   <Button type="submit" className="h-10 w-full" disabled={isLoading}>
-                    {isLoading ? 'Memproses...' : 'Masuk ke Dashboard'}
+                    {isLoading ? t.processing : t.loginButton}
                   </Button>
 
                   <p className="text-center text-xs text-muted-foreground">
-                    Halaman ini hanya untuk administrator ADIGSI.
+                    {t.adminOnly}
                   </p>
                 </form>
               </CardContent>
