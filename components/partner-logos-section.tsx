@@ -154,7 +154,8 @@ export function PartnerLogosSection() {
                           <img
                             src={logo.imageUrl}
                             alt={logo.alt || 'Partner logo'}
-                            className="w-full h-full object-contain transition-all duration-300 group-hover:scale-110 group-hover:brightness-110 p-1.5 sm:p-3"
+                            className="w-full h-full object-contain transition-all duration-300 group-hover:scale-110 group-hover:brightness-110"
+                            style={{ padding: `${responsiveSize * 0.05}px` }}
                             onError={(e) => {
                               console.error('Image load error:', logo.alt, logo.imageUrl)
                               e.currentTarget.style.display = 'none'
