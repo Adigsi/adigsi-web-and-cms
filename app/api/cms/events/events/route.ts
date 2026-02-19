@@ -17,20 +17,50 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const page = parseInt(searchParams.get('page') || '1', 10)
     const limit = 12
+    const search = searchParams.get('search') || ''
+    const category = searchParams.get('category') || ''
+    const published = searchParams.get('published') || ''
 
     const db = await getMongoDatabase()
     const collection = db.collection('events_content')
 
     const skip = (page - 1) * limit
 
+    // Build filter query
+    const filter: any = { section: 'event' }
+    
+    // Add search filter (search in title EN and ID)
+    if (search) {
+      filter.$or = [
+        { titleEn: { $regex: search, $options: 'i' } },
+        { titleId: { $regex: search, $options: 'i' } },
+      ]
+    }
+    
+    // Add category filter
+    if (category) {
+      filter.$and = filter.$and || []
+      filter.$and.push({
+        $or: [
+          { categoryEn: { $regex: category, $options: 'i' } },
+          { categoryId: { $regex: category, $options: 'i' } },
+        ]
+      })
+    }
+    
+    // Add published filter
+    if (published) {
+      filter.published = published === 'true'
+    }
+
     const [events, total] = await Promise.all([
       collection
-        .find({ section: 'event' })
+        .find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .toArray(),
-      collection.countDocuments({ section: 'event' }),
+      collection.countDocuments(filter),
     ])
 
     const totalPages = Math.ceil(total / limit)

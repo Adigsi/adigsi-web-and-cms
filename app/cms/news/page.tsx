@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, CheckCircle2, AlertCircle, Edit2, Trash2, Plus } from 'lucide-react'
+import { ChevronDown, CheckCircle2, AlertCircle, Edit2, Trash2, Plus, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -67,10 +67,14 @@ export default function CMSNewsPage() {
   const [originalBannerData, setOriginalBannerData] = useState<BannerData>(bannerData)
 
   // News section state
-  const [news, setNews] = useState<NewsData[]>([])
+  const [news, setNews] = useState<NewsData[]>([]) 
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [publishedFilter, setPublishedFilter] = useState('')
+  const [availableCategories, setAvailableCategories] = useState<string[]>([])
 
   // Fetch banner data on mount
   useEffect(() => {
@@ -153,7 +157,14 @@ export default function CMSNewsPage() {
   // Fetch news
   const fetchNews = async (page: number) => {
     try {
-      const response = await fetch(`/api/cms/news/news?page=${page}`)
+      const params = new URLSearchParams({
+        page: page.toString(),
+        ...(searchQuery && { search: searchQuery }),
+        ...(categoryFilter && { category: categoryFilter }),
+        ...(publishedFilter && { published: publishedFilter }),
+      })
+      
+      const response = await fetch(`/api/cms/news/news?${params}`)
       if (response.ok) {
         const data: NewsResponse = await response.json()
         setNews(data.data)
@@ -168,8 +179,63 @@ export default function CMSNewsPage() {
   useEffect(() => {
     if (expandedSections.news) {
       fetchNews(1)
+      fetchCategories()
     }
   }, [expandedSections.news])
+
+  // Auto-fetch when filters change
+  useEffect(() => {
+    if (expandedSections.news && (categoryFilter || publishedFilter)) {
+      setCurrentPage(1)
+      fetchNews(1)
+    }
+  }, [categoryFilter, publishedFilter])
+
+  // Debounced search
+  useEffect(() => {
+    if (!expandedSections.news) return
+
+    const timeoutId = setTimeout(() => {
+      if (searchQuery) {
+        setCurrentPage(1)
+        fetchNews(1)
+      }
+    }, 500) // 500ms debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery])
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/cms/news/categories')
+      if (response.ok) {
+        const data = await response.json()
+        setAvailableCategories(data.categories || [])
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+  }
+
+  const handleResetFilters = async () => {
+    setSearchQuery('')
+    setCategoryFilter('')
+    setPublishedFilter('')
+    setCurrentPage(1)
+    
+    // Fetch immediately with no filters
+    try {
+      const response = await fetch(`/api/cms/news/news?page=1`)
+      if (response.ok) {
+        const data: NewsResponse = await response.json()
+        setNews(data.data)
+        setCurrentPage(data.pagination.page)
+        setTotalPages(data.pagination.totalPages)
+      }
+    } catch (error) {
+      console.error('Error fetching news:', error)
+    }
+  }
 
 
 
@@ -194,6 +260,7 @@ export default function CMSNewsPage() {
       })
 
       fetchNews(currentPage)
+      fetchCategories() // Refresh categories
 
       setTimeout(() => {
         setSaveStatus({ section: null, type: null, message: '' })
@@ -407,6 +474,49 @@ export default function CMSNewsPage() {
                     <Plus className="h-4 w-4 mr-2" />
                     {t({ en: 'Add News', id: 'Tambah Berita' })}
                   </Button>
+                </div>
+
+                {/* Search and Filters */}
+                <div className="mt-4 space-y-3">
+                  <div className="flex flex-col md:flex-row gap-3">
+                    <div className="flex-1 relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="text"
+                        placeholder={t({ en: 'Search news by title...', id: 'Cari berita berdasarkan judul...' })}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="">{t({ en: 'All Categories', id: 'Semua Kategori' })}</option>
+                        {availableCategories.map((cat) => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={publishedFilter}
+                        onChange={(e) => setPublishedFilter(e.target.value)}
+                        className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="">{t({ en: 'All Status', id: 'Semua Status' })}</option>
+                        <option value="true">{t({ en: 'Published', id: 'Diterbitkan' })}</option>
+                        <option value="false">{t({ en: 'Draft', id: 'Draft' })}</option>
+                      </select>
+                      {(searchQuery || categoryFilter || publishedFilter) && (
+                        <Button onClick={handleResetFilters} variant="outline" size="sm">
+                          <X className="h-4 w-4 mr-1" />
+                          {t({ en: 'Reset', id: 'Reset' })}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {news.length > 0 ? (

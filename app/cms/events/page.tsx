@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronDown, CheckCircle2, AlertCircle, Edit2, Trash2, Plus } from 'lucide-react'
+import { ChevronDown, CheckCircle2, AlertCircle, Edit2, Trash2, Plus, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -68,6 +68,10 @@ export default function CMSEventsPage() {
   const [isEditingModal, setIsEditingModal] = useState(false)
   const [editingEvent, setEditingEvent] = useState<EventData | null>(null)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [publishedFilter, setPublishedFilter] = useState('')
+  const [availableCategories, setAvailableCategories] = useState<string[]>([])
   const [formData, setFormData] = useState<EventData>({
     titleEn: '',
     titleId: '',
@@ -110,7 +114,14 @@ export default function CMSEventsPage() {
   // Fetch events
   const fetchEvents = async (page: number) => {
     try {
-      const response = await fetch(`/api/cms/events/events?page=${page}`)
+      const params = new URLSearchParams({
+        page: page.toString(),
+        ...(searchQuery && { search: searchQuery }),
+        ...(categoryFilter && { category: categoryFilter }),
+        ...(publishedFilter && { published: publishedFilter }),
+      })
+      
+      const response = await fetch(`/api/cms/events/events?${params}`)
       if (response.ok) {
         const data: EventsResponse = await response.json()
         setEvents(data.data)
@@ -125,8 +136,63 @@ export default function CMSEventsPage() {
   useEffect(() => {
     if (expandedSections.events) {
       fetchEvents(1)
+      fetchCategories()
     }
   }, [expandedSections.events])
+
+  // Auto-fetch when filters change
+  useEffect(() => {
+    if (expandedSections.events && (categoryFilter || publishedFilter)) {
+      setCurrentPage(1)
+      fetchEvents(1)
+    }
+  }, [categoryFilter, publishedFilter])
+
+  // Debounced search
+  useEffect(() => {
+    if (!expandedSections.events) return
+
+    const timeoutId = setTimeout(() => {
+      if (searchQuery) {
+        setCurrentPage(1)
+        fetchEvents(1)
+      }
+    }, 500) // 500ms debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery])
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/cms/events/categories')
+      if (response.ok) {
+        const data = await response.json()
+        setAvailableCategories(data.categories || [])
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+  }
+
+  const handleResetFilters = async () => {
+    setSearchQuery('')
+    setCategoryFilter('')
+    setPublishedFilter('')
+    setCurrentPage(1)
+    
+    // Fetch immediately with no filters
+    try {
+      const response = await fetch(`/api/cms/events/events?page=1`)
+      if (response.ok) {
+        const data: EventsResponse = await response.json()
+        setEvents(data.data)
+        setCurrentPage(data.pagination.page)
+        setTotalPages(data.pagination.totalPages)
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error)
+    }
+  }
 
   const hasChanges = (current: any, original: any): boolean => {
     return JSON.stringify(current) !== JSON.stringify(original)
@@ -246,6 +312,7 @@ export default function CMSEventsPage() {
 
       handleCloseModal()
       fetchEvents(1)
+      fetchCategories() // Refresh categories
 
       setTimeout(() => {
         setSaveStatus({ section: null, type: null, message: '' })
@@ -283,6 +350,7 @@ export default function CMSEventsPage() {
       })
 
       fetchEvents(currentPage)
+      fetchCategories() // Refresh categories
 
       setTimeout(() => {
         setSaveStatus({ section: null, type: null, message: '' })
@@ -509,6 +577,49 @@ export default function CMSEventsPage() {
                     <Plus className="h-4 w-4" />
                     {t({ en: 'Add New Event', id: 'Tambah Kegiatan Baru' })}
                   </Button>
+
+                  {/* Search and Filters */}
+                  <div className="space-y-3">
+                    <div className="flex flex-col md:flex-row gap-3">
+                      <div className="flex-1 relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="text"
+                          placeholder={t({ en: 'Search events by title...', id: 'Cari event berdasarkan judul...' })}
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <select
+                          value={categoryFilter}
+                          onChange={(e) => setCategoryFilter(e.target.value)}
+                          className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        >
+                          <option value="">{t({ en: 'All Categories', id: 'Semua Kategori' })}</option>
+                          {availableCategories.map((cat) => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
+                        <select
+                          value={publishedFilter}
+                          onChange={(e) => setPublishedFilter(e.target.value)}
+                          className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        >
+                          <option value="">{t({ en: 'All Status', id: 'Semua Status' })}</option>
+                          <option value="true">{t({ en: 'Published', id: 'Dipublikasikan' })}</option>
+                          <option value="false">{t({ en: 'Unpublished', id: 'Tidak Dipublikasikan' })}</option>
+                        </select>
+                        {(searchQuery || categoryFilter || publishedFilter) && (
+                          <Button onClick={handleResetFilters} variant="outline" size="sm">
+                            <X className="h-4 w-4 mr-1" />
+                            {t({ en: 'Reset', id: 'Reset' })}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
 
                   {/* Events Table */}
                   <div className="overflow-x-auto">

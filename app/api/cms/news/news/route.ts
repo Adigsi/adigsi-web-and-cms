@@ -44,18 +44,48 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = 12
     const skip = (page - 1) * limit
+    const search = searchParams.get('search') || ''
+    const category = searchParams.get('category') || ''
+    const published = searchParams.get('published') || ''
 
     const db = await getMongoDatabase()
     const collection = db.collection('news_content')
 
+    // Build filter query
+    const filter: any = { section: 'news' }
+    
+    // Add search filter (search in title EN and ID)
+    if (search) {
+      filter.$or = [
+        { titleEn: { $regex: search, $options: 'i' } },
+        { titleId: { $regex: search, $options: 'i' } },
+      ]
+    }
+    
+    // Add category filter
+    if (category) {
+      filter.$and = filter.$and || []
+      filter.$and.push({
+        $or: [
+          { categoryEn: { $regex: category, $options: 'i' } },
+          { categoryId: { $regex: category, $options: 'i' } },
+        ]
+      })
+    }
+    
+    // Add published filter
+    if (published) {
+      filter.published = published === 'true'
+    }
+
     const news = await collection
-      .find({ section: 'news' })
+      .find(filter)
       .sort({ createdAt: -1, _id: -1 })
       .skip(skip)
       .limit(limit)
       .toArray()
 
-    const total = await collection.countDocuments({ section: 'news' })
+    const total = await collection.countDocuments(filter)
 
     return NextResponse.json({
       success: true,
