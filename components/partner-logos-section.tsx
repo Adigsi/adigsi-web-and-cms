@@ -29,8 +29,16 @@ interface PartnerLogosData {
 export function PartnerLogosSection() {
   const [isVisible, setIsVisible] = useState(false)
   const [partnerLogosData, setPartnerLogosData] = useState<PartnerLogosData | null>(null)
+  const [windowWidth, setWindowWidth] = useState<number | null>(null)
   const sectionRef = useRef<HTMLElement>(null)
   const { t } = useLanguage()
+
+  useEffect(() => {
+    setWindowWidth(window.innerWidth)
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     // Fetch partner logos data
@@ -94,6 +102,14 @@ export function PartnerLogosSection() {
     return null
   }
 
+  // Calculate responsive logo size
+  const getResponsiveSize = (baseWidth: number): number => {
+    if (!windowWidth) return baseWidth
+    if (windowWidth < 640) return Math.max(baseWidth * 0.5, 80) // Mobile: 50% or min 80px
+    if (windowWidth < 1024) return Math.max(baseWidth * 0.75, 120) // Tablet: 75% or min 120px
+    return baseWidth // Desktop: 100%
+  }
+
   return (
     <section ref={sectionRef} className="w-full bg-white py-20">
       <div className="max-w-310 mx-auto px-5">
@@ -120,39 +136,42 @@ export function PartnerLogosSection() {
               className={`mb-12`}
             >
               <div className="flex flex-wrap justify-center items-center gap-6">
-                {category.logos.map((logo, logoIndex) => (
-                  <div
-                    key={logoIndex}
-                    className="group bg-white border-2 border-gray-300 rounded-xl hover:border-[#3350e6] hover:shadow-xl transition-all duration-300 overflow-hidden flex items-center justify-center shadow-md"
-                    style={{ 
-                      width: `${category.width}px`, 
-                      height: `${category.width}px`,
-                      minWidth: `${category.width}px`,
-                      minHeight: `${category.width}px`
-                    }}
-                  >
-                    {logo.imageUrl ? (
-                      <>
-                        <img
-                          src={logo.imageUrl}
-                          alt={logo.alt || 'Partner logo'}
-                          className="w-full h-full object-contain transition-all duration-300 group-hover:scale-110 group-hover:brightness-110 p-2"
-                          onError={(e) => {
-                            console.error('Image load error:', logo.alt, logo.imageUrl)
-                            e.currentTarget.style.display = 'none'
-                          }}
-                          onLoad={() => {
-                            console.log('Image loaded:', logo.alt)
-                          }}
-                        />
-                      </>
-                    ) : (
-                      <div className="text-xs text-muted-foreground text-center px-2 font-medium">
-                        {logo.alt || 'No image URL'}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                {category.logos.map((logo, logoIndex) => {
+                  const responsiveSize = getResponsiveSize(category.width)
+                  return (
+                    <div
+                      key={logoIndex}
+                      className="group bg-white border-2 border-gray-300 rounded-xl hover:border-[#3350e6] hover:shadow-xl transition-all duration-300 overflow-hidden flex items-center justify-center shadow-md"
+                      style={{ 
+                        width: `${responsiveSize}px`, 
+                        height: `${responsiveSize}px`,
+                        minWidth: `${responsiveSize}px`,
+                        minHeight: `${responsiveSize}px`
+                      }}
+                    >
+                      {logo.imageUrl ? (
+                        <>
+                          <img
+                            src={logo.imageUrl}
+                            alt={logo.alt || 'Partner logo'}
+                            className="w-full h-full object-contain transition-all duration-300 group-hover:scale-110 group-hover:brightness-110 p-1.5 sm:p-3"
+                            onError={(e) => {
+                              console.error('Image load error:', logo.alt, logo.imageUrl)
+                              e.currentTarget.style.display = 'none'
+                            }}
+                            onLoad={() => {
+                              console.log('Image loaded:', logo.alt)
+                            }}
+                          />
+                        </>
+                      ) : (
+                        <div className="text-xs text-muted-foreground text-center px-2 font-medium">
+                          {logo.alt || 'No image URL'}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )
