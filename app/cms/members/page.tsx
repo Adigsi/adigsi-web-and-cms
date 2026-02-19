@@ -40,12 +40,12 @@ interface HeadingData {
 }
 
 // Custom Icon Picker Component
-function IconPicker({ 
-  value, 
-  onChange 
-}: { 
+function IconPicker({
+  value,
+  onChange
+}: {
   value: string
-  onChange: (icon: string) => void 
+  onChange: (icon: string) => void
 }) {
   const [open, setOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -75,11 +75,10 @@ function IconPicker({
                 onChange(iconType)
                 setOpen(false)
               }}
-              className={`p-2 rounded border transition-all flex flex-col items-center justify-center gap-1 text-xs capitalize hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950 ${
-                value === iconType
+              className={`p-2 rounded border transition-all flex flex-col items-center justify-center gap-1 text-xs capitalize hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950 ${value === iconType
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
                   : 'border-muted hover:border-gray-400'
-              }`}
+                }`}
               title={iconType}
             >
               <div className="text-muted-foreground">{value === iconType && <Check className="h-3 w-3 text-blue-500" />}</div>
@@ -563,31 +562,31 @@ export default function CMSMembersPage() {
                     </Card>
                   ))}
 
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => {
-                        setCategoriesData({
-                          ...categoriesData,
-                          categories: [
-                            ...categoriesData.categories,
-                            {
-                              titleEn: '',
-                              titleId: '',
-                              count: 0,
-                              icon: 'network',
-                            }
-                          ]
-                        })
-                      }}
-                      variant="outline"
-                    >
-                      {t({ en: '+ Add Category', id: '+ Tambah Kategori' })}
-                    </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => {
+                      setCategoriesData({
+                        ...categoriesData,
+                        categories: [
+                          ...categoriesData.categories,
+                          {
+                            titleEn: '',
+                            titleId: '',
+                            count: 0,
+                            icon: 'network',
+                          }
+                        ]
+                      })
+                    }}
+                    variant="outline"
+                  >
+                    {t({ en: '+ Add Category', id: '+ Tambah Kategori' })}
+                  </Button>
 
-                    <Button onClick={() => handleSave('categories')} disabled={isSaving === 'categories'}>
-                      {isSaving === 'categories' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Categories', id: 'Simpan Kategori' })}
-                    </Button>
-                  </div>
+                  <Button onClick={() => handleSave('categories')} disabled={isSaving === 'categories'}>
+                    {isSaving === 'categories' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Categories', id: 'Simpan Kategori' })}
+                  </Button>
                 </div>
               </>
             )}
