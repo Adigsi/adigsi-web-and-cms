@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/contexts/language-context'
+import { DownloadReportModal, DownloadFormData } from './download-report-modal'
 
 interface ReportData {
   titleEn: string
@@ -20,6 +21,7 @@ export function IndustryReportSection() {
   const [reportData, setReportData] = useState<ReportData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
   const { t, language } = useLanguage()
 
@@ -42,10 +44,18 @@ export function IndustryReportSection() {
     fetchReportData()
   }, [])
 
-  const handleDownloadPdf = async () => {
+  const handleDownloadPdf = async (userData: DownloadFormData) => {
     setIsDownloading(true)
     try {
-      const response = await fetch('/api/cms/home/report/pdf')
+      // Save download data and get PDF
+      const response = await fetch('/api/cms/report-downloads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      })
+      
       if (response.ok) {
         const data = await response.json()
         if (data.pdfFile) {
@@ -56,6 +66,9 @@ export function IndustryReportSection() {
           document.body.appendChild(link)
           link.click()
           document.body.removeChild(link)
+          
+          // Close modal after successful download
+          setIsModalOpen(false)
         }
       }
     } catch (error) {
@@ -88,7 +101,7 @@ export function IndustryReportSection() {
 
   if (isLoading) {
     return (
-      <section ref={sectionRef} className="max-w-[1240px] mx-auto px-4 md:px-8 lg:px-[131px] py-20 w-full">
+      <section ref={sectionRef} className="max-w-310 mx-auto px-4 md:px-8 lg:px-32.75 py-20 w-full">
         <div className="text-center py-8 text-muted-foreground">
           {t({ en: 'Loading...', id: 'Memuat...' })}
         </div>
@@ -103,7 +116,7 @@ export function IndustryReportSection() {
   return (
     <section 
       ref={sectionRef}
-      className="max-w-[1240px] mx-auto px-4 md:px-8 lg:px-[131px] py-20 w-full"
+      className="max-w-310 mx-auto px-4 md:px-8 lg:px-32.75 py-20 w-full"
     >
       <div className={`flex flex-col items-center justify-center text-center mb-4 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
         <h2 className="text-primary text-[21px] uppercase mb-2 font-bold">
@@ -140,18 +153,22 @@ export function IndustryReportSection() {
           
           {reportData.hasPdf && (
             <button
-              onClick={handleDownloadPdf}
-              disabled={isDownloading}
-              className="inline-block bg-[#22c55e] hover:bg-[#16a34a] text-white font-semibold rounded-lg px-6 py-3 shadow-[0_4px_10px_rgba(34,197,94,0.3)] transition-colors duration-300 w-fit no-underline disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => setIsModalOpen(true)}
+              className="inline-block bg-[#22c55e] hover:bg-[#16a34a] text-white font-semibold rounded-lg px-6 py-3 shadow-[0_4px_10px_rgba(34,197,94,0.3)] transition-colors duration-300 w-fit no-underline"
             >
-              {isDownloading 
-                ? (language === 'en' ? 'Downloading...' : 'Mengunduh...')
-                : (language === 'en' ? reportData.buttonTextEn : reportData.buttonTextId)
-              }
+              {language === 'en' ? reportData.buttonTextEn : reportData.buttonTextId}
             </button>
           )}
         </div>
       </div>
+
+      <DownloadReportModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onDownload={handleDownloadPdf}
+        reportTitle={language === 'en' ? reportData.titleEn : reportData.titleId}
+        isDownloading={isDownloading}
+      />
     </section>
   )
 }
