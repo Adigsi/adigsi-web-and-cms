@@ -32,6 +32,13 @@ interface MemberCategoriesData {
   categories: MemberCategory[]
 }
 
+interface HeadingData {
+  subtitleEn: string
+  subtitleId: string
+  titleEn: string
+  titleId: string
+}
+
 // Custom Icon Picker Component
 function IconPicker({ 
   value, 
@@ -117,6 +124,14 @@ export default function CMSMembersPage() {
     imageUrl: '',
   })
 
+  // Heading section state
+  const [headingData, setHeadingData] = useState<HeadingData>({
+    subtitleEn: 'OUR COMMUNITY',
+    subtitleId: 'KOMUNITAS KAMI',
+    titleEn: 'ADIGSI Cyber Security Members',
+    titleId: 'Anggota Cyber Security ADIGSI',
+  })
+
   // Categories section state
   const [categoriesData, setCategoriesData] = useState<MemberCategoriesData>({
     categories: [
@@ -133,10 +148,21 @@ export default function CMSMembersPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [bannerRes, categoriesRes] = await Promise.all([
+        const [headingRes, bannerRes, categoriesRes] = await Promise.all([
+          fetch('/api/cms/members/heading'),
           fetch('/api/cms/members/banner'),
           fetch('/api/cms/members/categories')
         ])
+
+        if (headingRes.ok) {
+          const data = await headingRes.json()
+          setHeadingData({
+            subtitleEn: data.subtitleEn || '',
+            subtitleId: data.subtitleId || '',
+            titleEn: data.titleEn || '',
+            titleId: data.titleId || '',
+          })
+        }
 
         if (bannerRes.ok) {
           const data = await bannerRes.json()
@@ -175,7 +201,26 @@ export default function CMSMembersPage() {
     setSaveStatus({ section: null, type: null, message: '' })
 
     try {
-      if (section === 'banner') {
+      if (section === 'heading') {
+        const response = await fetch('/api/cms/members/heading', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(headingData),
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to save heading')
+        }
+
+        setSaveStatus({
+          section: 'heading',
+          type: 'success',
+          message: t({ en: 'Heading saved successfully', id: 'Heading berhasil disimpan' }),
+        })
+      } else if (section === 'banner') {
         const response = await fetch('/api/cms/members/banner', {
           method: 'POST',
           headers: {
@@ -195,7 +240,22 @@ export default function CMSMembersPage() {
           message: t({ en: 'Banner saved successfully', id: 'Banner berhasil disimpan' }),
         })
       } else if (section === 'categories') {
-        const response = await fetch('/api/cms/members/categories', {
+        // Save heading first
+        const headingResponse = await fetch('/api/cms/members/heading', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(headingData),
+        })
+
+        if (!headingResponse.ok) {
+          const error = await headingResponse.json()
+          throw new Error(error.error || 'Failed to save heading')
+        }
+
+        // Then save categories
+        const categoriesResponse = await fetch('/api/cms/members/categories', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -203,15 +263,15 @@ export default function CMSMembersPage() {
           body: JSON.stringify(categoriesData),
         })
 
-        if (!response.ok) {
-          const error = await response.json()
+        if (!categoriesResponse.ok) {
+          const error = await categoriesResponse.json()
           throw new Error(error.error || 'Failed to save categories')
         }
 
         setSaveStatus({
           section: 'categories',
           type: 'success',
-          message: t({ en: 'Categories saved successfully', id: 'Kategori berhasil disimpan' }),
+          message: t({ en: 'Section heading and categories saved successfully', id: 'Judul seksi dan kategori berhasil disimpan' }),
         })
       }
 
@@ -378,6 +438,52 @@ export default function CMSMembersPage() {
                     </AlertDescription>
                   </Alert>
                 )}
+
+                {/* Section Heading Fields */}
+                <div className="bg-muted/30 border border-muted rounded-lg p-4 mt-4 mb-6">
+                  <h3 className="text-sm font-semibold mb-4 text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="subtitle-en">{t({ en: 'Subtitle (EN)', id: 'Subtitle (EN)' })}</Label>
+                      <Input
+                        id="subtitle-en"
+                        value={headingData.subtitleEn}
+                        onChange={(e) => setHeadingData({ ...headingData, subtitleEn: e.target.value })}
+                        placeholder={t({ en: 'Enter subtitle in English', id: 'Masukkan subtitle dalam Inggris' })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="subtitle-id">{t({ en: 'Subtitle (ID)', id: 'Subtitle (ID)' })}</Label>
+                      <Input
+                        id="subtitle-id"
+                        value={headingData.subtitleId}
+                        onChange={(e) => setHeadingData({ ...headingData, subtitleId: e.target.value })}
+                        placeholder={t({ en: 'Enter subtitle in Indonesian', id: 'Masukkan subtitle dalam Indonesia' })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="title-en">{t({ en: 'Title (EN)', id: 'Judul (EN)' })}</Label>
+                      <Input
+                        id="title-en"
+                        value={headingData.titleEn}
+                        onChange={(e) => setHeadingData({ ...headingData, titleEn: e.target.value })}
+                        placeholder={t({ en: 'Enter title in English', id: 'Masukkan judul dalam Inggris' })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="title-id">{t({ en: 'Title (ID)', id: 'Judul (ID)' })}</Label>
+                      <Input
+                        id="title-id"
+                        value={headingData.titleId}
+                        onChange={(e) => setHeadingData({ ...headingData, titleId: e.target.value })}
+                        placeholder={t({ en: 'Enter title in Indonesian', id: 'Masukkan judul dalam Indonesia' })}
+                      />
+                    </div>
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                   {categoriesData.categories.map((category, index) => (

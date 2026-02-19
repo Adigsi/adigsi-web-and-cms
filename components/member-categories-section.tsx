@@ -14,6 +14,12 @@ interface MemberCategory {
 export function MemberCategoriesSection() {
   const [isVisible, setIsVisible] = useState(false)
   const [categories, setCategories] = useState<MemberCategory[]>([])
+  const [heading, setHeading] = useState({
+    subtitleEn: 'OUR COMMUNITY',
+    subtitleId: 'KOMUNITAS KAMI',
+    titleEn: 'ADIGSI Cyber Security Members',
+    titleId: 'Anggota Cyber Security ADIGSI',
+  })
   const sectionRef = useRef<HTMLElement>(null)
   const { language } = useLanguage()
 
@@ -47,6 +53,20 @@ export function MemberCategoriesSection() {
       .catch((error) => {
         console.error('Error fetching categories:', error)
       })
+
+    fetch('/api/cms/members/heading')
+      .then((res) => res.json())
+      .then((data) => {
+        setHeading({
+          subtitleEn: data.subtitleEn || 'OUR COMMUNITY',
+          subtitleId: data.subtitleId || 'KOMUNITAS KAMI',
+          titleEn: data.titleEn || 'ADIGSI Cyber Security Members',
+          titleId: data.titleId || 'Anggota Cyber Security ADIGSI',
+        })
+      })
+      .catch((error) => {
+        console.error('Error fetching heading:', error)
+      })
   }, [])
 
   return (
@@ -66,10 +86,10 @@ export function MemberCategoriesSection() {
       <div className="max-w-[1240px] mx-auto px-5 relative z-10">
         <div className={`text-center mb-14 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
           <h2 className="text-[#00c2ff] text-[21px] uppercase mb-2 font-bold tracking-wider">
-            OUR COMMUNITY
+            {language === 'en' ? heading.subtitleEn : heading.subtitleId}
           </h2>
           <h1 className="text-white text-2xl md:text-[28px] font-bold">
-            ADIGSI Cyber Security Members
+            {language === 'en' ? heading.titleEn : heading.titleId}
           </h1>
         </div>
 
