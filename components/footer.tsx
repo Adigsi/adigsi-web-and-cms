@@ -1,6 +1,25 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
 import { Mail, Phone, MapPin } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useLanguage } from '@/contexts/language-context'
+
+interface FooterData {
+  aboutTitleEn: string
+  aboutTitleId: string
+  aboutDescriptionEn: string
+  aboutDescriptionId: string
+  instagramUrl: string
+  whatsappUrl: string
+  linkedinUrl: string
+  email: string
+  phone: string
+  addressEn: string
+  addressId: string
+  copyrightYear: string
+}
 
 function WhatsAppIcon( props: React.SVGProps<SVGSVGElement> ) {
   return (
@@ -60,6 +79,36 @@ function LinkedinIcon( props: React.SVGProps<SVGSVGElement> ) {
 }
 
 export function Footer() {
+  const { language } = useLanguage()
+  const [footerData, setFooterData] = useState<FooterData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchFooterData = async () => {
+      try {
+        const response = await fetch('/api/cms/home/footer')
+        if (response.ok) {
+          const data = await response.json()
+          setFooterData(data)
+        }
+      } catch (error) {
+        console.error('Error fetching footer data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchFooterData()
+  }, [])
+
+  if (isLoading || !footerData) {
+    return (
+      <footer className="bg-[#2d2d2d] text-white font-sans">
+        <div className="max-w-300 mx-auto px-6 pt-12 pb-4">Loading footer...</div>
+      </footer>
+    )
+  }
+
   return (
     <footer className="bg-[#2d2d2d] text-white font-sans">
       <div className="max-w-300 mx-auto px-6 pt-12 pb-4">
@@ -69,35 +118,31 @@ export function Footer() {
             <Image
               src="/images/logo-bottom.png"
               alt="ADIGSI Logo"
-              width={80}
-              height={80}
+              width={120}
+              height={120}
               className="mb-4"
-              style={{ width: 'auto', height: '80px' }}
+              style={{ width: 'auto', height: '120px' }}
             />
             <p className="text-[15.2px] leading-[24.32px] text-[#e0e0e0] mb-6">
-              ADIGSI was founded with the vision of becoming a key pillar in
-              building a strong and sustainable cybersecurity ecosystem. ADIGSI
-              promotes collaboration between government, private sector,
-              academia, and international organizations to address the
-              ever-evolving cyber threats.
+              {language === 'id' ? footerData.aboutDescriptionId : footerData.aboutDescriptionEn}
             </p>
             <div className="flex gap-4">
               <Link
-                href="https://instagram.com/adigsi.id"
+                href={footerData.instagramUrl}
                 target="_blank"
                 className="w-10 h-10 flex items-center justify-center text-white border-[1.5px] border-white rounded-full transition-all duration-300 hover:bg-white hover:text-[#2d2d2d]"
               >
                 <InstagramIcon className="w-5 h-5" />
               </Link>
               <Link
-                href="https://wa.me/6285121117245"
+                href={footerData.whatsappUrl}
                 target="_blank"
                 className="w-10 h-10 flex items-center justify-center text-white border-[1.5px] border-white rounded-full transition-all duration-300 hover:bg-white hover:text-[#2d2d2d]"
               >
                 <WhatsAppIcon className="w-5 h-5" />
               </Link>
               <Link
-                href="https://www.linkedin.com/company/asosiasi-digitalisasi-dan-keamanan-siber-indonesia-adigsi"
+                href={footerData.linkedinUrl}
                 target="_blank"
                 className="w-10 h-10 flex items-center justify-center text-white border-[1.5px] border-white rounded-full transition-all duration-300 hover:bg-white hover:text-[#2d2d2d]"
               >
@@ -119,7 +164,7 @@ export function Footer() {
               </div>
               <div className="text-[15.2px] leading-[22.8px] text-[#e0e0e0]">
                 <div className="font-medium">Email</div>
-                <div>info@adigsi.id</div>
+                <div>{footerData.email}</div>
               </div>
             </div>
 
@@ -130,7 +175,7 @@ export function Footer() {
               </div>
               <div className="text-[15.2px] leading-[22.8px] text-[#e0e0e0]">
                 <div className="font-medium">Phone</div>
-                <div>+62 851-2111-7245</div>
+                <div>{footerData.phone}</div>
               </div>
             </div>
 
@@ -140,17 +185,16 @@ export function Footer() {
                 <MapPin className="w-5 h-5 text-white" />
               </div>
               <div className="text-[15.2px] leading-[22.8px] text-[#e0e0e0]">
-                Bakrie Tower, Jl. Epicentrum Utama Raya No.2 18th Floor, Karet
-                Kuningan, Setiabudi District, Jakarta, 12940
+                {language === 'id' ? footerData.addressId : footerData.addressEn}
               </div>
             </div>
           </div>
         </div>
 
         {/* Bottom Copyright */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-6 text-[13.6px]">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6 text-[13.6px]">
           <p className="text-white text-center md:text-left">
-            Copyright © 2025 Asosiasi Digital dan Keamanan Siber Indonesia
+            Copyright © {footerData.copyrightYear} Asosiasi Digital dan Keamanan Siber Indonesia
             (ADIGSI) All Rights Reserved.
           </p>
           <div className="flex gap-6">

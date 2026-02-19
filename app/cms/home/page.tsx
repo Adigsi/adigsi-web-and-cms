@@ -53,6 +53,21 @@ interface ReportData {
   image: string
 }
 
+interface FooterData {
+  aboutTitleEn: string
+  aboutTitleId: string
+  aboutDescriptionEn: string
+  aboutDescriptionId: string
+  instagramUrl: string
+  whatsappUrl: string
+  linkedinUrl: string
+  email: string
+  phone: string
+  addressEn: string
+  addressId: string
+  copyrightYear: string
+}
+
 export default function CMSHomePage() {
   const { t } = useLanguage()
   const { toast } = useToast()
@@ -63,6 +78,7 @@ export default function CMSHomePage() {
     banner: false,
     welcome: false,
     report: false,
+    footer: false,
   })
 
   const [bannerData, setBannerData] = useState<BannerData>({
@@ -100,14 +116,30 @@ export default function CMSHomePage() {
     image: '',
   })
 
-  // Fetch banner, welcome, and report data on mount
+  const [footerData, setFooterData] = useState<FooterData>({
+    aboutTitleEn: '',
+    aboutTitleId: '',
+    aboutDescriptionEn: '',
+    aboutDescriptionId: '',
+    instagramUrl: '',
+    whatsappUrl: '',
+    linkedinUrl: '',
+    email: '',
+    phone: '',
+    addressEn: '',
+    addressId: '',
+    copyrightYear: new Date().getFullYear().toString(),
+  })
+
+  // Fetch banner, welcome, report, and footer data on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [bannerRes, welcomeRes, reportRes] = await Promise.all([
+        const [bannerRes, welcomeRes, reportRes, footerRes] = await Promise.all([
           fetch('/api/cms/home/banner'),
           fetch('/api/cms/home/welcome'),
-          fetch('/api/cms/home/report')
+          fetch('/api/cms/home/report'),
+          fetch('/api/cms/home/footer')
         ])
 
         if (bannerRes.ok) {
@@ -126,6 +158,12 @@ export default function CMSHomePage() {
           const data = await reportRes.json()
           setReportData(data)
           console.log('Fetched report data:', data)
+        }
+
+        if (footerRes.ok) {
+          const data = await footerRes.json()
+          setFooterData(data)
+          console.log('Fetched footer data:', data)
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -289,6 +327,24 @@ export default function CMSHomePage() {
         toast({
           title: t({ en: 'Success', id: 'Sukses' }),
           description: t({ en: 'Report section saved successfully', id: 'Section report berhasil disimpan' })
+        })
+      } else if (section === 'footer') {
+        const response = await fetch('/api/cms/home/footer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(footerData),
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to save footer')
+        }
+
+        toast({
+          title: t({ en: 'Success', id: 'Sukses' }),
+          description: t({ en: 'Footer saved successfully', id: 'Footer berhasil disimpan' })
         })
       }
     } catch (error) {
@@ -1006,6 +1062,192 @@ export default function CMSHomePage() {
 
                   <Button onClick={() => handleSave('report')} disabled={isSaving === 'report'} className="w-full">
                     {isSaving === 'report' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                  </Button>
+                </div>
+              </>
+            )}
+          </Card>
+
+          {/* Footer Section */}
+          <Card className="p-6">
+            <div
+              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
+              onClick={() => setExpandedSections({ ...expandedSections, footer: !expandedSections.footer })}
+            >
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Footer', id: 'Footer' })}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t({ en: 'Manage footer content including about, contact, and social links', id: 'Kelola konten footer termasuk tentang, kontak, dan link sosial' })}
+                </p>
+              </div>
+              <ChevronDown
+                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.footer ? 'rotate-0' : '-rotate-90'}`}
+              />
+            </div>
+
+            {expandedSections.footer && (
+              <>
+                <div className="space-y-6 mt-4">
+                  {/* About Section */}
+                  <div className="border-b pb-4">
+                    <h3 className="font-semibold mb-4">{t({ en: 'About Section', id: 'Section Tentang' })}</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="about-title-en">{t({ en: 'Title (EN)', id: 'Judul (EN)' })}</Label>
+                        <Input
+                          id="about-title-en"
+                          value={footerData.aboutTitleEn}
+                          onChange={(e) => setFooterData({ ...footerData, aboutTitleEn: e.target.value })}
+                          placeholder="e.g., About ADIGSI"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="about-title-id">{t({ en: 'Title (ID)', id: 'Judul (ID)' })}</Label>
+                        <Input
+                          id="about-title-id"
+                          value={footerData.aboutTitleId}
+                          onChange={(e) => setFooterData({ ...footerData, aboutTitleId: e.target.value })}
+                          placeholder="cth., Tentang ADIGSI"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="about-desc-en">{t({ en: 'Description (EN)', id: 'Deskripsi (EN)' })}</Label>
+                        <textarea
+                          id="about-desc-en"
+                          value={footerData.aboutDescriptionEn}
+                          onChange={(e) => setFooterData({ ...footerData, aboutDescriptionEn: e.target.value })}
+                          placeholder={t({ en: 'Enter about description in English', id: 'Masukkan deskripsi tentang dalam English' })}
+                          className="mt-1 w-full px-3 py-2 border border-border rounded-md text-sm resize-none"
+                          rows={4}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="about-desc-id">{t({ en: 'Description (ID)', id: 'Deskripsi (ID)' })}</Label>
+                        <textarea
+                          id="about-desc-id"
+                          value={footerData.aboutDescriptionId}
+                          onChange={(e) => setFooterData({ ...footerData, aboutDescriptionId: e.target.value })}
+                          placeholder={t({ en: 'Enter about description in Indonesian', id: 'Masukkan deskripsi tentang dalam Indonesia' })}
+                          className="mt-1 w-full px-3 py-2 border border-border rounded-md text-sm resize-none"
+                          rows={4}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Social Media Links */}
+                  <div className="border-b pb-4">
+                    <h3 className="font-semibold mb-4">{t({ en: 'Social Media Links', id: 'Link Media Sosial' })}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="instagram-url">{t({ en: 'Instagram URL', id: 'URL Instagram' })}</Label>
+                        <Input
+                          id="instagram-url"
+                          value={footerData.instagramUrl}
+                          onChange={(e) => setFooterData({ ...footerData, instagramUrl: e.target.value })}
+                          placeholder="https://instagram.com/..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="whatsapp-url">{t({ en: 'WhatsApp URL', id: 'URL WhatsApp' })}</Label>
+                        <Input
+                          id="whatsapp-url"
+                          value={footerData.whatsappUrl}
+                          onChange={(e) => setFooterData({ ...footerData, whatsappUrl: e.target.value })}
+                          placeholder="https://wa.me/..."
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="linkedin-url">{t({ en: 'LinkedIn URL', id: 'URL LinkedIn' })}</Label>
+                        <Input
+                          id="linkedin-url"
+                          value={footerData.linkedinUrl}
+                          onChange={(e) => setFooterData({ ...footerData, linkedinUrl: e.target.value })}
+                          placeholder="https://linkedin.com/company/..."
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact Information */}
+                  <div className="border-b pb-4">
+                    <h3 className="font-semibold mb-4">{t({ en: 'Contact Information', id: 'Informasi Kontak' })}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="email">{t({ en: 'Email', id: 'Email' })}</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={footerData.email}
+                          onChange={(e) => setFooterData({ ...footerData, email: e.target.value })}
+                          placeholder="info@adigsi.id"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="phone">{t({ en: 'Phone', id: 'Telepon' })}</Label>
+                        <Input
+                          id="phone"
+                          value={footerData.phone}
+                          onChange={(e) => setFooterData({ ...footerData, phone: e.target.value })}
+                          placeholder="+62 851-2111-7245"
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Address */}
+                  <div className="border-b pb-4">
+                    <h3 className="font-semibold mb-4">{t({ en: 'Address', id: 'Alamat' })}</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="address-en">{t({ en: 'Address (EN)', id: 'Alamat (EN)' })}</Label>
+                        <textarea
+                          id="address-en"
+                          value={footerData.addressEn}
+                          onChange={(e) => setFooterData({ ...footerData, addressEn: e.target.value })}
+                          placeholder="Enter address in English"
+                          className="mt-1 w-full px-3 py-2 border border-border rounded-md text-sm resize-none"
+                          rows={3}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="address-id">{t({ en: 'Address (ID)', id: 'Alamat (ID)' })}</Label>
+                        <textarea
+                          id="address-id"
+                          value={footerData.addressId}
+                          onChange={(e) => setFooterData({ ...footerData, addressId: e.target.value })}
+                          placeholder="Masukkan alamat dalam Indonesia"
+                          className="mt-1 w-full px-3 py-2 border border-border rounded-md text-sm resize-none"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Copyright */}
+                  <div>
+                    <h3 className="font-semibold mb-4">{t({ en: 'Copyright', id: 'Hak Cipta' })}</h3>
+                    <div>
+                      <Label htmlFor="copyright-year">{t({ en: 'Copyright Year', id: 'Tahun Hak Cipta' })}</Label>
+                      <Input
+                        id="copyright-year"
+                        value={footerData.copyrightYear}
+                        onChange={(e) => setFooterData({ ...footerData, copyrightYear: e.target.value })}
+                        placeholder={new Date().getFullYear().toString()}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+
+                  <Button onClick={() => handleSave('footer')} disabled={isSaving === 'footer'} className="w-full">
+                    {isSaving === 'footer' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
                   </Button>
                 </div>
               </>
