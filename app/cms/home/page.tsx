@@ -30,7 +30,7 @@ export default function CMSHomePage() {
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [expandedSections, setExpandedSections] = useState({
-    banner: true,
+    banner: false,
   })
   const [saveStatus, setSaveStatus] = useState<{
     section: string | null

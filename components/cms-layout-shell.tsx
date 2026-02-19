@@ -14,6 +14,9 @@ import {
   Newspaper,
   UserPlus,
   Users,
+  User,
+  Monitor,
+  Group,
 } from 'lucide-react'
 
 import { CMSLogoutButton } from '@/components/cms-logout-button'
@@ -31,9 +34,15 @@ type NavigationItem = {
 
 const cmsNavigation: NavigationItem[] = [
   {
+    label: 'Dashboard',
+    labelTranslation: { en: 'Dashboard', id: 'Dashboard' },
+    href: '/cms/dashboard',
+    icon: Monitor,
+  },
+  {
     label: 'Home',
     labelTranslation: { en: 'Home', id: 'Beranda' },
-    href: '/cms/dashboard',
+    href: '/cms/home',
     icon: House,
   },
   {
@@ -45,7 +54,7 @@ const cmsNavigation: NavigationItem[] = [
   {
     label: 'Community',
     labelTranslation: { en: 'Community', id: 'Komunitas' },
-    icon: Users,
+    icon: Group,
     children: [
       {
         label: 'Adigsi Members',
@@ -238,16 +247,16 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="space-y-2 border-t border-border p-4">
-            <Button
+            {/* <Button
               variant="ghost"
               className={cn(
                 'w-full text-muted-foreground hover:text-foreground',
                 isSidebarCollapsed ? 'px-0' : 'justify-start',
               )}
             >
-              <Users className="size-4" />
+              <User className="size-4" />
               {!isSidebarCollapsed ? <span>Profile</span> : null}
-            </Button>
+            </Button> */}
 
             <div
               className={cn(
