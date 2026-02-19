@@ -11,7 +11,7 @@ interface ReportData {
   descriptionId: string
   buttonTextEn: string
   buttonTextId: string
-  pdfFile: string
+  hasPdf: boolean
   image: string
 }
 
@@ -19,6 +19,7 @@ export function IndustryReportSection() {
   const [isVisible, setIsVisible] = useState(false)
   const [reportData, setReportData] = useState<ReportData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isDownloading, setIsDownloading] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
   const { t, language } = useLanguage()
 
@@ -40,6 +41,29 @@ export function IndustryReportSection() {
 
     fetchReportData()
   }, [])
+
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true)
+    try {
+      const response = await fetch('/api/cms/home/report/pdf')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.pdfFile) {
+          // Create a temporary link element to trigger download
+          const link = document.createElement('a')
+          link.href = data.pdfFile
+          link.download = 'report.pdf'
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+        }
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -114,14 +138,17 @@ export function IndustryReportSection() {
               </p>
             ))}
           
-          {reportData.pdfFile && (
-            <a
-              href={reportData.pdfFile}
-              download="report.pdf"
-              className="inline-block bg-[#22c55e] hover:bg-[#16a34a] text-white font-semibold rounded-lg px-6 py-3 shadow-[0_4px_10px_rgba(34,197,94,0.3)] transition-colors duration-300 w-fit no-underline"
+          {reportData.hasPdf && (
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isDownloading}
+              className="inline-block bg-[#22c55e] hover:bg-[#16a34a] text-white font-semibold rounded-lg px-6 py-3 shadow-[0_4px_10px_rgba(34,197,94,0.3)] transition-colors duration-300 w-fit no-underline disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {language === 'en' ? reportData.buttonTextEn : reportData.buttonTextId}
-            </a>
+              {isDownloading 
+                ? (language === 'en' ? 'Downloading...' : 'Mengunduh...')
+                : (language === 'en' ? reportData.buttonTextEn : reportData.buttonTextId)
+              }
+            </button>
           )}
         </div>
       </div>

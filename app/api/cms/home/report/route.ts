@@ -22,8 +22,10 @@ export async function GET() {
     console.log('📦 DB query result:', data)
     
     if (data && data.report) {
-      console.log('✅ Returning existing data:', data.report)
-      return NextResponse.json(data.report)
+      console.log('✅ Returning existing data')
+      // Exclude pdfFile from response to improve loading performance
+      const { pdfFile, ...reportDataWithoutPdf } = data.report
+      return NextResponse.json({ ...reportDataWithoutPdf, hasPdf: !!pdfFile })
     }
 
     // Return default data if not found
@@ -34,7 +36,7 @@ export async function GET() {
       descriptionId: 'Laporan Industri dan Panduan Strategis Kadin menyoroti kebutuhan akan kerangka keamanan siber yang kuat untuk mendukung ekonomi digital Indonesia. Laporan ini menguraikan enam pilar strategis: ketahanan siber, tata kelola, pengembangan talenta, kemitraan publik-swasta, keselarasan standar global, dan pertumbuhan industri.\n\nMeskipun ada kemajuan, ancaman siber tetap ada. Pelaku industri memainkan peran kunci dalam mempercepat inisiatif keamanan siber, memastikan keamanan nasional dan daya saing global.',
       buttonTextEn: 'Download Here',
       buttonTextId: 'Unduh Di Sini',
-      pdfFile: '',
+      hasPdf: false,
       image: '/images/design-mode/report.png'
     }
     console.log('⚠️ No data found, returning default:', defaultData)
