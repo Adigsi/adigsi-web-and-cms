@@ -49,23 +49,17 @@ export function MemberCategoriesSection() {
       .then((res) => res.json())
       .then((data) => {
         setCategories(data.categories || [])
+        if (data.heading) {
+          setHeading({
+            subtitleEn: data.heading.subtitleEn || 'OUR COMMUNITY',
+            subtitleId: data.heading.subtitleId || 'KOMUNITAS KAMI',
+            titleEn: data.heading.titleEn || 'ADIGSI Cyber Security Members',
+            titleId: data.heading.titleId || 'Anggota Cyber Security ADIGSI',
+          })
+        }
       })
       .catch((error) => {
         console.error('Error fetching categories:', error)
-      })
-
-    fetch('/api/cms/members/heading')
-      .then((res) => res.json())
-      .then((data) => {
-        setHeading({
-          subtitleEn: data.subtitleEn || 'OUR COMMUNITY',
-          subtitleId: data.subtitleId || 'KOMUNITAS KAMI',
-          titleEn: data.titleEn || 'ADIGSI Cyber Security Members',
-          titleId: data.titleId || 'Anggota Cyber Security ADIGSI',
-        })
-      })
-      .catch((error) => {
-        console.error('Error fetching heading:', error)
       })
   }, [])
 

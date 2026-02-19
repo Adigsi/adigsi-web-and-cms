@@ -147,21 +147,10 @@ export default function CMSMembersPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [headingRes, bannerRes, categoriesRes] = await Promise.all([
-          fetch('/api/cms/members/heading'),
+        const [bannerRes, categoriesRes] = await Promise.all([
           fetch('/api/cms/members/banner'),
           fetch('/api/cms/members/categories')
         ])
-
-        if (headingRes.ok) {
-          const data = await headingRes.json()
-          setHeadingData({
-            subtitleEn: data.subtitleEn || '',
-            subtitleId: data.subtitleId || '',
-            titleEn: data.titleEn || '',
-            titleId: data.titleId || '',
-          })
-        }
 
         if (bannerRes.ok) {
           const data = await bannerRes.json()
@@ -174,6 +163,14 @@ export default function CMSMembersPage() {
 
         if (categoriesRes.ok) {
           const data = await categoriesRes.json()
+          // Update both heading and categories from combined endpoint
+          setHeadingData({
+            subtitleEn: data.heading?.subtitleEn || 'OUR COMMUNITY',
+            subtitleId: data.heading?.subtitleId || 'KOMUNITAS KAMI',
+            titleEn: data.heading?.titleEn || 'ADIGSI Cyber Security Members',
+            titleId: data.heading?.titleId || 'Anggota Cyber Security ADIGSI',
+          })
+          
           setCategoriesData({
             categories: data.categories || [
               {
@@ -239,32 +236,21 @@ export default function CMSMembersPage() {
           message: t({ en: 'Banner saved successfully', id: 'Banner berhasil disimpan' }),
         })
       } else if (section === 'categories') {
-        // Save heading first
-        const headingResponse = await fetch('/api/cms/members/heading', {
+        // Save heading and categories together
+        const response = await fetch('/api/cms/members/categories', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(headingData),
+          body: JSON.stringify({
+            heading: headingData,
+            categories: categoriesData.categories,
+          }),
         })
 
-        if (!headingResponse.ok) {
-          const error = await headingResponse.json()
-          throw new Error(error.error || 'Failed to save heading')
-        }
-
-        // Then save categories
-        const categoriesResponse = await fetch('/api/cms/members/categories', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(categoriesData),
-        })
-
-        if (!categoriesResponse.ok) {
-          const error = await categoriesResponse.json()
-          throw new Error(error.error || 'Failed to save categories')
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to save section')
         }
 
         setSaveStatus({

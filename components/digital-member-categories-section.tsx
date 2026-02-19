@@ -158,7 +158,7 @@ export function DigitalMemberCategoriesSection() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="w-full bg-gradient-to-b from-[#0a0e27] to-[#0f1538] py-20 relative overflow-hidden">
+    <section ref={sectionRef} className="w-full bg-linear-to-b from-[#0a0e27] to-[#0f1538] py-20 relative overflow-hidden">
       {/* Background grid pattern */}
       <div 
         className="absolute inset-0 opacity-[0.04]"
@@ -171,7 +171,7 @@ export function DigitalMemberCategoriesSection() {
       <div className="absolute top-1/2 left-1/3 w-96 h-96 bg-[#00c2ff] rounded-full opacity-[0.04] blur-[120px]" />
       <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-[#3350e6] rounded-full opacity-[0.04] blur-[120px]" />
       
-      <div className="max-w-[1240px] mx-auto px-5 relative z-10">
+      <div className="max-w-310 mx-auto px-5 relative z-10">
         <div className={`text-center mb-14 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
           <h2 className="text-[#00c2ff] text-[21px] uppercase mb-2 font-bold tracking-wider">
             {t({ en: 'DIGITAL ECOSYSTEM', id: 'EKOSISTEM DIGITAL' })}
@@ -194,11 +194,11 @@ export function DigitalMemberCategoriesSection() {
               style={{ animationDelay: `${index * 40}ms` }}
             >
               {/* Top glow line on hover */}
-              <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-[#00c2ff]/0 to-transparent group-hover:via-[#00c2ff] transition-all duration-500" />
+              <div className="absolute top-0 left-4 right-4 h-px bg-linear-to-r from-transparent via-[#00c2ff]/0 to-transparent group-hover:via-[#00c2ff] transition-all duration-500" />
               
               <div className="flex items-center gap-4">
                 {/* Icon */}
-                <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-[#00c2ff]/10 border border-[#00c2ff]/20 flex items-center justify-center text-[#00c2ff] group-hover:bg-[#00c2ff]/20 group-hover:border-[#00c2ff]/40 group-hover:text-[#3350e6] transition-all duration-300">
+                <div className="shrink-0 w-14 h-14 rounded-lg bg-[#00c2ff]/10 border border-[#00c2ff]/20 flex items-center justify-center text-[#00c2ff] group-hover:bg-[#00c2ff]/20 group-hover:border-[#00c2ff]/40 group-hover:text-[#3350e6] transition-all duration-300">
                   <DigitalIcon type={category.icon} />
                 </div>
 
@@ -218,7 +218,7 @@ export function DigitalMemberCategoriesSection() {
                 </div>
 
                 {/* Arrow */}
-                <div className="flex-shrink-0 text-[#2a3560] group-hover:text-[#00c2ff] transition-all duration-300 group-hover:translate-x-1">
+                <div className="shrink-0 text-[#2a3560] group-hover:text-[#00c2ff] transition-all duration-300 group-hover:translate-x-1">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="9 18 15 12 9 6"/>
                   </svg>
