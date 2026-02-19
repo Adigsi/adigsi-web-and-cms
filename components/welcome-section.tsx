@@ -4,10 +4,29 @@ import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/contexts/language-context'
 
+interface Testimonial {
+  quoteEn: string
+  quoteId: string
+  name: string
+  positionEn: string
+  positionId: string
+  image: string
+}
+
+interface WelcomeData {
+  titleSmallEn: string
+  titleSmallId: string
+  titleLargeEn: string
+  titleLargeId: string
+  testimonials: Testimonial[]
+}
+
 export function WelcomeSection() {
   const [isVisible, setIsVisible] = useState(false)
+  const [welcomeData, setWelcomeData] = useState<WelcomeData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const sectionRef = useRef<HTMLElement>(null)
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -30,75 +49,93 @@ export function WelcomeSection() {
     }
   }, [])
 
+  useEffect(() => {
+    const fetchWelcomeData = async () => {
+      try {
+        console.log('🔄 Fetching welcome data...')
+        const response = await fetch('/api/cms/home/welcome')
+        if (response.ok) {
+          const data = await response.json()
+          console.log('✅ Fetched welcome data:', data)
+          console.log('📊 Number of testimonials:', data.testimonials?.length)
+          setWelcomeData(data)
+          setIsLoading(false)
+        } else {
+          console.error('❌ Failed to fetch welcome data:', response.status)
+          setIsLoading(false)
+        }
+      } catch (error) {
+        console.error('❌ Error fetching welcome data:', error)
+        setIsLoading(false)
+      }
+    }
+
+    fetchWelcomeData()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <section className="max-w-7xl mx-auto px-4 md:px-8 lg:px-32 py-20 w-full">
+        <div className="text-center text-gray-500">Loading...</div>
+      </section>
+    )
+  }
+  
+  if (!welcomeData) {
+    return (
+      <section className="max-w-7xl mx-auto px-4 md:px-8 lg:px-32 py-20 w-full">
+        <div className="text-center text-gray-500">No data available</div>
+      </section>
+    )
+  }
+
   return (
-    <section ref={sectionRef} className="max-w-[1240px] mx-auto px-4 md:px-8 lg:px-[131px] py-20 w-full">
-      <div className={`flex flex-col items-center justify-center text-center mb-12 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+    <section ref={sectionRef} className="max-w-7xl mx-auto px-4 md:px-8 lg:px-32 py-20 w-full">
+      <div className="flex flex-col items-center justify-center text-center mb-12">
         <h2 className="text-primary text-[21px] uppercase mb-2 font-bold">
-          {t({ en: 'Welcome to Adigsi', id: 'Selamat Datang di Adigsi' })}
+          {language === 'en' ? welcomeData.titleSmallEn : welcomeData.titleSmallId}
         </h2>
         <h1 className="text-[#29294b] text-2xl md:text-[28px] font-bold">
-          {t({ 
-            en: 'Indonesian Digitalization and Cybersecurity Association',
-            id: 'Asosiasi Digital dan Keamanan Siber Indonesia'
-          })}
+          {language === 'en' ? welcomeData.titleLargeEn : welcomeData.titleLargeId}
         </h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 justify-items-center">
-        {/* Card 1 - Firlie H. Ganinduto */}
-        <div className={`bg-white shadow-sm max-w-[500px] w-full flex flex-col justify-between border border-gray-200 rounded-2xl p-6 transition-all duration-1000 hover:shadow-md ${isVisible ? 'animate-fade-in-up animate-delay-100' : 'opacity-0'}`}>
-          <p className="italic text-base leading-[25.6px] text-[#333333] mb-8">
-            &quot;Sebagai perwakilan dunia usaha nasional, kebutuhan yang tinggi
-            untuk keamanan siber sangat dibutuhkan agar tidak menganggu
-            business process. Maka ADIGSI hadir untuk memperkuat keamanan
-            siber nasional demi melindungi berbagai kepentingan industri&quot;
-          </p>
-          <div className="flex items-center">
-            <Image
-              alt="Firlie H. Ganinduto"
-              src="/images/firlie.png"
-              width={48}
-              height={48}
-              className="rounded-full object-cover mr-3"
-            />
-            <div className="flex flex-col">
-              <span className="font-bold text-base text-black">
-                Firlie H. Ganinduto
-              </span>
-              <span className="text-[13.6px] text-[#555555]">
-                Ketua Umum ADIGSI
-              </span>
+        {welcomeData.testimonials && welcomeData.testimonials.length > 0 ? (
+          welcomeData.testimonials.map((testimonial, index) => (
+            <div
+              key={index}
+              className="bg-white shadow-sm max-w-xl w-full flex flex-col justify-between border border-gray-200 rounded-2xl p-6 hover:shadow-md"
+            >
+              <p className="italic text-base leading-[25.6px] text-[#333333] mb-8">
+                &quot;{language === 'en' ? testimonial.quoteEn : testimonial.quoteId}&quot;
+              </p>
+              <div className="flex items-center">
+                {testimonial.image && (
+                  <Image
+                    alt={testimonial.name}
+                    src={testimonial.image}
+                    width={48}
+                    height={48}
+                    className="rounded-full object-cover mr-3"
+                  />
+                )}
+                <div className="flex flex-col">
+                  <span className="font-bold text-base text-black">
+                    {testimonial.name}
+                  </span>
+                  <span className="text-[13.6px] text-[#555555]">
+                    {language === 'en' ? testimonial.positionEn : testimonial.positionId}
+                  </span>
+                </div>
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="col-span-2 text-center text-gray-500 py-8">
+            No testimonials available
           </div>
-        </div>
-
-        {/* Card 2 - Slamet Aji Pamungkas */}
-        <div className={`bg-white shadow-sm max-w-[500px] w-full flex flex-col justify-between border border-gray-200 rounded-2xl p-6 transition-all duration-1000 hover:shadow-md ${isVisible ? 'animate-fade-in-up animate-delay-300' : 'opacity-0'}`}>
-          <p className="italic text-base leading-[25.6px] text-[#333333] mb-8">
-            Sinergi antara pemerintah, pelaku usaha, dan sektor swasta sangat
-            diperlukan untuk memperkuat ekosistem keamanan siber kita. ADIKSI
-            diharapkan menjadi platform penting untuk berbagi pengetahuan,
-            memperkuat koordinasi antara sektor industri dan pemerintah, serta
-            meningkatkan respons terhadap ancaman siber yang semakin canggih
-          </p>
-          <div className="flex items-center">
-            <Image
-              alt="Slamet Aji Pamungkas"
-              src="/images/slamet.png"
-              width={48}
-              height={48}
-              className="rounded-full object-cover mr-3"
-            />
-            <div className="flex flex-col">
-              <span className="font-bold text-base text-black">
-                Slamet Aji Pamungkas
-              </span>
-              <span className="text-[13.6px] text-[#555555]">
-                Ketua Dewan Pengawas ADIGSI
-              </span>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </section>
   )
