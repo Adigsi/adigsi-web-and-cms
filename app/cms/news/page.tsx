@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, CheckCircle2, AlertCircle, Edit2, Trash2, Plus, Search, X } from 'lucide-react'
+import { ChevronDown, Edit2, Trash2, Plus, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Switch } from '@/components/ui/switch'
 import { useLanguage } from '@/contexts/language-context'
+import { useToast } from '@/hooks/use-toast'
 
 interface BannerData {
   titleEn: string
@@ -45,17 +45,13 @@ interface NewsResponse {
 export default function CMSNewsPage() {
   const router = useRouter()
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [expandedSections, setExpandedSections] = useState({
     banner: false,
     news: false,
   })
-  const [saveStatus, setSaveStatus] = useState<{
-    section: string | null
-    type: 'success' | 'error' | null
-    message: string
-  }>({ section: null, type: null, message: '' })
 
   // Banner section state
   const [bannerData, setBannerData] = useState<BannerData>({
@@ -115,7 +111,6 @@ export default function CMSNewsPage() {
 
   const handleSaveBanner = async () => {
     setIsSaving('banner')
-    setSaveStatus({ section: null, type: null, message: '' })
 
     try {
       const response = await fetch('/api/cms/news/banner', {
@@ -133,21 +128,16 @@ export default function CMSNewsPage() {
 
       setOriginalBannerData(bannerData)
 
-      setSaveStatus({
-        section: 'banner',
-        type: 'success',
-        message: t({ en: 'Banner saved successfully', id: 'Banner berhasil disimpan' }),
+      toast({
+        title: t({ en: 'Success', id: 'Sukses' }),
+        description: t({ en: 'Banner saved successfully', id: 'Banner berhasil disimpan' }),
       })
-
-      setTimeout(() => {
-        setSaveStatus({ section: null, type: null, message: '' })
-      }, 3000)
     } catch (error) {
       console.error('Error saving banner:', error)
-      setSaveStatus({
-        section: 'banner',
-        type: 'error',
-        message: error instanceof Error ? error.message : t({ en: 'Failed to save changes', id: 'Gagal menyimpan perubahan' }),
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: error instanceof Error ? error.message : t({ en: 'Failed to save changes', id: 'Gagal menyimpan perubahan' }),
+        variant: 'destructive',
       })
     } finally {
       setIsSaving(null)
@@ -253,24 +243,19 @@ export default function CMSNewsPage() {
         throw new Error('Failed to delete news')
       }
 
-      setSaveStatus({
-        section: 'news',
-        type: 'success',
-        message: t({ en: 'News deleted successfully', id: 'Berita berhasil dihapus' }),
+      toast({
+        title: t({ en: 'Success', id: 'Sukses' }),
+        description: t({ en: 'News deleted successfully', id: 'Berita berhasil dihapus' }),
       })
 
       fetchNews(currentPage)
       fetchCategories() // Refresh categories
-
-      setTimeout(() => {
-        setSaveStatus({ section: null, type: null, message: '' })
-      }, 3000)
     } catch (error) {
       console.error('Error deleting news:', error)
-      setSaveStatus({
-        section: 'news',
-        type: 'error',
-        message: t({ en: 'Failed to delete news', id: 'Gagal menghapus berita' }),
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: t({ en: 'Failed to delete news', id: 'Gagal menghapus berita' }),
+        variant: 'destructive',
       })
     }
   }
@@ -289,23 +274,18 @@ export default function CMSNewsPage() {
         throw new Error('Failed to update news status')
       }
 
-      setSaveStatus({
-        section: 'news',
-        type: 'success',
-        message: t({ en: 'News status updated', id: 'Status berita berhasil diperbarui' }),
+      toast({
+        title: t({ en: 'Success', id: 'Sukses' }),
+        description: t({ en: 'News status updated', id: 'Status berita berhasil diperbarui' }),
       })
 
       fetchNews(currentPage)
-
-      setTimeout(() => {
-        setSaveStatus({ section: null, type: null, message: '' })
-      }, 3000)
     } catch (error) {
       console.error('Error updating news status:', error)
-      setSaveStatus({
-        section: 'news',
-        type: 'error',
-        message: t({ en: 'Failed to update news status', id: 'Gagal memperbarui status berita' }),
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: t({ en: 'Failed to update news status', id: 'Gagal memperbarui status berita' }),
+        variant: 'destructive',
       })
     }
   }
@@ -347,19 +327,6 @@ export default function CMSNewsPage() {
 
             {expandedSections.banner && (
               <>
-                {saveStatus.section === 'banner' && saveStatus.type && (
-                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                    {saveStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                      {saveStatus.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <div className="space-y-4 mt-4">
                   <div>
                     <Label htmlFor="banner-image">{t({ en: 'Banner Image', id: 'Gambar Banner' })}</Label>
@@ -456,19 +423,6 @@ export default function CMSNewsPage() {
 
             {expandedSections.news && (
               <>
-                {saveStatus.section === 'news' && saveStatus.type && (
-                  <Alert className={`mt-4 ${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                    {saveStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                      {saveStatus.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <div className="mt-4">
                   <Button onClick={() => router.push('/cms/news/form')}>
                     <Plus className="h-4 w-4 mr-2" />

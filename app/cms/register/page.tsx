@@ -1,14 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronDown, CheckCircle2, AlertCircle, Plus, Trash2 } from 'lucide-react'
+import { ChevronDown, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Textarea } from '@/components/ui/textarea'
 import { useLanguage } from '@/contexts/language-context'
+import { useToast } from '@/hooks/use-toast'
 
 interface BannerData {
   titleEn: string
@@ -42,6 +42,7 @@ interface JoinData {
 
 export default function CMSRegisterPage() {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [expandedSections, setExpandedSections] = useState({
@@ -49,11 +50,6 @@ export default function CMSRegisterPage() {
     membership: false,
     join: false,
   })
-  const [saveStatus, setSaveStatus] = useState<{
-    section: string | null
-    type: 'success' | 'error' | null
-    message: string
-  }>({ section: null, type: null, message: '' })
 
   // Banner section state
   const [bannerData, setBannerData] = useState<BannerData>({
@@ -152,7 +148,6 @@ export default function CMSRegisterPage() {
 
   const handleSave = async (section: string) => {
     setIsSaving(section)
-    setSaveStatus({ section: null, type: null, message: '' })
 
     try {
       if (section === 'banner') {
@@ -169,15 +164,10 @@ export default function CMSRegisterPage() {
           throw new Error(error.error || 'Failed to save banner')
         }
 
-        setSaveStatus({
-          section: 'banner',
-          type: 'success',
-          message: t({ en: 'Banner saved successfully', id: 'Banner berhasil disimpan' }),
+        toast({
+          title: t({ en: 'Success', id: 'Sukses' }),
+          description: t({ en: 'Banner saved successfully', id: 'Banner berhasil disimpan' }),
         })
-
-        setTimeout(() => {
-          setSaveStatus({ section: null, type: null, message: '' })
-        }, 3000)
       } else if (section === 'membership') {
         const response = await fetch('/api/cms/register/membership', {
           method: 'POST',
@@ -192,15 +182,10 @@ export default function CMSRegisterPage() {
           throw new Error(error.error || 'Failed to save membership')
         }
 
-        setSaveStatus({
-          section: 'membership',
-          type: 'success',
-          message: t({ en: 'Membership categories saved successfully', id: 'Kategori membership berhasil disimpan' }),
+        toast({
+          title: t({ en: 'Success', id: 'Sukses' }),
+          description: t({ en: 'Membership categories saved successfully', id: 'Kategori membership berhasil disimpan' }),
         })
-
-        setTimeout(() => {
-          setSaveStatus({ section: null, type: null, message: '' })
-        }, 3000)
       } else if (section === 'join') {
         const response = await fetch('/api/cms/register/join', {
           method: 'POST',
@@ -215,22 +200,17 @@ export default function CMSRegisterPage() {
           throw new Error(error.error || 'Failed to save join data')
         }
 
-        setSaveStatus({
-          section: 'join',
-          type: 'success',
-          message: t({ en: 'Join section saved successfully', id: 'Section bergabung berhasil disimpan' }),
+        toast({
+          title: t({ en: 'Success', id: 'Sukses' }),
+          description: t({ en: 'Join section saved successfully', id: 'Section bergabung berhasil disimpan' }),
         })
-
-        setTimeout(() => {
-          setSaveStatus({ section: null, type: null, message: '' })
-        }, 3000)
       }
     } catch (error) {
       console.error(`Error saving ${section}:`, error)
-      setSaveStatus({
-        section,
-        type: 'error',
-        message: error instanceof Error ? error.message : t({ en: 'Failed to save changes', id: 'Gagal menyimpan perubahan' }),
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: error instanceof Error ? error.message : t({ en: 'Failed to save changes', id: 'Gagal menyimpan perubahan' }),
+        variant: 'destructive',
       })
     } finally {
       setIsSaving(null)
@@ -274,19 +254,6 @@ export default function CMSRegisterPage() {
 
             {expandedSections.banner && (
               <>
-                {saveStatus.section === 'banner' && saveStatus.type && (
-                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                    {saveStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                      {saveStatus.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <div className="space-y-4 mt-4">
                   <div>
                     <Label htmlFor="banner-image">{t({ en: 'Banner Image', id: 'Gambar Banner' })}</Label>
@@ -373,19 +340,6 @@ export default function CMSRegisterPage() {
 
             {expandedSections.membership && (
               <>
-                {saveStatus.section === 'membership' && saveStatus.type && (
-                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                    {saveStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                      {saveStatus.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <div className="space-y-6 mt-4">
                   <div className="border-b border-border pb-4 mb-4">
                     <h3 className="text-sm font-semibold text-foreground mb-4">{t({ en: 'Section Settings', id: 'Pengaturan Section' })}</h3>
@@ -641,19 +595,6 @@ export default function CMSRegisterPage() {
 
             {expandedSections.join && (
               <>
-                {saveStatus.section === 'join' && saveStatus.type && (
-                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                    {saveStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                      {saveStatus.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <div className="space-y-4 mt-4">
                   <div>
                     <Label htmlFor="join-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>

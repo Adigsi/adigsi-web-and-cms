@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useLanguage } from '@/contexts/language-context'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
-import { AlertCircle, CheckCircle2, ChevronDown, Upload, X } from 'lucide-react'
+import { ChevronDown, Upload, X } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 interface BannerData {
   titleSmallEn: string
@@ -55,6 +55,7 @@ interface ReportData {
 
 export default function CMSHomePage() {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [draggedTestimonial, setDraggedTestimonial] = useState<number | null>(null)
@@ -63,11 +64,6 @@ export default function CMSHomePage() {
     welcome: false,
     report: false,
   })
-  const [saveStatus, setSaveStatus] = useState<{
-    section: string | null
-    type: 'success' | 'error' | null
-    message: string
-  }>({ section: null, type: null, message: '' })
 
   const [bannerData, setBannerData] = useState<BannerData>({
     titleSmallEn: '',
@@ -146,10 +142,10 @@ export default function CMSHomePage() {
     if (!file) return
 
     if (file.size > 5 * 1024 * 1024) {
-      setSaveStatus({
-        section: 'banner',
-        type: 'error',
-        message: t({ en: 'File size must be less than 5MB', id: 'Ukuran file harus kurang dari 5MB' }),
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: t({ en: 'File size must be less than 5MB', id: 'Ukuran file harus kurang dari 5MB' }),
+        variant: 'destructive'
       })
       return
     }
@@ -167,10 +163,10 @@ export default function CMSHomePage() {
     if (!file) return
 
     if (file.size > 5 * 1024 * 1024) {
-      setSaveStatus({
-        section: 'welcome',
-        type: 'error',
-        message: t({ en: 'File size must be less than 5MB', id: 'Ukuran file harus kurang dari 5MB' }),
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: t({ en: 'File size must be less than 5MB', id: 'Ukuran file harus kurang dari 5MB' }),
+        variant: 'destructive'
       })
       return
     }
@@ -190,10 +186,10 @@ export default function CMSHomePage() {
     if (!file) return
 
     if (file.size > 5 * 1024 * 1024) {
-      setSaveStatus({
-        section: 'report',
-        type: 'error',
-        message: t({ en: 'File size must be less than 5MB', id: 'Ukuran file harus kurang dari 5MB' }),
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: t({ en: 'File size must be less than 5MB', id: 'Ukuran file harus kurang dari 5MB' }),
+        variant: 'destructive'
       })
       return
     }
@@ -211,19 +207,19 @@ export default function CMSHomePage() {
     if (!file) return
 
     if (file.type !== 'application/pdf') {
-      setSaveStatus({
-        section: 'report',
-        type: 'error',
-        message: t({ en: 'Only PDF files are allowed', id: 'Hanya file PDF yang diizinkan' }),
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: t({ en: 'Only PDF files are allowed', id: 'Hanya file PDF yang diizinkan' }),
+        variant: 'destructive'
       })
       return
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      setSaveStatus({
-        section: 'report',
-        type: 'error',
-        message: t({ en: 'PDF file size must be less than 10MB', id: 'Ukuran file PDF harus kurang dari 10MB' }),
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: t({ en: 'PDF file size must be less than 10MB', id: 'Ukuran file PDF harus kurang dari 10MB' }),
+        variant: 'destructive'
       })
       return
     }
@@ -238,7 +234,6 @@ export default function CMSHomePage() {
 
   const handleSave = async (section: string) => {
     setIsSaving(section)
-    setSaveStatus({ section: null, type: null, message: '' })
 
     try {
       if (section === 'banner') {
@@ -255,10 +250,9 @@ export default function CMSHomePage() {
           throw new Error(error.error || 'Failed to save banner')
         }
 
-        setSaveStatus({
-          section: 'banner',
-          type: 'success',
-          message: t({ en: 'Banner saved successfully', id: 'Banner berhasil disimpan' }),
+        toast({
+          title: t({ en: 'Success', id: 'Sukses' }),
+          description: t({ en: 'Banner saved successfully', id: 'Banner berhasil disimpan' })
         })
       } else if (section === 'welcome') {
         const response = await fetch('/api/cms/home/welcome', {
@@ -274,10 +268,9 @@ export default function CMSHomePage() {
           throw new Error(error.error || 'Failed to save welcome')
         }
 
-        setSaveStatus({
-          section: 'welcome',
-          type: 'success',
-          message: t({ en: 'Welcome section saved successfully', id: 'Section welcome berhasil disimpan' }),
+        toast({
+          title: t({ en: 'Success', id: 'Sukses' }),
+          description: t({ en: 'Welcome section saved successfully', id: 'Section welcome berhasil disimpan' })
         })
       } else if (section === 'report') {
         const response = await fetch('/api/cms/home/report', {
@@ -293,22 +286,17 @@ export default function CMSHomePage() {
           throw new Error(error.error || 'Failed to save report')
         }
 
-        setSaveStatus({
-          section: 'report',
-          type: 'success',
-          message: t({ en: 'Report section saved successfully', id: 'Section report berhasil disimpan' }),
+        toast({
+          title: t({ en: 'Success', id: 'Sukses' }),
+          description: t({ en: 'Report section saved successfully', id: 'Section report berhasil disimpan' })
         })
       }
-
-      setTimeout(() => {
-        setSaveStatus({ section: null, type: null, message: '' })
-      }, 3000)
     } catch (error) {
       console.error(`Error saving ${section}:`, error)
-      setSaveStatus({
-        section,
-        type: 'error',
-        message: error instanceof Error ? error.message : t({ en: 'Failed to save changes', id: 'Gagal menyimpan perubahan' }),
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: error instanceof Error ? error.message : t({ en: 'Failed to save changes', id: 'Gagal menyimpan perubahan' }),
+        variant: 'destructive'
       })
     } finally {
       setIsSaving(null)
@@ -376,19 +364,6 @@ export default function CMSHomePage() {
 
             {expandedSections.banner && (
               <>
-                {saveStatus.section === 'banner' && saveStatus.type && (
-                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                    {saveStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                      {saveStatus.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <div className="space-y-6 mt-4">
                   {/* Background Image Section */}
                   <div>
@@ -613,19 +588,6 @@ export default function CMSHomePage() {
 
             {expandedSections.welcome && (
               <>
-                {saveStatus.section === 'welcome' && saveStatus.type && (
-                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                    {saveStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                      {saveStatus.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <div className="space-y-6 mt-4">
                   {/* Titles Section */}
                   <div>
@@ -879,19 +841,6 @@ export default function CMSHomePage() {
 
             {expandedSections.report && (
               <>
-                {saveStatus.section === 'report' && saveStatus.type && (
-                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                    {saveStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                      {saveStatus.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <div className="space-y-6 mt-4">
                   {/* Report Image Section */}
                   <div>

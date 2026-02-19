@@ -1,6 +1,7 @@
 import React from 'react'
 import type { Metadata } from 'next'
 import { CMSLayoutShell } from '@/components/cms-layout-shell'
+import { Toaster } from '@/components/ui/toaster'
 
 export const metadata: Metadata = {
   title: 'CMS - ADIGSI',
@@ -12,5 +13,10 @@ export default function CMSLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <CMSLayoutShell>{children}</CMSLayoutShell>
+  return (
+    <>
+      <CMSLayoutShell>{children}</CMSLayoutShell>
+      <Toaster />
+    </>
+  )
 }

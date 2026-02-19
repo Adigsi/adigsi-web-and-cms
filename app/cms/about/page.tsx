@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useLanguage } from '@/contexts/language-context'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, CheckCircle2, ChevronDown } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import { ChevronDown } from 'lucide-react'
 
 interface Logo {
   alt: string
@@ -27,6 +27,7 @@ interface PartnersData {
 
 export default function CMSAboutPage() {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [draggedItem, setDraggedItem] = useState<{ groupIndex: number; memberIndex: number } | null>(null)
@@ -37,11 +38,6 @@ export default function CMSAboutPage() {
     about: false,
     partners: false,
   })
-  const [saveStatus, setSaveStatus] = useState<{
-    section: string | null
-    type: 'success' | 'error' | null
-    message: string
-  }>({ section: null, type: null, message: '' })
 
   // Banner section state
   const [bannerData, setBannerData] = useState({
@@ -165,7 +161,6 @@ export default function CMSAboutPage() {
 
   const handleSave = async (section: string) => {
     setIsSaving(section)
-    setSaveStatus({ section: null, type: null, message: '' })
 
     try {
       if (section === 'banner') {
@@ -182,16 +177,10 @@ export default function CMSAboutPage() {
           throw new Error(error.error || 'Failed to save banner')
         }
 
-        setSaveStatus({
-          section: 'banner',
-          type: 'success',
-          message: t({ en: 'Banner saved successfully', id: 'Banner berhasil disimpan' }),
+        toast({
+          title: t({ en: 'Success', id: 'Sukses' }),
+          description: t({ en: 'Banner saved successfully', id: 'Banner berhasil disimpan' }),
         })
-
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          setSaveStatus({ section: null, type: null, message: '' })
-        }, 3000)
       } else if (section === 'organization') {
         const response = await fetch('/api/cms/about/organization', {
           method: 'POST',
@@ -206,16 +195,10 @@ export default function CMSAboutPage() {
           throw new Error(error.error || 'Failed to save organization')
         }
 
-        setSaveStatus({
-          section: 'organization',
-          type: 'success',
-          message: t({ en: 'Organization data saved successfully', id: 'Data organisasi berhasil disimpan' }),
+        toast({
+          title: t({ en: 'Success', id: 'Sukses' }),
+          description: t({ en: 'Organization data saved successfully', id: 'Data organisasi berhasil disimpan' }),
         })
-
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          setSaveStatus({ section: null, type: null, message: '' })
-        }, 3000)
       } else if (section === 'about') {
         const response = await fetch('/api/cms/about/about', {
           method: 'POST',
@@ -230,16 +213,10 @@ export default function CMSAboutPage() {
           throw new Error(error.error || 'Failed to save about data')
         }
 
-        setSaveStatus({
-          section: 'about',
-          type: 'success',
-          message: t({ en: 'About data saved successfully', id: 'Data tentang ADIGSI berhasil disimpan' }),
+        toast({
+          title: t({ en: 'Success', id: 'Sukses' }),
+          description: t({ en: 'About data saved successfully', id: 'Data tentang ADIGSI berhasil disimpan' }),
         })
-
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          setSaveStatus({ section: null, type: null, message: '' })
-        }, 3000)
       } else if (section === 'partners') {
         const response = await fetch('/api/cms/about/partners', {
           method: 'POST',
@@ -254,23 +231,17 @@ export default function CMSAboutPage() {
           throw new Error(error.error || 'Failed to save partners')
         }
 
-        setSaveStatus({
-          section: 'partners',
-          type: 'success',
-          message: t({ en: 'Partners data saved successfully', id: 'Data mitra berhasil disimpan' }),
+        toast({
+          title: t({ en: 'Success', id: 'Sukses' }),
+          description: t({ en: 'Partners data saved successfully', id: 'Data mitra berhasil disimpan' }),
         })
-
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          setSaveStatus({ section: null, type: null, message: '' })
-        }, 3000)
       }
     } catch (error) {
       console.error(`Error saving ${section}:`, error)
-      setSaveStatus({
-        section,
-        type: 'error',
-        message: error instanceof Error ? error.message : t({ en: 'Failed to save changes', id: 'Gagal menyimpan perubahan' }),
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: error instanceof Error ? error.message : t({ en: 'Failed to save changes', id: 'Gagal menyimpan perubahan' }),
+        variant: 'destructive',
       })
     } finally {
       setIsSaving(null)
@@ -314,19 +285,6 @@ export default function CMSAboutPage() {
 
             {expandedSections.banner && (
               <>
-                {saveStatus.section === 'banner' && saveStatus.type && (
-                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                    {saveStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                      {saveStatus.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <div className="space-y-4 mt-4">
                   <div>
                     <Label htmlFor="banner-image">{t({ en: 'Banner Image', id: 'Gambar Banner' })}</Label>
@@ -413,19 +371,6 @@ export default function CMSAboutPage() {
 
             {expandedSections.organization && (
               <>
-                {saveStatus.section === 'organization' && saveStatus.type && (
-                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                    {saveStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                      {saveStatus.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <div className="space-y-6 mt-4">
                   {orgData.groups.map((group, groupIndex) => (
                     <div key={groupIndex} className="border border-border rounded-lg p-4 space-y-4">
@@ -674,19 +619,6 @@ export default function CMSAboutPage() {
 
             {expandedSections.about && (
               <>
-                {saveStatus.section === 'about' && saveStatus.type && (
-                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                    {saveStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                      {saveStatus.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <div className="space-y-6 mt-4">
                   {/* Title Section */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -861,19 +793,6 @@ export default function CMSAboutPage() {
 
             {expandedSections.partners && (
               <>
-                {saveStatus.section === 'partners' && saveStatus.type && (
-                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                    {saveStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                      {saveStatus.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <div className="space-y-6 mt-4">
                   {partnersData.categories.map((category, categoryIndex) => (
                     <div key={categoryIndex} className="border border-border rounded-lg p-4 space-y-4">

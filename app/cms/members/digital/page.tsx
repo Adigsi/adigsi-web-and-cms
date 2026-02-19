@@ -2,18 +2,18 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '@/contexts/language-context'
+import { useToast } from '@/hooks/use-toast'
 import { CyberIcon } from '@/components/ui/cyber-icon'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { CheckCircle2, AlertCircle, ChevronDown, Trash2, Check } from 'lucide-react'
+import { ChevronDown, Trash2, Check } from 'lucide-react'
 
 interface DigitalCategory {
   nameEn: string
@@ -96,16 +96,12 @@ const DIGITAL_ICON_OPTIONS = [
 
 export default function CMSDigitalMembersPage() {
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [expandedSections, setExpandedSections] = useState({
     categories: false,
   })
-  const [saveStatus, setSaveStatus] = useState<{
-    section: string | null
-    type: 'success' | 'error' | null
-    message: string
-  }>({ section: null, type: null, message: '' })
 
   // Heading section state
   const [headingData, setHeadingData] = useState<HeadingData>({
@@ -173,7 +169,6 @@ export default function CMSDigitalMembersPage() {
 
   const handleSave = async (section: string) => {
     setIsSaving(section)
-    setSaveStatus({ section: null, type: null, message: '' })
 
     try {
       if (section === 'categories') {
@@ -194,22 +189,17 @@ export default function CMSDigitalMembersPage() {
           throw new Error(error.error || 'Failed to save section')
         }
 
-        setSaveStatus({
-          section: 'categories',
-          type: 'success',
-          message: t({ en: 'Digital categories and heading saved successfully', id: 'Kategori digital dan judul berhasil disimpan' }),
+        toast({
+          title: t({ en: 'Success', id: 'Sukses' }),
+          description: t({ en: 'Digital categories and heading saved successfully', id: 'Kategori digital dan judul berhasil disimpan' }),
         })
       }
-
-      setTimeout(() => {
-        setSaveStatus({ section: null, type: null, message: '' })
-      }, 3000)
     } catch (error) {
       console.error(`Error saving ${section}:`, error)
-      setSaveStatus({
-        section,
-        type: 'error',
-        message: error instanceof Error ? error.message : t({ en: 'Failed to save changes', id: 'Gagal menyimpan perubahan' }),
+      toast({
+        variant: 'destructive',
+        title: t({ en: 'Error', id: 'Error' }),
+        description: error instanceof Error ? error.message : t({ en: 'Failed to save changes', id: 'Gagal menyimpan perubahan' }),
       })
     } finally {
       setIsSaving(null)
@@ -253,19 +243,6 @@ export default function CMSDigitalMembersPage() {
 
             {expandedSections.categories && (
               <>
-                {saveStatus.section === 'categories' && saveStatus.type && (
-                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                    {saveStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                      {saveStatus.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 {/* Section Heading Fields */}
                 <div className="bg-muted/30 border border-muted rounded-lg p-4 mt-4 mb-6">
                   <h3 className="text-sm font-semibold mb-4 text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>

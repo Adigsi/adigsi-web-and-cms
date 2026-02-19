@@ -14,9 +14,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CheckCircle2, AlertCircle } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
+import { useToast } from '@/components/ui/use-toast'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
@@ -362,13 +361,9 @@ function NewsFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { t } = useLanguage()
+  const { toast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  
-  const [saveStatus, setSaveStatus] = useState<{
-    type: 'success' | 'error' | null
-    message: string
-  }>({ type: null, message: '' })
 
   const [formData, setFormData] = useState<NewsData>({
     titleEn: '',
@@ -491,15 +486,15 @@ function NewsFormContent() {
   const handleSave = async () => {
     if (!formData.titleEn || !formData.titleId || !formData.categoryEn || !formData.categoryId || 
         !formData.contentEn || !formData.contentId || !formData.image) {
-      setSaveStatus({
-        type: 'error',
-        message: t({ en: 'All required fields must be filled', id: 'Semua field wajib harus diisi' }),
+      toast({
+        title: 'Error',
+        description: t({ en: 'All required fields must be filled', id: 'Semua field wajib harus diisi' }),
+        variant: 'destructive',
       })
       return
     }
 
     setIsSaving(true)
-    setSaveStatus({ type: null, message: '' })
 
     try {
       const response = await fetch('/api/cms/news/news', {
@@ -515,9 +510,9 @@ function NewsFormContent() {
         throw new Error(error.error || 'Failed to save news')
       }
 
-      setSaveStatus({
-        type: 'success',
-        message: formData._id
+      toast({
+        title: 'Success',
+        description: formData._id
           ? t({ en: 'News updated successfully', id: 'Berita berhasil diperbarui' })
           : t({ en: 'News created successfully', id: 'Berita berhasil dibuat' }),
       })
@@ -527,9 +522,10 @@ function NewsFormContent() {
       }, 1500)
     } catch (error) {
       console.error('Error saving news:', error)
-      setSaveStatus({
-        type: 'error',
-        message: error instanceof Error ? error.message : t({ en: 'Failed to save news', id: 'Gagal menyimpan berita' }),
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : t({ en: 'Failed to save news', id: 'Gagal menyimpan berita' }),
+        variant: 'destructive',
       })
     } finally {
       setIsSaving(false)
@@ -568,20 +564,6 @@ function NewsFormContent() {
           {t({ en: 'Fill in the details below to create or update news article', id: 'Isi detail di bawah untuk membuat atau memperbarui artikel berita' })}
         </p>
       </div>
-
-      {/* Status Alert */}
-      {saveStatus.type && (
-        <Alert className={`mb-6 ${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-          {saveStatus.type === 'success' ? (
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-          ) : (
-            <AlertCircle className="h-4 w-4 text-red-600" />
-          )}
-          <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-            {saveStatus.message}
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Form */}
       <Card className="p-6">
