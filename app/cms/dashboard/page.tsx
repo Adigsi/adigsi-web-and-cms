@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Search, ChevronLeft, ChevronRight, FileText, Calendar, Users, Building2, Award, Download, UserPlus } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 interface DownloadRecord {
   _id: string
@@ -49,7 +50,88 @@ interface Statistics {
   registrations: number
 }
 
+const translations = {
+  en: {
+    dashboard: 'Dashboard',
+    websiteContentStatistics: 'Content Statistics',
+    totalContent: 'Total Content',
+    totalNews: 'Total News',
+    totalEvents: 'Total Events',
+    membersStatistics: 'Members Statistics',
+    totalMembers: 'Total Members',
+    cybersecurityCategories: 'Cybersecurity Categories',
+    cybersecurityMembers: 'Cybersecurity Members',
+    digitalCategories: 'Digital Categories',
+    digitalMembers: 'Digital Members',
+    partnerStatistics: 'Partner Statistics',
+    totalPartners: 'Total Partners',
+    reportDownloadStatistics: 'Report Download Statistics',
+    totalDownloads: 'Total Downloads',
+    adigsiMembers: 'ADIGSI Members',
+    nonMembers: 'Non-Members',
+    downloadRecordsHistory: 'Download Records History',
+    searchPlaceholder: 'Search by name, company, position, or email...',
+    allMembers: 'All Members',
+    search: 'Search',
+    fullName: 'Full Name',
+    company: 'Company',
+    position: 'Position',
+    email: 'Email',
+    member: 'Member',
+    downloadedAt: 'Downloaded At',
+    showing: 'Showing',
+    to: 'to',
+    of: 'of',
+    results: 'results',
+    previous: 'Previous',
+    next: 'Next',
+    loading: 'Loading...',
+    noRecords: 'No download records found',
+    category: 'Category'
+  },
+  id: {
+    dashboard: 'Dashboard',
+    websiteContentStatistics: 'Statistik Konten',
+    totalContent: 'Total Konten',
+    totalNews: 'Total Berita',
+    totalEvents: 'Total Kegiatan',
+    membersStatistics: 'Statistik Anggota',
+    totalMembers: 'Total Anggota',
+    cybersecurityCategories: 'Kategori Cybersecurity',
+    cybersecurityMembers: 'Anggota Cybersecurity',
+    digitalCategories: 'Kategori Digital',
+    digitalMembers: 'Anggota Digital',
+    partnerStatistics: 'Statistik Partner',
+    totalPartners: 'Total Partner',
+    reportDownloadStatistics: 'Statistik Unduhan Laporan',
+    totalDownloads: 'Total Unduhan',
+    adigsiMembers: 'Anggota ADIGSI',
+    nonMembers: 'Non-Anggota',
+    downloadRecordsHistory: 'Riwayat Catatan Unduhan',
+    searchPlaceholder: 'Cari berdasarkan nama, perusahaan, posisi, atau email...',
+    allMembers: 'Semua Anggota',
+    search: 'Cari',
+    fullName: 'Nama Lengkap',
+    company: 'Perusahaan',
+    position: 'Posisi',
+    email: 'Email',
+    member: 'Anggota',
+    downloadedAt: 'Diunduh Pada',
+    showing: 'Menampilkan',
+    to: 'hingga',
+    of: 'dari',
+    results: 'hasil',
+    previous: 'Sebelumnya',
+    next: 'Selanjutnya',
+    loading: 'Memuat...',
+    noRecords: 'Tidak ada catatan unduhan ditemukan',
+    category: 'Kategori'
+  }
+}
+
 export default function CMSDashboard() {
+  const { language } = useLanguage()
+  const t = translations[language as keyof typeof translations] || translations.en
   const [downloads, setDownloads] = useState<DownloadRecord[]>([])
   const [pagination, setPagination] = useState<PaginationData>({
     total: 0,
@@ -157,16 +239,16 @@ export default function CMSDashboard() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+      <h1 className="text-3xl font-bold text-gray-900">{t.dashboard}</h1>
       
       {/* Website Statistics Section */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Website Content Statistics (Total Content: {statistics.news + statistics.events})</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t.websiteContentStatistics} ({t.totalContent}: {statistics.news + statistics.events})</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Total News</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.totalNews}</h3>
                 <p className="text-3xl font-bold text-blue-600">
                   {isStatsLoading ? '...' : statistics.news}
                 </p>
@@ -178,7 +260,7 @@ export default function CMSDashboard() {
           <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Total Events</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.totalEvents}</h3>
                 <p className="text-3xl font-bold text-purple-600">
                   {isStatsLoading ? '...' : statistics.events}
                 </p>
@@ -191,12 +273,12 @@ export default function CMSDashboard() {
 
       {/* Members Statistics Section */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Members Statistics (Total Members: {statistics.cybersecurityMembers.totalMembers + statistics.digitalMembers.totalMembers})</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t.membersStatistics} ({t.totalMembers}: {statistics.cybersecurityMembers.totalMembers + statistics.digitalMembers.totalMembers})</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Cybersecurity Categories</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.cybersecurityCategories}</h3>
                 <p className="text-3xl font-bold text-indigo-600">
                   {isStatsLoading ? '...' : statistics.cybersecurityMembers.categories}
                 </p>
@@ -208,7 +290,7 @@ export default function CMSDashboard() {
           <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Cybersecurity Members</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.cybersecurityMembers}</h3>
                 <p className="text-3xl font-bold text-blue-600">
                   {isStatsLoading ? '...' : statistics.cybersecurityMembers.totalMembers}
                 </p>
@@ -220,7 +302,7 @@ export default function CMSDashboard() {
           <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Digital Categories</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.digitalCategories}</h3>
                 <p className="text-3xl font-bold text-purple-600">
                   {isStatsLoading ? '...' : statistics.digitalMembers.categories}
                 </p>
@@ -232,7 +314,7 @@ export default function CMSDashboard() {
           <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Digital Members</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.digitalMembers}</h3>
                 <p className="text-3xl font-bold text-teal-600">
                   {isStatsLoading ? '...' : statistics.digitalMembers.totalMembers}
                 </p>
@@ -245,13 +327,13 @@ export default function CMSDashboard() {
 
       {/* Partner Logos Statistics Section */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Partner Statistics (Total Partners: {statistics.partnerLogos.total})</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t.partnerStatistics} ({t.totalPartners}: {statistics.partnerLogos.total})</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {isStatsLoading ? (
             <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-600 mb-2">Loading...</h3>
+                  <h3 className="text-sm font-medium text-gray-600 mb-2">{t.loading}</h3>
                   <p className="text-3xl font-bold text-gray-400">...</p>
                 </div>
               </div>
@@ -271,7 +353,7 @@ export default function CMSDashboard() {
                   <Card key={index} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-sm font-medium text-gray-600 mb-2">{category.categoryName || `Category ${index + 1}`}</h3>
+                        <h3 className="text-sm font-medium text-gray-600 mb-2">{category.categoryName || `${t.category} ${index + 1}`}</h3>
                         <p className={`text-3xl font-bold ${color.text}`}>
                           {category.count}
                         </p>
@@ -299,12 +381,12 @@ export default function CMSDashboard() {
 
       {/* Download Statistics Section */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Report Download Statistics</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t.reportDownloadStatistics}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Total Downloads</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.totalDownloads}</h3>
                 <p className="text-3xl font-bold text-primary">
                   {isStatsLoading ? '...' : statistics.downloads.total}
                 </p>
@@ -316,7 +398,7 @@ export default function CMSDashboard() {
           <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">ADIGSI Members</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.adigsiMembers}</h3>
                 <p className="text-3xl font-bold text-green-600">
                   {isStatsLoading ? '...' : statistics.downloads.members}
                 </p>
@@ -328,7 +410,7 @@ export default function CMSDashboard() {
           <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Non-Members</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.nonMembers}</h3>
                 <p className="text-3xl font-bold text-blue-600">
                   {isStatsLoading ? '...' : statistics.downloads.nonMembers}
                 </p>
@@ -341,7 +423,7 @@ export default function CMSDashboard() {
 
       {/* Downloads Table Section */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Download Records History</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t.downloadRecordsHistory}</h2>
         <Card className="bg-white rounded-lg shadow-sm border border-gray-200 p-0">
           <div className="p-6 border-b border-gray-200">
             {/* Filters */}
@@ -351,14 +433,14 @@ export default function CMSDashboard() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     type="text"
-                    placeholder="Search by name, company, position, or email..."
+                    placeholder={t.searchPlaceholder}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     onKeyPress={handleKeyPress}
                     className="pl-10"
                   />
                 </div>
-                <Button onClick={handleSearch}>Search</Button>
+                <Button onClick={handleSearch}>{t.search}</Button>
               </div>
               
               <select
@@ -366,9 +448,9 @@ export default function CMSDashboard() {
                 onChange={(e) => setMemberFilter(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="">All Members</option>
-                <option value="Yes">ADIGSI Members</option>
-                <option value="No">Non-Members</option>
+                <option value="">{t.allMembers}</option>
+                <option value="Yes">{t.adigsiMembers}</option>
+                <option value="No">{t.nonMembers}</option>
               </select>
             </div>
           </div>
@@ -376,30 +458,30 @@ export default function CMSDashboard() {
         {/* Table */}
         <div className="overflow-x-auto">
           {isLoading ? (
-            <div className="p-8 text-center text-gray-500">Loading...</div>
+            <div className="p-8 text-center text-gray-500">{t.loading}</div>
           ) : downloads.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">No download records found</div>
+            <div className="p-8 text-center text-gray-500">{t.noRecords}</div>
           ) : (
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Full Name
+                    {t.fullName}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Company
+                    {t.company}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Position
+                    {t.position}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
+                    {t.email}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Member
+                    {t.member}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Downloaded At
+                    {t.downloadedAt}
                   </th>
                 </tr>
               </thead>
@@ -441,9 +523,9 @@ export default function CMSDashboard() {
         {!isLoading && downloads.length > 0 && (
           <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
             <div className="text-sm text-gray-700">
-              Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-              {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-              {pagination.total} results
+              {t.showing} {((pagination.page - 1) * pagination.limit) + 1} {t.to}{' '}
+              {Math.min(pagination.page * pagination.limit, pagination.total)} {t.of}{' '}
+              {pagination.total} {t.results}
             </div>
             <div className="flex gap-2">
               <Button
@@ -452,14 +534,14 @@ export default function CMSDashboard() {
                 disabled={pagination.page === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
-                Previous
+                {t.previous}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
                 disabled={pagination.page === pagination.totalPages}
               >
-                Next
+                {t.next}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
