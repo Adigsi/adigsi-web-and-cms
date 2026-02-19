@@ -18,9 +18,11 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useLanguage } from '@/contexts/language-context'
 
 export default function CMSLoginPage() {
   const router = useRouter()
+  const { setLanguage } = useLanguage()
   const [email, setEmail] = useState('admin@adigsi.id')
   const [password, setPassword] = useState('admin12345')
   const [isLoading, setIsLoading] = useState(false)
@@ -46,6 +48,22 @@ export default function CMSLoginPage() {
         } | null
         setErrorMessage(data?.message ?? 'Login gagal. Silakan coba lagi.')
         return
+      }
+
+      // Fetch user profile to get language preference
+      try {
+        const profileResponse = await fetch('/api/cms/user/profile', {
+          credentials: 'include',
+        })
+
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json()
+          const userLanguage = profileData.user?.language === 'id' ? 'id' : 'en'
+          setLanguage(userLanguage)
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error)
+        // Continue with redirect even if profile fetch fails
       }
 
       router.push('/cms/dashboard')
