@@ -14,7 +14,7 @@ interface Membership {
 
 function MembershipBadge({ iconUrl }: { iconUrl: string }) {
   return (
-    <div className="relative w-28 h-28 shrink-0 group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
+    <div className="relative w-20 h-20 shrink-0 group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
       {iconUrl.startsWith('data:') || iconUrl.startsWith('http') || iconUrl.startsWith('/') ? (
         <img
           src={iconUrl}
@@ -38,7 +38,7 @@ function MembershipBadge({ iconUrl }: { iconUrl: string }) {
 }
 
 export function MembershipBenefitsSection() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true) // Start as true to show cards immediately
   const [memberships, setMemberships] = useState<Membership[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const sectionRef = useRef<HTMLElement>(null)
@@ -71,9 +71,14 @@ export function MembershipBenefitsSection() {
         const response = await fetch('/api/cms/members/membership-benefits')
         if (response.ok) {
           const data = await response.json()
+          console.log('Fetched membership benefits:', data)
           if (data.memberships && Array.isArray(data.memberships) && data.memberships.length > 0) {
             setMemberships(data.memberships)
+          } else {
+            console.warn('No memberships found in response or empty array')
           }
+        } else {
+          console.error('Failed to fetch memberships:', response.statusText)
         }
       } catch (error) {
         console.error('Error fetching membership benefits:', error)
@@ -85,14 +90,24 @@ export function MembershipBenefitsSection() {
     fetchMemberships()
   }, [])
 
-  if (isLoading || memberships.length === 0) {
+  if (isLoading) {
+    // Show loading skeleton or nothing while loading
     return null
   }
+
+  if (!memberships || memberships.length === 0) {
+    // Show nothing if no memberships configured
+    console.log('No memberships to display')
+    console.log('Current memberships state:', memberships)
+    return null
+  }
+
+  console.log('Rendering membership cards with count:', memberships.length)
 
   return (
     <section ref={sectionRef} className="w-full bg-white py-20">
       <div className="max-w-310 mx-auto px-5">
-        <div className={`text-center mb-14 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+        <div className={`text-center mb-14 animate-fade-in-up`}>
           <h2 className="text-primary text-[21px] uppercase mb-2 font-bold tracking-wider">
             {t({ en: 'JOIN US', id: 'BERGABUNG' })}
           </h2>
@@ -113,8 +128,7 @@ export function MembershipBenefitsSection() {
           {memberships.map((membership, index) => (
             <div
               key={`${membership.tier}-${index}`}
-              className={`group relative rounded-2xl border-2 border-gray-200 bg-white p-6 transition-all duration-300 hover:border-primary/40 hover:shadow-xl hover:-translate-y-1 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
-                }`}
+              className={`group relative rounded-2xl border-2 border-gray-200 bg-white p-6 transition-all duration-300 hover:border-primary/40 hover:shadow-xl hover:-translate-y-1 animate-fade-in-up`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex gap-6 items-start">

@@ -26,47 +26,48 @@ export async function GET() {
 
     const data = await collection.findOne({ section: 'membership-benefits' })
 
-    if (!data) {
-      // Return default membership benefits structure
+    if (data && data.memberships) {
       return NextResponse.json({
-        memberships: [
-          {
-            tier: 'bronze',
-            nameEn: 'BRONZE MEMBERSHIP',
-            nameId: 'BRONZE MEMBERSHIP',
-            descriptionEn: 'Bronze Membership provides basic access to ADIGSI information and activities, opportunities to participate in selected public events, limited brand exposure, and flexibility to upgrade membership category anytime as needed.',
-            descriptionId: 'BRONZE MEMBERSHIP MEMBERIKAN AKSES DASAR KE INFORMASI DAN KEGIATAN ADIGSI, KESEMPATAN MENGIKUTI BEBERAPA EVENT UMUM, EXPOSUR BRAND TERBATAS, SERTA FLEKSIBILITAS UNTUK MENINGKATKAN KATEGORI MEMBERSHIP KAPAN SAJA SESUAI KEBUTUHAN.',
-            iconUrl: '/images/badges/bronze-membership.png',
-          },
-          {
-            tier: 'silver',
-            nameEn: 'SILVER MEMBERSHIP',
-            nameId: 'SILVER MEMBERSHIP',
-            descriptionEn: 'Silver Membership offers access to ADIGSI core programs, including logo placement and promotional slots, rights to use ADIGSI logo, custom content when needed, networking opportunities with stakeholders, special incentives, and training support with regulatory analysis to enhance competence and compliance.',
-            descriptionId: 'SILVER MEMBERSHIP MENAWARKAN AKSES KE PROGRAM INTI ADIGSI, TERMASUK PENEMPATAN LOGO DAN SLOT PROMOSI, HAK PENGGUNAAN LOGO ADIGSI, KONTEN KUSTOM BILA DIPERLUKAN, KESEMPATAN NETWORKING DENGAN PARA PEMANGKU KEPENTINGAN, INSENTIF KHUSUS, SERTA DUKUNGAN PELATIHAN DAN ANALISIS REGULASI UNTUK MENINGKATKAN KOMPETENSI DAN KEPATUHAN.',
-            iconUrl: '/images/badges/silver-membership.png',
-          },
-          {
-            tier: 'gold',
-            nameEn: 'GOLD MEMBERSHIP',
-            nameId: 'GOLD MEMBERSHIP',
-            descriptionEn: 'Gold Membership provides extensive benefits including branding placement, customizable content and programs, access to exclusive networking events, program incentives, certification support and regulatory analysis, exclusive industry updates, advocacy opportunities with regulators, and access to national and international market information to expand business opportunities and collaboration.',
-            descriptionId: 'GOLD MEMBERSHIP MEMBERIKAN MANFAAT LUAS BERUPA PENEMPATAN BRANDING, KONTEN DAN PROGRAM YANG DAPAT DIKUSTOMISASI, AKSES KE EVENT NETWORKING KHUSUS, INSENTIF PROGRAM, DUKUNGAN SERTIFIKASI DAN ANALISIS REGULASI, PEMBARUAN INDUSTRI EKSKLUSIF, PELUANG ADVOKASI DENGAN REGULATOR, SERTA AKSES INFORMASI PASAR NASIONAL MAUPUN INTERNASIONAL UNTUK MEMPERLUAS PELUANG BISNIS DAN KOLABORASI.',
-            iconUrl: '/images/badges/gold-membership.png',
-          },
-          {
-            tier: 'platinum',
-            nameEn: 'PLATINUM MEMBERSHIP',
-            nameId: 'PLATINUM MEMBERSHIP',
-            descriptionEn: 'Platinum Membership provides priority access to all ADIGSI programs, opportunities to participate in national policy formulation, chances to represent ADIGSI in strategic meetings with government, exclusive networking access, premium branding facilities, certification support and regulatory analysis, industry research updates, and rights to use ADIGSI logo as an official partner.',
-            descriptionId: 'PLATINUM MEMBERSHIP MEMBERIKAN AKSES PRIORITAS KE SELURUH PROGRAM ADIGSI, PELUANG BERPERAN DALAM PENYUSUNAN KEBIJAKAN NASIONAL, KESEMPATAN MEWAKILI ADIGSI DI PERTEMUAN STRATEGIS DENGAN PEMERINTAH, AKSES NETWORKING EKSKLUSIF, FASILITAS BRANDING PREMIUM, DUKUNGAN SERTIFIKASI DAN ANALISIS REGULASI, PEMBARUAN RISET INDUSTRI, SERTA HAK PENGGUNAAN LOGO ADIGSI SEBAGAI MITRA RESMI.',
-            iconUrl: '/images/badges/platinum-membership.png',
-          },
-        ],
+        memberships: data.memberships
       })
     }
 
-    return NextResponse.json(data)
+    return NextResponse.json({
+      memberships: [
+        {
+          tier: 'bronze',
+          nameEn: 'BRONZE MEMBERSHIP',
+          nameId: 'BRONZE MEMBERSHIP',
+          descriptionEn: 'Bronze Membership provides basic access to ADIGSI information and activities, opportunities to participate in selected public events, limited brand exposure, and flexibility to upgrade membership category anytime as needed.',
+          descriptionId: 'BRONZE MEMBERSHIP MEMBERIKAN AKSES DASAR KE INFORMASI DAN KEGIATAN ADIGSI, KESEMPATAN MENGIKUTI BEBERAPA EVENT UMUM, EXPOSUR BRAND TERBATAS, SERTA FLEKSIBILITAS UNTUK MENINGKATKAN KATEGORI MEMBERSHIP KAPAN SAJA SESUAI KEBUTUHAN.',
+          iconUrl: '/images/badges/bronze-membership.png',
+        },
+        {
+          tier: 'silver',
+          nameEn: 'SILVER MEMBERSHIP',
+          nameId: 'SILVER MEMBERSHIP',
+          descriptionEn: 'Silver Membership offers access to ADIGSI core programs, including logo placement and promotional slots, rights to use ADIGSI logo, custom content when needed, networking opportunities with stakeholders, special incentives, and training support with regulatory analysis to enhance competence and compliance.',
+          descriptionId: 'SILVER MEMBERSHIP MENAWARKAN AKSES KE PROGRAM INTI ADIGSI, TERMASUK PENEMPATAN LOGO DAN SLOT PROMOSI, HAK PENGGUNAAN LOGO ADIGSI, KONTEN KUSTOM BILA DIPERLUKAN, KESEMPATAN NETWORKING DENGAN PARA PEMANGKU KEPENTINGAN, INSENTIF KHUSUS, SERTA DUKUNGAN PELATIHAN DAN ANALISIS REGULASI UNTUK MENINGKATKAN KOMPETENSI DAN KEPATUHAN.',
+          iconUrl: '/images/badges/silver-membership.png',
+        },
+        {
+          tier: 'gold',
+          nameEn: 'GOLD MEMBERSHIP',
+          nameId: 'GOLD MEMBERSHIP',
+          descriptionEn: 'Gold Membership provides extensive benefits including branding placement, customizable content and programs, access to exclusive networking events, program incentives, certification support and regulatory analysis, exclusive industry updates, advocacy opportunities with regulators, and access to national and international market information to expand business opportunities and collaboration.',
+          descriptionId: 'GOLD MEMBERSHIP MEMBERIKAN MANFAAT LUAS BERUPA PENEMPATAN BRANDING, KONTEN DAN PROGRAM YANG DAPAT DIKUSTOMISASI, AKSES KE EVENT NETWORKING KHUSUS, INSENTIF PROGRAM, DUKUNGAN SERTIFIKASI DAN ANALISIS REGULASI, PEMBARUAN INDUSTRI EKSKLUSIF, PELUANG ADVOKASI DENGAN REGULATOR, SERTA AKSES INFORMASI PASAR NASIONAL MAUPUN INTERNASIONAL UNTUK MEMPERLUAS PELUANG BISNIS DAN KOLABORASI.',
+          iconUrl: '/images/badges/gold-membership.png',
+        },
+        {
+          tier: 'platinum',
+          nameEn: 'PLATINUM MEMBERSHIP',
+          nameId: 'PLATINUM MEMBERSHIP',
+          descriptionEn: 'Platinum Membership provides priority access to all ADIGSI programs, opportunities to participate in national policy formulation, chances to represent ADIGSI in strategic meetings with government, exclusive networking access, premium branding facilities, certification support and regulatory analysis, industry research updates, and rights to use ADIGSI logo as an official partner.',
+          descriptionId: 'PLATINUM MEMBERSHIP MEMBERIKAN AKSES PRIORITAS KE SELURUH PROGRAM ADIGSI, PELUANG BERPERAN DALAM PENYUSUNAN KEBIJAKAN NASIONAL, KESEMPATAN MEWAKILI ADIGSI DI PERTEMUAN STRATEGIS DENGAN PEMERINTAH, AKSES NETWORKING EKSKLUSIF, FASILITAS BRANDING PREMIUM, DUKUNGAN SERTIFIKASI DAN ANALISIS REGULASI, PEMBARUAN RISET INDUSTRI, SERTA HAK PENGGUNAAN LOGO ADIGSI SEBAGAI MITRA RESMI.',
+          iconUrl: '/images/badges/platinum-membership.png',
+        },
+      ],
+    })
   } catch (error) {
     console.error('Error fetching membership benefits:', error)
     return NextResponse.json(
