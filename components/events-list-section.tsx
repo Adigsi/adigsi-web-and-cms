@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/language-context'
+import { Button } from '@/components/ui/button'
 
 interface EventData {
   _id: string
@@ -32,10 +33,40 @@ const defaultEvents = [
 export function EventsListSection() {
   const [isVisible, setIsVisible] = useState(false)
   const [events, setEvents] = useState<EventData[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const sectionRef = useRef<HTMLElement>(null)
   const { t, language } = useLanguage()
+
+  const fetchEvents = async (page: number) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/api/cms/events/events?page=${page}`)
+      if (response.ok) {
+        const data = await response.json()
+        // Only show published events
+        const publishedEvents = data.data.filter((event: EventData) => event.published)
+        setEvents(publishedEvents)
+        setCurrentPage(data.pagination.page)
+        setTotalPages(data.pagination.totalPages)
+      } else {
+        // Fallback to default events if API fails
+        setEvents(defaultEvents as any)
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error)
+      // Fallback to default events
+      setEvents(defaultEvents as any)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchEvents(1)
+  }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -58,31 +89,6 @@ export function EventsListSection() {
     }
   }, [])
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const response = await fetch('/api/cms/events/events?page=1')
-        if (response.ok) {
-          const data = await response.json()
-          // Only show published events
-          const publishedEvents = data.data.filter((event: EventData) => event.published)
-          setEvents(publishedEvents)
-        } else {
-          // Fallback to default events if API fails
-          setEvents(defaultEvents as any)
-        }
-      } catch (error) {
-        console.error('Error fetching events:', error)
-        // Fallback to default events
-        setEvents(defaultEvents as any)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchEvents()
-  }, [])
-
   if (isLoading) {
     return (
       <section ref={sectionRef} className="w-full py-20 bg-white">
@@ -96,9 +102,10 @@ export function EventsListSection() {
   const displayEvents = events.length > 0 ? events : (defaultEvents as unknown as EventData[])
 
   return (
-    <section ref={sectionRef} className="w-full py-20 bg-white">
-      <div className="max-w-310 mx-auto px-5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <>
+      <section ref={sectionRef} className="w-full py-20 bg-white">
+        <div className="max-w-310 mx-auto px-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {displayEvents.map((event, index) => (
             <div
               key={index}
@@ -143,10 +150,36 @@ export function EventsListSection() {
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Image Preview Modal */}
-      {previewImage && (
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-12 flex items-center justify-center gap-4">
+            <Button
+              variant="outline"
+              onClick={() => fetchEvents(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              {language === 'en' ? 'Previous' : 'Sebelumnya'}
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              {language === 'en' 
+                ? `Page ${currentPage} of ${totalPages}` 
+                : `Halaman ${currentPage} dari ${totalPages}`}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() => fetchEvents(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              {language === 'en' ? 'Next' : 'Selanjutnya'}
+            </Button>
+          </div>
+        )}
+      </div>
+    </section>
+
+    {/* Image Preview Modal */}
+    {previewImage !== null && (
         <div 
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 top-20"
           onClick={() => setPreviewImage(null)}
@@ -162,13 +195,13 @@ export function EventsListSection() {
               <span className="text-2xl font-bold text-gray-700">×</span>
             </button>
             <img 
-              src={previewImage} 
+              src={previewImage || ''} 
               alt="Preview" 
               className="w-full h-auto rounded-lg max-h-[calc(100vh-160px)] object-contain"
             />
           </div>
         </div>
       )}
-    </section>
+    </>
   )
 }
