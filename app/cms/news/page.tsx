@@ -1,0 +1,637 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { ChevronDown, Edit2, Trash2, Plus, Search, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card } from '@/components/ui/card'
+import { Switch } from '@/components/ui/switch'
+import { useLanguage } from '@/contexts/language-context'
+import { useToast } from '@/hooks/use-toast'
+
+interface BannerData {
+  titleEn: string
+  titleId: string
+  imageUrl: string
+}
+
+interface NewsData {
+  _id?: string
+  slug?: string
+  titleEn: string
+  titleId: string
+  categoryEn: string
+  categoryId: string
+  contentEn: string
+  contentId: string
+  image: string
+  published: boolean
+  createdAt?: string
+}
+
+interface NewsResponse {
+  success: boolean
+  data: NewsData[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
+export default function CMSNewsPage() {
+  const router = useRouter()
+  const { t } = useLanguage()
+  const { toast } = useToast()
+  const [isSaving, setIsSaving] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [expandedSections, setExpandedSections] = useState({
+    banner: false,
+    news: false,
+  })
+
+  // Banner section state
+  const [bannerData, setBannerData] = useState<BannerData>({
+    titleEn: 'Latest News',
+    titleId: 'Berita Terbaru',
+    imageUrl: '/images/about-banner.jpg',
+  })
+
+  const [originalBannerData, setOriginalBannerData] = useState<BannerData>(bannerData)
+
+  // News section state
+  const [news, setNews] = useState<NewsData[]>([]) 
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [publishedFilter, setPublishedFilter] = useState('')
+  const [availableCategories, setAvailableCategories] = useState<string[]>([])
+
+  // Fetch banner data on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const bannerRes = await fetch('/api/cms/news/banner')
+
+        if (bannerRes.ok) {
+          const data = await bannerRes.json()
+          setBannerData({
+            titleEn: data.titleEn || '',
+            titleId: data.titleId || '',
+            imageUrl: data.imageUrl || '',
+          })
+          setOriginalBannerData({
+            titleEn: data.titleEn || '',
+            titleId: data.titleId || '',
+            imageUrl: data.imageUrl || '',
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching banner data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  const hasChanges = (current: any, original: any): boolean => {
+    return JSON.stringify(current) !== JSON.stringify(original)
+  }
+
+  const handleCancelBanner = () => {
+    setBannerData(originalBannerData)
+  }
+
+  const handleSaveBanner = async () => {
+    setIsSaving('banner')
+
+    try {
+      const response = await fetch('/api/cms/news/banner', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bannerData),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to save banner')
+      }
+
+      setOriginalBannerData(bannerData)
+
+      toast({
+        title: t({ en: 'Success', id: 'Sukses' }),
+        description: t({ en: 'Banner saved successfully', id: 'Banner berhasil disimpan' }),
+      })
+    } catch (error) {
+      console.error('Error saving banner:', error)
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: error instanceof Error ? error.message : t({ en: 'Failed to save changes', id: 'Gagal menyimpan perubahan' }),
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSaving(null)
+    }
+  }
+
+  // Fetch news
+  const fetchNews = async (page: number) => {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        ...(searchQuery && { search: searchQuery }),
+        ...(categoryFilter && { category: categoryFilter }),
+        ...(publishedFilter && { published: publishedFilter }),
+      })
+      
+      const response = await fetch(`/api/cms/news/news?${params}`)
+      if (response.ok) {
+        const data: NewsResponse = await response.json()
+        setNews(data.data)
+        setCurrentPage(data.pagination.page)
+        setTotalPages(data.pagination.totalPages)
+      }
+    } catch (error) {
+      console.error('Error fetching news:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (expandedSections.news) {
+      fetchNews(1)
+      fetchCategories()
+    }
+  }, [expandedSections.news])
+
+  // Auto-fetch when filters change
+  useEffect(() => {
+    if (expandedSections.news && (categoryFilter || publishedFilter)) {
+      setCurrentPage(1)
+      fetchNews(1)
+    }
+  }, [categoryFilter, publishedFilter])
+
+  // Debounced search
+  useEffect(() => {
+    if (!expandedSections.news) return
+
+    const timeoutId = setTimeout(() => {
+      if (searchQuery) {
+        setCurrentPage(1)
+        fetchNews(1)
+      }
+    }, 500) // 500ms debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery])
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/cms/news/categories')
+      if (response.ok) {
+        const data = await response.json()
+        setAvailableCategories(data.categories || [])
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+  }
+
+  const handleResetFilters = async () => {
+    setSearchQuery('')
+    setCategoryFilter('')
+    setPublishedFilter('')
+    setCurrentPage(1)
+    
+    // Fetch immediately with no filters
+    try {
+      const response = await fetch(`/api/cms/news/news?page=1`)
+      if (response.ok) {
+        const data: NewsResponse = await response.json()
+        setNews(data.data)
+        setCurrentPage(data.pagination.page)
+        setTotalPages(data.pagination.totalPages)
+      }
+    } catch (error) {
+      console.error('Error fetching news:', error)
+    }
+  }
+
+
+
+  const handleDeleteNews = async (id: string) => {
+    if (!confirm(t({ en: 'Are you sure you want to delete this news?', id: 'Apakah Anda yakin ingin menghapus berita ini?' }))) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/cms/news/news?id=${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete news')
+      }
+
+      toast({
+        title: t({ en: 'Success', id: 'Sukses' }),
+        description: t({ en: 'News deleted successfully', id: 'Berita berhasil dihapus' }),
+      })
+
+      fetchNews(currentPage)
+      fetchCategories() // Refresh categories
+    } catch (error) {
+      console.error('Error deleting news:', error)
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: t({ en: 'Failed to delete news', id: 'Gagal menghapus berita' }),
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleTogglePublish = async (id: string, published: boolean) => {
+    try {
+      const response = await fetch(`/api/cms/news/news?id=${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ published: !published }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update news status')
+      }
+
+      toast({
+        title: t({ en: 'Success', id: 'Sukses' }),
+        description: t({ en: 'News status updated', id: 'Status berita berhasil diperbarui' }),
+      })
+
+      fetchNews(currentPage)
+    } catch (error) {
+      console.error('Error updating news status:', error)
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: t({ en: 'Failed to update news status', id: 'Gagal memperbarui status berita' }),
+        variant: 'destructive',
+      })
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">{t({ en: 'News Page Management', id: 'Manajemen Halaman News' })}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {t({ en: 'Manage content sections for the News page', id: 'Kelola konten section untuk halaman News' })}
+        </p>
+      </div>
+
+      {isLoading ? (
+        <Card className="p-6">
+          <div className="text-center py-8 text-muted-foreground">
+            {t({ en: 'Loading...', id: 'Memuat...' })}
+          </div>
+        </Card>
+      ) : (
+        <>
+          {/* Banner Section */}
+          <Card className="p-6">
+            <div
+              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
+              onClick={() => setExpandedSections({ ...expandedSections, banner: !expandedSections.banner })}
+            >
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Banner', id: 'Banner' })}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t({ en: 'Manage the banner section with title and image', id: 'Kelola section banner dengan judul dan gambar' })}
+                </p>
+              </div>
+              <ChevronDown
+                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.banner ? 'rotate-0' : '-rotate-90'
+                  }`}
+              />
+            </div>
+
+            {expandedSections.banner && (
+              <>
+                <div className="space-y-4 mt-4">
+                  <div>
+                    <Label htmlFor="banner-image">{t({ en: 'Banner Image', id: 'Gambar Banner' })}</Label>
+                    <div className="mt-2">
+                      <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                        {bannerData.imageUrl && (
+                          <div className="mb-4">
+                            <img src={bannerData.imageUrl} alt="Banner preview" className="h-32 w-auto mx-auto rounded object-cover" />
+                          </div>
+                        )}
+                        <input
+                          id="banner-image"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              const reader = new FileReader()
+                              reader.onloadend = () => {
+                                setBannerData({ ...bannerData, imageUrl: reader.result as string })
+                              }
+                              reader.readAsDataURL(file)
+                            }
+                          }}
+                          className="hidden"
+                        />
+                        <label htmlFor="banner-image" className="cursor-pointer">
+                          <div className="text-sm text-muted-foreground">
+                            {t({ en: 'Click to upload or drag and drop', id: 'Klik untuk upload atau drag and drop' })}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {t({ en: 'PNG, JPG, GIF up to 10MB', id: 'PNG, JPG, GIF hingga 10MB' })}
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
+                    <Input
+                      id="banner-title-en"
+                      value={bannerData.titleEn}
+                      onChange={(e) => setBannerData({ ...bannerData, titleEn: e.target.value })}
+                      placeholder={t({ en: 'Enter banner title in English', id: 'Masukkan judul banner dalam English' })}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="banner-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
+                    <Input
+                      id="banner-title-id"
+                      value={bannerData.titleId}
+                      onChange={(e) => setBannerData({ ...bannerData, titleId: e.target.value })}
+                      placeholder={t({ en: 'Enter banner title in Indonesian', id: 'Masukkan judul banner dalam Indonesia' })}
+                    />
+                  </div>
+
+                  <Button onClick={handleSaveBanner} disabled={isSaving === 'banner' || !hasChanges(bannerData, originalBannerData)}>
+                    {isSaving === 'banner' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                  </Button>
+                  {hasChanges(bannerData, originalBannerData) && (
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelBanner}
+                      disabled={isSaving === 'banner'}
+                      className='ml-4'
+                    >
+                      {t({ en: 'Cancel Changes', id: 'Batalkan Perubahan' })}
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
+          </Card>
+
+          {/* News Section */}
+          <Card className="p-6">
+            <div
+              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
+              onClick={() => setExpandedSections({ ...expandedSections, news: !expandedSections.news })}
+            >
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'News', id: 'Berita' })}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t({ en: 'Manage news articles with bilingual support', id: 'Kelola artikel berita dengan dukungan bilingual' })}
+                </p>
+              </div>
+              <ChevronDown
+                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.news ? 'rotate-0' : '-rotate-90'
+                  }`}
+              />
+            </div>
+
+            {expandedSections.news && (
+              <>
+                <div className="mt-4">
+                  <Button onClick={() => router.push('/cms/news/form')}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t({ en: 'Add News', id: 'Tambah Berita' })}
+                  </Button>
+                </div>
+
+                {/* Search and Filters */}
+                <div className="mt-4 space-y-3">
+                  <div className="flex flex-col md:flex-row gap-3">
+                    <div className="flex-1 relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="text"
+                        placeholder={t({ en: 'Search news by title...', id: 'Cari berita berdasarkan judul...' })}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="">{t({ en: 'All Categories', id: 'Semua Kategori' })}</option>
+                        {availableCategories.map((cat) => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={publishedFilter}
+                        onChange={(e) => setPublishedFilter(e.target.value)}
+                        className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="">{t({ en: 'All Status', id: 'Semua Status' })}</option>
+                        <option value="true">{t({ en: 'Published', id: 'Diterbitkan' })}</option>
+                        <option value="false">{t({ en: 'Draft', id: 'Draft' })}</option>
+                      </select>
+                      {(searchQuery || categoryFilter || publishedFilter) && (
+                        <Button onClick={handleResetFilters} variant="outline" size="sm">
+                          <X className="h-4 w-4 mr-1" />
+                          {t({ en: 'Reset', id: 'Reset' })}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {news.length > 0 ? (
+                  <>
+                    <div className="mt-4 border border-border rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-muted">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                              {t({ en: 'Title', id: 'Judul' })}
+                            </th>
+                            {/* <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                              {t({ en: 'Slug', id: 'Slug' })}
+                            </th> */}
+                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                              {t({ en: 'Category', id: 'Kategori' })}
+                            </th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                              {t({ en: 'Status', id: 'Status' })}
+                            </th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                              {t({ en: 'Actions', id: 'Aksi' })}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {news.map((newsItem) => (
+                            <tr key={newsItem._id} className="hover:bg-muted/50">
+                              <td className="px-4 py-3">
+                                <div className="flex items-start gap-3">
+                                  {newsItem.image && (
+                                    <img
+                                      src={newsItem.image}
+                                      alt={newsItem.titleEn}
+                                      className="w-16 h-16 object-cover rounded cursor-pointer hover:opacity-80"
+                                      onClick={() => setPreviewImage(newsItem.image)}
+                                    />
+                                  )}
+                                  <div>
+                                    <div className="text-sm font-medium text-foreground">
+                                      <span className="font-bold">EN:</span> {newsItem.titleEn}
+                                    </div>
+                                    <div className="text-sm font-medium text-foreground mt-1">
+                                      <span className="font-bold">ID:</span> {newsItem.titleId}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              {/* <td className="px-4 py-3">
+                                <div className="text-sm text-muted-foreground font-mono">
+                                  {newsItem.slug}
+                                </div>
+                              </td> */}
+                              <td className="px-4 py-3">
+                                <div className="text-sm text-foreground">
+                                  <span className="font-bold">EN:</span> {newsItem.categoryEn}
+                                </div>
+                                <div className="text-sm text-foreground mt-1">
+                                  <span className="font-bold">ID:</span> {newsItem.categoryId}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={newsItem.published}
+                                    onCheckedChange={() => handleTogglePublish(newsItem._id!, newsItem.published)}
+                                  />
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${newsItem.published
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-gray-100 text-gray-800'
+                                    }`}>
+                                    {newsItem.published
+                                      ? t({ en: 'Published', id: 'Diterbitkan' })
+                                      : t({ en: 'Draft', id: 'Draft' })}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => router.push(`/cms/news/form?id=${newsItem._id}`)}
+                                  >
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteNews(newsItem._id!)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        {t({ en: `Page ${currentPage} of ${totalPages}`, id: `Halaman ${currentPage} dari ${totalPages}` })}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fetchNews(currentPage - 1)}
+                          disabled={currentPage === 1}
+                        >
+                          {t({ en: 'Previous', id: 'Sebelumnya' })}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fetchNews(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                        >
+                          {t({ en: 'Next', id: 'Selanjutnya' })}
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="mt-4 text-center py-8 text-muted-foreground">
+                    {t({ en: 'No news found', id: 'Tidak ada berita' })}
+                  </div>
+                )}
+              </>
+            )}
+          </Card>
+        </>
+      )}
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-[calc(100vh-120px)] top-20">
+            <img
+              src={previewImage}
+              alt="Preview"
+              className="max-w-full max-h-full object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 bg-white/10 hover:bg-white/20"
+              onClick={() => setPreviewImage(null)}
+            >
+              <span className="text-white text-xl">×</span>
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

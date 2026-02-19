@@ -1,6 +1,6 @@
 import { AboutBanner } from '@/components/about-banner'
 import { OrganizationStructureSection } from '@/components/organization-structure-section'
-import { AboutAdigsiSection } from '@/components/about-adigsi-section'
+import { AboutAdigsiSection, PartnersSection } from '@/components/about-adigsi-section'
 
 export const metadata = {
   title: 'Tentang Kami - ADIGSI',
@@ -13,6 +13,7 @@ export default function AboutPage() {
       <AboutBanner />
       <OrganizationStructureSection />
       <AboutAdigsiSection />
+      <PartnersSection />
     </>
   )
 }

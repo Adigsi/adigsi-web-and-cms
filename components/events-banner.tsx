@@ -1,16 +1,53 @@
 'use client'
 
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
 import { useLanguage } from '@/contexts/language-context'
 
+interface BannerData {
+  titleEn: string
+  titleId: string
+  imageUrl: string
+}
+
 export function EventsBanner() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const [bannerData, setBannerData] = useState<BannerData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchBannerData = async () => {
+      try {
+        const response = await fetch('/api/cms/events/banner')
+        if (response.ok) {
+          const data = await response.json()
+          setBannerData(data)
+        }
+      } catch (error) {
+        console.error('Error fetching banner data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchBannerData()
+  }, [])
+
+  if (isLoading || !bannerData) {
+    return (
+      <section className="relative w-full h-155 flex items-center justify-center overflow-hidden bg-muted">
+        <div className="text-muted-foreground">{t({ en: 'Loading...', id: 'Memuat...' })}</div>
+      </section>
+    )
+  }
+
+  const title = language === 'en' ? bannerData.titleEn : bannerData.titleId
   
   return (
-    <section className="relative w-full h-[620px] flex items-center justify-center overflow-hidden">
+    <section className="relative w-full h-155 flex items-center justify-center overflow-hidden">
       <Image
-        alt={t({ en: 'Adigsi Activity Agenda', id: 'Agenda Kegiatan Adigsi' })}
-        src="/images/about-banner.jpg"
+        alt={title}
+        src={bannerData.imageUrl || "/placeholder.svg"}
         fill
         className="object-cover"
         priority
@@ -22,7 +59,7 @@ export function EventsBanner() {
         }}
       />
       <h1 className="relative z-20 text-5xl md:text-[48px] font-bold text-white">
-        {t({ en: 'Adigsi Activity Agenda', id: 'Agenda Kegiatan Adigsi' })}
+        {title}
       </h1>
     </section>
   )

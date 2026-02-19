@@ -1,16 +1,43 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useLanguage } from '@/contexts/language-context'
 
+interface BannerData {
+  titleEn: string
+  titleId: string
+  imageUrl: string
+}
+
 export function MembersBanner() {
-  const { t } = useLanguage()
+  const { language } = useLanguage()
+  const [bannerData, setBannerData] = useState<BannerData>({
+    titleEn: 'ADIGSI MEMBERS',
+    titleId: 'ANGGOTA ADIGSI',
+    imageUrl: '/images/about-banner.png',
+  })
+
+  useEffect(() => {
+    fetch('/api/cms/members/banner')
+      .then((res) => res.json())
+      .then((data) =>
+        setBannerData({
+          titleEn: data.titleEn || 'ADIGSI MEMBERS',
+          titleId: data.titleId || 'ANGGOTA ADIGSI',
+          imageUrl: data.imageUrl || '/images/about-banner.png',
+        })
+      )
+      .catch(() => {
+        // Keep defaults on error
+      })
+  }, [])
 
   return (
-    <section className="relative w-full h-[620px] flex items-center justify-center overflow-hidden">
+    <section className="relative w-full h-155 flex items-center justify-center overflow-hidden">
       <Image
-        alt={t({ en: 'ADIGSI Members', id: 'Anggota ADIGSI' })}
-        src="/images/about-banner.png"
+        alt={language === 'en' ? bannerData.titleEn : bannerData.titleId}
+        src={bannerData.imageUrl}
         fill
         className="object-cover"
         priority
@@ -22,7 +49,7 @@ export function MembersBanner() {
         }}
       />
       <h1 className="relative z-20 text-5xl md:text-[48px] font-bold text-white uppercase">
-        {t({ en: 'ADIGSI MEMBERS', id: 'ANGGOTA ADIGSI' })}
+        {language === 'en' ? bannerData.titleEn : bannerData.titleId}
       </h1>
     </section>
   )

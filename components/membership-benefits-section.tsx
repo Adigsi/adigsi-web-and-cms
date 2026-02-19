@@ -1,76 +1,46 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
 import { useLanguage } from '@/contexts/language-context'
 
-function MembershipBadge({ tier }: { tier: string }) {
-  const badgeImages: Record<string, string> = {
-    platinum: '/images/badges/platinum-membership.png',
-    gold: '/images/badges/gold-membership.png',
-    silver: '/images/badges/silver-membership.png',
-    bronze: '/images/badges/bronze-membership.png',
-  }
+interface Membership {
+  tier: string
+  nameEn: string
+  nameId: string
+  descriptionEn: string
+  descriptionId: string
+  iconUrl: string
+}
 
+function MembershipBadge({ iconUrl }: { iconUrl: string }) {
   return (
-    <div className="relative w-28 h-28 flex-shrink-0 group-hover:scale-110 transition-transform duration-500">
-      <Image
-        src={badgeImages[tier] || badgeImages.platinum}
-        alt={`${tier} membership badge`}
-        width={112}
-        height={112}
-        className="w-full h-full object-contain drop-shadow-lg"
-      />
+    <div className="relative w-20 h-20 shrink-0 group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
+      {iconUrl.startsWith('data:') || iconUrl.startsWith('http') || iconUrl.startsWith('/') ? (
+        <img
+          src={iconUrl}
+          alt="membership badge"
+          className="w-full h-full object-contain drop-shadow-lg"
+        />
+      ) : (
+        <div className="w-full h-full bg-linear-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center text-gray-600 font-bold text-lg">
+          {iconUrl.charAt(0).toUpperCase()}
+        </div>
+      )}
       {/* Glow effect */}
       <div
         className="absolute inset-0 rounded-full blur-2xl opacity-0 group-hover:opacity-50 transition-opacity duration-500"
-        style={{ 
-          backgroundColor: tier === 'bronze' ? 'rgba(205, 127, 50, 0.4)' : 
-                         tier === 'silver' ? 'rgba(192, 192, 192, 0.4)' : 
-                         tier === 'gold' ? 'rgba(255, 215, 0, 0.4)' : 'rgba(229, 228, 226, 0.4)' 
+        style={{
+          backgroundColor: 'rgba(200, 200, 200, 0.3)'
         }}
       />
     </div>
   )
 }
 
-const membershipData = [
-  {
-    tier: 'bronze',
-    name: { en: 'BRONZE MEMBERSHIP', id: 'BRONZE MEMBERSHIP' },
-    description: {
-      en: 'Bronze Membership provides basic access to ADIGSI information and activities, opportunities to participate in selected public events, limited brand exposure, and flexibility to upgrade membership category anytime as needed.',
-      id: 'BRONZE MEMBERSHIP MEMBERIKAN AKSES DASAR KE INFORMASI DAN KEGIATAN ADIGSI, KESEMPATAN MENGIKUTI BEBERAPA EVENT UMUM, EXPOSUR BRAND TERBATAS, SERTA FLEKSIBILITAS UNTUK MENINGKATKAN KATEGORI MEMBERSHIP KAPAN SAJA SESUAI KEBUTUHAN.',
-    },
-  },
-  {
-    tier: 'silver',
-    name: { en: 'SILVER MEMBERSHIP', id: 'SILVER MEMBERSHIP' },
-    description: {
-      en: 'Silver Membership offers access to ADIGSI core programs, including logo placement and promotional slots, rights to use ADIGSI logo, custom content when needed, networking opportunities with stakeholders, special incentives, and training support with regulatory analysis to enhance competence and compliance.',
-      id: 'SILVER MEMBERSHIP MENAWARKAN AKSES KE PROGRAM INTI ADIGSI, TERMASUK PENEMPATAN LOGO DAN SLOT PROMOSI, HAK PENGGUNAAN LOGO ADIGSI, KONTEN KUSTOM BILA DIPERLUKAN, KESEMPATAN NETWORKING DENGAN PARA PEMANGKU KEPENTINGAN, INSENTIF KHUSUS, SERTA DUKUNGAN PELATIHAN DAN ANALISIS REGULASI UNTUK MENINGKATKAN KOMPETENSI DAN KEPATUHAN.',
-    },
-  },
-  {
-    tier: 'gold',
-    name: { en: 'GOLD MEMBERSHIP', id: 'GOLD MEMBERSHIP' },
-    description: {
-      en: 'Gold Membership provides extensive benefits including branding placement, customizable content and programs, access to exclusive networking events, program incentives, certification support and regulatory analysis, exclusive industry updates, advocacy opportunities with regulators, and access to national and international market information to expand business opportunities and collaboration.',
-      id: 'GOLD MEMBERSHIP MEMBERIKAN MANFAAT LUAS BERUPA PENEMPATAN BRANDING, KONTEN DAN PROGRAM YANG DAPAT DIKUSTOMISASI, AKSES KE EVENT NETWORKING KHUSUS, INSENTIF PROGRAM, DUKUNGAN SERTIFIKASI DAN ANALISIS REGULASI, PEMBARUAN INDUSTRI EKSKLUSIF, PELUANG ADVOKASI DENGAN REGULATOR, SERTA AKSES INFORMASI PASAR NASIONAL MAUPUN INTERNASIONAL UNTUK MEMPERLUAS PELUANG BISNIS DAN KOLABORASI.',
-    },
-  },
-  {
-    tier: 'platinum',
-    name: { en: 'PLATINUM MEMBERSHIP', id: 'PLATINUM MEMBERSHIP' },
-    description: {
-      en: 'Platinum Membership provides priority access to all ADIGSI programs, opportunities to participate in national policy formulation, chances to represent ADIGSI in strategic meetings with government, exclusive networking access, premium branding facilities, certification support and regulatory analysis, industry research updates, and rights to use ADIGSI logo as an official partner.',
-      id: 'PLATINUM MEMBERSHIP MEMBERIKAN AKSES PRIORITAS KE SELURUH PROGRAM ADIGSI, PELUANG BERPERAN DALAM PENYUSUNAN KEBIJAKAN NASIONAL, KESEMPATAN MEWAKILI ADIGSI DI PERTEMUAN STRATEGIS DENGAN PEMERINTAH, AKSES NETWORKING EKSKLUSIF, FASILITAS BRANDING PREMIUM, DUKUNGAN SERTIFIKASI DAN ANALISIS REGULASI, PEMBARUAN RISET INDUSTRI, SERTA HAK PENGGUNAAN LOGO ADIGSI SEBAGAI MITRA RESMI.',
-    },
-  },
-]
-
 export function MembershipBenefitsSection() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true) // Start as true to show cards immediately
+  const [memberships, setMemberships] = useState<Membership[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const sectionRef = useRef<HTMLElement>(null)
   const { t, language } = useLanguage()
 
@@ -95,10 +65,49 @@ export function MembershipBenefitsSection() {
     }
   }, [])
 
+  useEffect(() => {
+    const fetchMemberships = async () => {
+      try {
+        const response = await fetch('/api/cms/members/membership-benefits')
+        if (response.ok) {
+          const data = await response.json()
+          console.log('Fetched membership benefits:', data)
+          if (data.memberships && Array.isArray(data.memberships) && data.memberships.length > 0) {
+            setMemberships(data.memberships)
+          } else {
+            console.warn('No memberships found in response or empty array')
+          }
+        } else {
+          console.error('Failed to fetch memberships:', response.statusText)
+        }
+      } catch (error) {
+        console.error('Error fetching membership benefits:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchMemberships()
+  }, [])
+
+  if (isLoading) {
+    // Show loading skeleton or nothing while loading
+    return null
+  }
+
+  if (!memberships || memberships.length === 0) {
+    // Show nothing if no memberships configured
+    console.log('No memberships to display')
+    console.log('Current memberships state:', memberships)
+    return null
+  }
+
+  console.log('Rendering membership cards with count:', memberships.length)
+
   return (
     <section ref={sectionRef} className="w-full bg-white py-20">
-      <div className="max-w-[1240px] mx-auto px-5">
-        <div className={`text-center mb-14 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+      <div className="max-w-310 mx-auto px-5">
+        <div className={`text-center mb-14 animate-fade-in-up`}>
           <h2 className="text-primary text-[21px] uppercase mb-2 font-bold tracking-wider">
             {t({ en: 'JOIN US', id: 'BERGABUNG' })}
           </h2>
@@ -107,36 +116,40 @@ export function MembershipBenefitsSection() {
           </h1>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {membershipData.map((membership, index) => (
+        <div className={`grid gap-6 ${
+          memberships.length === 1 
+            ? 'grid-cols-1 max-w-md mx-auto' 
+            : memberships.length === 2 
+            ? 'grid-cols-1 lg:grid-cols-2' 
+            : memberships.length === 3 
+            ? 'grid-cols-1 lg:grid-cols-3' 
+            : 'grid-cols-1 lg:grid-cols-2'
+        }`}>
+          {memberships.map((membership, index) => (
             <div
-              key={membership.tier}
-              className={`group relative rounded-2xl border-2 border-gray-200 bg-white p-6 transition-all duration-300 hover:border-primary/40 hover:shadow-xl hover:-translate-y-1 ${
-                isVisible ? 'animate-fade-in-up' : 'opacity-0'
-              }`}
+              key={`${membership.tier}-${index}`}
+              className={`group relative rounded-2xl border-2 border-gray-200 bg-white p-6 transition-all duration-300 hover:border-primary/40 hover:shadow-xl hover:-translate-y-1 animate-fade-in-up`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex gap-6 items-start">
-                <MembershipBadge tier={membership.tier} />
-                
+                <MembershipBadge iconUrl={membership.iconUrl} />
+
                 <div className="flex-1 min-w-0">
                   <h3 className="text-[#29294b] font-bold text-lg mb-3 uppercase">
-                    {language === 'en' ? membership.name.en : membership.name.id}
+                    {language === 'en' ? membership.nameEn : membership.nameId}
                   </h3>
                   <p className="text-[#666] text-sm leading-relaxed">
-                    {language === 'en' ? membership.description.en : membership.description.id}
+                    {language === 'en' ? membership.descriptionEn : membership.descriptionId}
                   </p>
                 </div>
               </div>
 
               {/* Decorative corner accent */}
               <div className="absolute top-0 right-0 w-20 h-20 overflow-hidden rounded-tr-2xl opacity-10">
-                <div 
+                <div
                   className="absolute -top-10 -right-10 w-20 h-20 rounded-full"
-                  style={{ 
-                    backgroundColor: membership.tier === 'bronze' ? '#CD7F32' : 
-                                   membership.tier === 'silver' ? '#C0C0C0' : 
-                                   membership.tier === 'gold' ? '#FFD700' : '#E5E4E2' 
+                  style={{
+                    backgroundColor: '#A0A0A0'
                   }}
                 />
               </div>
