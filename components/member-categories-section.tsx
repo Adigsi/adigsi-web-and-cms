@@ -3,6 +3,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/contexts/language-context'
 
+interface MemberCategory {
+  titleEn: string
+  titleId: string
+  count: number
+  icon: string
+}
+
 function CyberIcon({ type }: { type: string }) {
   const icons: Record<string, React.ReactNode> = {
     network: (
@@ -107,107 +114,75 @@ function CyberIcon({ type }: { type: string }) {
         <path d="M12 12v4" /><path d="M12 8v.01" />
       </svg>
     ),
+    server: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="2" width="20" height="8" rx="2" /><rect x="2" y="14" width="20" height="8" rx="2" />
+        <line x1="6" y1="6" x2="6.01" y2="6" /><line x1="6" y1="18" x2="6.01" y2="18" />
+      </svg>
+    ),
+    database: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+      </svg>
+    ),
+    firewall: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <line x1="9" y1="12" x2="15" y2="12" />
+      </svg>
+    ),
+    vpn: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    ),
+    encryption: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+    ),
+    malware: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+        <line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
+      </svg>
+    ),
+    virus: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="3" />
+        <circle cx="6" cy="6" r="1" /><circle cx="18" cy="6" r="1" />
+        <circle cx="6" cy="18" r="1" /><circle cx="18" cy="18" r="1" />
+      </svg>
+    ),
+    monitoring: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="23 6 20 3 20 8 15 8" /><polyline points="1 18 4 21 4 16 9 16" />
+        <path d="M22 4v5h-5" /><path d="M2 20v-5h5" />
+      </svg>
+    ),
+    audit: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+        <polyline points="17 21 17 13 7 13 7 21" />
+      </svg>
+    ),
+    compliance: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        <line x1="9" y1="12" x2="11" y2="14" /><line x1="15" y1="10" x2="11" y2="14" />
+      </svg>
+    ),
   }
   return <>{icons[type] || icons.mssp}</>
 }
 
-const memberCategories = [
-  {
-    name: { en: 'Network & Infrastructure Security', id: 'Keamanan Jaringan & Infrastruktur' },
-    count: 25,
-    icon: 'network'
-  },
-  {
-    name: { en: 'Web Security', id: 'Keamanan Web' },
-    count: 18,
-    icon: 'web'
-  },
-  {
-    name: { en: 'End Point Security', id: 'Keamanan End Point' },
-    count: 22,
-    icon: 'endpoint'
-  },
-  {
-    name: { en: 'Application Security', id: 'Keamanan Aplikasi' },
-    count: 20,
-    icon: 'app'
-  },
-  {
-    name: { en: 'MSSP', id: 'MSSP' },
-    count: 15,
-    icon: 'mssp'
-  },
-  {
-    name: { en: 'Data Security', id: 'Keamanan Data' },
-    count: 28,
-    icon: 'data'
-  },
-  {
-    name: { en: 'Mobile Security', id: 'Keamanan Mobile' },
-    count: 16,
-    icon: 'mobile'
-  },
-  {
-    name: { en: 'Risk & Compliance', id: 'Risiko & Kepatuhan' },
-    count: 12,
-    icon: 'risk'
-  },
-  {
-    name: { en: 'Security Ops & Incident Response', id: 'Operasi Keamanan & Respon Insiden' },
-    count: 19,
-    icon: 'secops'
-  },
-  {
-    name: { en: 'Threat Intelligence', id: 'Intelijen Ancaman' },
-    count: 14,
-    icon: 'threat'
-  },
-  {
-    name: { en: 'Identity & Access Management', id: 'Manajemen Identitas & Akses' },
-    count: 17,
-    icon: 'identity'
-  },
-  {
-    name: { en: 'Digital Risk Management', id: 'Manajemen Risiko Digital' },
-    count: 13,
-    icon: 'digitalrisk'
-  },
-  {
-    name: { en: 'Blockchain', id: 'Blockchain' },
-    count: 10,
-    icon: 'blockchain'
-  },
-  {
-    name: { en: 'IoT', id: 'IoT' },
-    count: 11,
-    icon: 'iot'
-  },
-  {
-    name: { en: 'Messaging Security', id: 'Keamanan Pesan' },
-    count: 9,
-    icon: 'messaging'
-  },
-  {
-    name: { en: 'Security Consulting & Service', id: 'Konsultasi & Layanan Keamanan' },
-    count: 21,
-    icon: 'consulting'
-  },
-  {
-    name: { en: 'Fraud & Transaction Security', id: 'Keamanan Transaksi & Anti-Fraud' },
-    count: 16,
-    icon: 'fraud'
-  },
-  {
-    name: { en: 'Cloud Security', id: 'Keamanan Cloud' },
-    count: 24,
-    icon: 'cloud'
-  },
-]
-
 export function MemberCategoriesSection() {
   const [isVisible, setIsVisible] = useState(false)
+  const [categories, setCategories] = useState<MemberCategory[]>([])
   const sectionRef = useRef<HTMLElement>(null)
-  const { t, language } = useLanguage()
+  const { language } = useLanguage()
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -230,6 +205,17 @@ export function MemberCategoriesSection() {
     }
   }, [])
 
+  useEffect(() => {
+    fetch('/api/cms/members/categories')
+      .then((res) => res.json())
+      .then((data) => {
+        setCategories(data.categories || [])
+      })
+      .catch((error) => {
+        console.error('Error fetching categories:', error)
+      })
+  }, [])
+
   return (
     <section ref={sectionRef} className="w-full bg-[#0a0e27] py-20 relative overflow-hidden">
       {/* Background grid pattern */}
@@ -247,18 +233,15 @@ export function MemberCategoriesSection() {
       <div className="max-w-[1240px] mx-auto px-5 relative z-10">
         <div className={`text-center mb-14 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
           <h2 className="text-[#00c2ff] text-[21px] uppercase mb-2 font-bold tracking-wider">
-            {t({ en: 'OUR COMMUNITY', id: 'KOMUNITAS KAMI' })}
+            OUR COMMUNITY
           </h2>
           <h1 className="text-white text-2xl md:text-[28px] font-bold">
-            {t({
-              en: 'ADIGSI Cyber Security Members',
-              id: 'Anggota Keamanan Siber ADIGSI'
-            })}
+            ADIGSI Cyber Security Members
           </h1>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {memberCategories.map((category, index) => (
+          {categories.map((category, index) => (
             <div
               key={index}
               className={`group relative rounded-xl border border-[#1a2255] bg-[#0f1538]/80 backdrop-blur-sm p-6 transition-all duration-300 hover:border-[#3350e6]/60 hover:bg-[#141c4a]/80 hover:-translate-y-1 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
@@ -277,14 +260,14 @@ export function MemberCategoriesSection() {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <h3 className="text-white font-semibold text-[15px] leading-tight mb-1 group-hover:text-[#e0e6ff] transition-colors duration-300">
-                    {language === 'en' ? category.name.en : category.name.id}
+                    {language === 'en' ? category.titleEn : category.titleId}
                   </h3>
                   <div className="flex items-center gap-2">
                     <span className="text-[#3350e6] text-xl font-bold group-hover:text-[#00c2ff] transition-colors duration-300">
                       {category.count}
                     </span>
                     <span className="text-[#5a6380] text-sm">
-                      {t({ en: 'Members', id: 'Anggota' })}
+                      Members
                     </span>
                   </div>
                 </div>
