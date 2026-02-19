@@ -29,6 +29,18 @@ interface Statistics {
   organizations: number
   partners: number
   memberCategories: number
+  cybersecurityMembers: {
+    categories: number
+    totalMembers: number
+  }
+  digitalMembers: {
+    categories: number
+    totalMembers: number
+  }
+  partnerLogos: {
+    categories: Array<{ categoryName: string; count: number }>
+    total: number
+  }
   downloads: {
     total: number
     members: number
@@ -55,6 +67,18 @@ export default function CMSDashboard() {
     organizations: 0,
     partners: 0,
     memberCategories: 0,
+    cybersecurityMembers: {
+      categories: 0,
+      totalMembers: 0
+    },
+    digitalMembers: {
+      categories: 0,
+      totalMembers: 0
+    },
+    partnerLogos: {
+      categories: [],
+      total: 0
+    },
     downloads: {
       total: 0,
       members: 0,
@@ -137,7 +161,7 @@ export default function CMSDashboard() {
       
       {/* Website Statistics Section */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Website Content Statistics</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Website Content Statistics (Total Content: {statistics.news + statistics.events})</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
@@ -162,66 +186,114 @@ export default function CMSDashboard() {
               <Calendar className="h-10 w-10 text-purple-600 opacity-20" />
             </div>
           </Card>
+        </div>
+      </div>
 
-          {/* <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      {/* Members Statistics Section */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Members Statistics (Total Members: {statistics.cybersecurityMembers.totalMembers + statistics.digitalMembers.totalMembers})</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Organizations</h3>
-                <p className="text-3xl font-bold text-orange-600">
-                  {isStatsLoading ? '...' : statistics.organizations}
-                </p>
-              </div>
-              <Building2 className="h-10 w-10 text-orange-600 opacity-20" />
-            </div>
-          </Card> */}
-
-          {/* <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Partners</h3>
-                <p className="text-3xl font-bold text-teal-600">
-                  {isStatsLoading ? '...' : statistics.partners}
-                </p>
-              </div>
-              <Users className="h-10 w-10 text-teal-600 opacity-20" />
-            </div>
-          </Card> */}
-
-          {/* <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Member Categories</h3>
+                <h3 className="text-sm font-medium text-gray-600 mb-2">Cybersecurity Categories</h3>
                 <p className="text-3xl font-bold text-indigo-600">
-                  {isStatsLoading ? '...' : statistics.memberCategories}
+                  {isStatsLoading ? '...' : statistics.cybersecurityMembers.categories}
                 </p>
               </div>
-              <Award className="h-10 w-10 text-indigo-600 opacity-20" />
+              <Award className="h-8 w-8 text-indigo-600 opacity-20" />
             </div>
-          </Card> */}
+          </Card>
 
-          {/* <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Report Downloads</h3>
-                <p className="text-3xl font-bold text-green-600">
-                  {isStatsLoading ? '...' : statistics.downloads.total}
+                <h3 className="text-sm font-medium text-gray-600 mb-2">Cybersecurity Members</h3>
+                <p className="text-3xl font-bold text-blue-600">
+                  {isStatsLoading ? '...' : statistics.cybersecurityMembers.totalMembers}
                 </p>
               </div>
-              <Download className="h-10 w-10 text-green-600 opacity-20" />
+              <Users className="h-8 w-8 text-blue-600 opacity-20" />
             </div>
-          </Card> */}
+          </Card>
 
-          {/* <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">Registrations</h3>
-                <p className="text-3xl font-bold text-pink-600">
-                  {isStatsLoading ? '...' : statistics.registrations}
+                <h3 className="text-sm font-medium text-gray-600 mb-2">Digital Categories</h3>
+                <p className="text-3xl font-bold text-purple-600">
+                  {isStatsLoading ? '...' : statistics.digitalMembers.categories}
                 </p>
               </div>
-              <UserPlus className="h-10 w-10 text-pink-600 opacity-20" />
+              <Award className="h-8 w-8 text-purple-600 opacity-20" />
             </div>
-          </Card> */}
+          </Card>
+
+          <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-gray-600 mb-2">Digital Members</h3>
+                <p className="text-3xl font-bold text-teal-600">
+                  {isStatsLoading ? '...' : statistics.digitalMembers.totalMembers}
+                </p>
+              </div>
+              <Users className="h-8 w-8 text-teal-600 opacity-20" />
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Partner Logos Statistics Section */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Partner Statistics (Total Partners: {statistics.partnerLogos.total})</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {isStatsLoading ? (
+            <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 mb-2">Loading...</h3>
+                  <p className="text-3xl font-bold text-gray-400">...</p>
+                </div>
+              </div>
+            </Card>
+          ) : (
+            <>
+              {statistics.partnerLogos.categories.map((category, index) => {
+                const colors = [
+                  { text: 'text-amber-600', icon: 'text-amber-600' },
+                  { text: 'text-yellow-600', icon: 'text-yellow-600' },
+                  { text: 'text-gray-500', icon: 'text-gray-500' },
+                  { text: 'text-orange-600', icon: 'text-orange-600' },
+                ]
+                const color = colors[index % colors.length]
+
+                return (
+                  <Card key={index} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-600 mb-2">{category.categoryName || `Category ${index + 1}`}</h3>
+                        <p className={`text-3xl font-bold ${color.text}`}>
+                          {category.count}
+                        </p>
+                      </div>
+                      <Building2 className={`h-8 w-8 ${color.icon} opacity-20`} />
+                    </div>
+                  </Card>
+                )
+              })}
+              {/* <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-600 mb-2">Total Partners</h3>
+                    <p className="text-3xl font-bold text-green-600">
+                      {statistics.partnerLogos.total}
+                    </p>
+                  </div>
+                  <Users className="h-8 w-8 text-green-600 opacity-20" />
+                </div>
+              </Card> */}
+            </>
+          )}
         </div>
       </div>
 
