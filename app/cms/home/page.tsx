@@ -42,6 +42,17 @@ interface WelcomeData {
   testimonials: Testimonial[]
 }
 
+interface ReportData {
+  titleEn: string
+  titleId: string
+  descriptionEn: string
+  descriptionId: string
+  buttonTextEn: string
+  buttonTextId: string
+  pdfFile: string
+  image: string
+}
+
 export default function CMSHomePage() {
   const { t } = useLanguage()
   const [isSaving, setIsSaving] = useState<string | null>(null)
@@ -50,6 +61,7 @@ export default function CMSHomePage() {
   const [expandedSections, setExpandedSections] = useState({
     banner: false,
     welcome: false,
+    report: false,
   })
   const [saveStatus, setSaveStatus] = useState<{
     section: string | null
@@ -81,13 +93,25 @@ export default function CMSHomePage() {
     testimonials: []
   })
 
-  // Fetch banner and welcome data on mount
+  const [reportData, setReportData] = useState<ReportData>({
+    titleEn: '',
+    titleId: '',
+    descriptionEn: '',
+    descriptionId: '',
+    buttonTextEn: '',
+    buttonTextId: '',
+    pdfFile: '',
+    image: '',
+  })
+
+  // Fetch banner, welcome, and report data on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [bannerRes, welcomeRes] = await Promise.all([
+        const [bannerRes, welcomeRes, reportRes] = await Promise.all([
           fetch('/api/cms/home/banner'),
-          fetch('/api/cms/home/welcome')
+          fetch('/api/cms/home/welcome'),
+          fetch('/api/cms/home/report')
         ])
 
         if (bannerRes.ok) {
@@ -100,6 +124,12 @@ export default function CMSHomePage() {
           const data = await welcomeRes.json()
           setWelcomeData(data)
           console.log('Fetched welcome data:', data)
+        }
+
+        if (reportRes.ok) {
+          const data = await reportRes.json()
+          setReportData(data)
+          console.log('Fetched report data:', data)
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -155,6 +185,57 @@ export default function CMSHomePage() {
     reader.readAsDataURL(file)
   }
 
+  const handleReportImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 5 * 1024 * 1024) {
+      setSaveStatus({
+        section: 'report',
+        type: 'error',
+        message: t({ en: 'File size must be less than 5MB', id: 'Ukuran file harus kurang dari 5MB' }),
+      })
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string
+      setReportData({ ...reportData, image: base64 })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleReportPdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.type !== 'application/pdf') {
+      setSaveStatus({
+        section: 'report',
+        type: 'error',
+        message: t({ en: 'Only PDF files are allowed', id: 'Hanya file PDF yang diizinkan' }),
+      })
+      return
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setSaveStatus({
+        section: 'report',
+        type: 'error',
+        message: t({ en: 'PDF file size must be less than 10MB', id: 'Ukuran file PDF harus kurang dari 10MB' }),
+      })
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string
+      setReportData({ ...reportData, pdfFile: base64 })
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleSave = async (section: string) => {
     setIsSaving(section)
     setSaveStatus({ section: null, type: null, message: '' })
@@ -197,6 +278,25 @@ export default function CMSHomePage() {
           section: 'welcome',
           type: 'success',
           message: t({ en: 'Welcome section saved successfully', id: 'Section welcome berhasil disimpan' }),
+        })
+      } else if (section === 'report') {
+        const response = await fetch('/api/cms/home/report', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(reportData),
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to save report')
+        }
+
+        setSaveStatus({
+          section: 'report',
+          type: 'success',
+          message: t({ en: 'Report section saved successfully', id: 'Section report berhasil disimpan' }),
         })
       }
 
@@ -755,6 +855,209 @@ export default function CMSHomePage() {
                       {isSaving === 'welcome' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
                     </Button>
                   </div>
+                </div>
+              </>
+            )}
+          </Card>
+
+          {/* Report Section */}
+          <Card className="p-6">
+            <div
+              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
+              onClick={() => setExpandedSections({ ...expandedSections, report: !expandedSections.report })}
+            >
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Report Section', id: 'Section Report' })}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t({ en: 'Manage the industry report section with title, description, image and download button', id: 'Kelola section laporan industri dengan judul, deskripsi, gambar dan tombol unduh' })}
+                </p>
+              </div>
+              <ChevronDown
+                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.report ? 'rotate-0' : '-rotate-90'}`}
+              />
+            </div>
+
+            {expandedSections.report && (
+              <>
+                {saveStatus.section === 'report' && saveStatus.type && (
+                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
+                    {saveStatus.type === 'success' ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                    )}
+                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+                      {saveStatus.message}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="space-y-6 mt-4">
+                  {/* Report Image Section */}
+                  <div>
+                    <Label>{t({ en: 'Report Image', id: 'Gambar Laporan' })}</Label>
+                    <div className="mt-2 space-y-3">
+                      {reportData.image && (
+                        <div className="relative w-full h-64 rounded-lg overflow-hidden bg-muted">
+                          <img
+                            src={reportData.image}
+                            alt="Report preview"
+                            className="w-full h-full object-contain"
+                          />
+                          <button
+                            onClick={() => setReportData({ ...reportData, image: '' })}
+                            className="absolute top-2 right-2 p-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <label className="flex-1 flex items-center justify-center px-4 py-2 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                          <div className="flex items-center gap-2">
+                            <Upload className="h-4 w-4" />
+                            <span className="text-sm text-muted-foreground">
+                              {t({ en: 'Upload Image (max 5MB)', id: 'Unggah Gambar (maks 5MB)' })}
+                            </span>
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleReportImageUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Title Section */}
+                  <div className="border-t pt-4">
+                    <h3 className="font-semibold mb-4">{t({ en: 'Title', id: 'Judul' })}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="report-title-en">{t({ en: 'Title (EN)', id: 'Judul (EN)' })}</Label>
+                        <Input
+                          id="report-title-en"
+                          value={reportData.titleEn}
+                          onChange={(e) => setReportData({ ...reportData, titleEn: e.target.value })}
+                          placeholder="e.g., Indonesia Cybersecurity Industry Report"
+                          className="mt-1"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="report-title-id">{t({ en: 'Title (ID)', id: 'Judul (ID)' })}</Label>
+                        <Input
+                          id="report-title-id"
+                          value={reportData.titleId}
+                          onChange={(e) => setReportData({ ...reportData, titleId: e.target.value })}
+                          placeholder="cth., Laporan Industri Keamanan Siber Indonesia"
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description Section */}
+                  <div className="border-t pt-4">
+                    <h3 className="font-semibold mb-4">{t({ en: 'Description', id: 'Deskripsi' })}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="desc-en">{t({ en: 'Description (EN)', id: 'Deskripsi (EN)' })}</Label>
+                        <textarea
+                          id="desc-en"
+                          value={reportData.descriptionEn}
+                          onChange={(e) => setReportData({ ...reportData, descriptionEn: e.target.value })}
+                          placeholder={t({ en: 'Enter description in English. Use line breaks to separate paragraphs.', id: 'Masukkan deskripsi dalam bahasa Inggris. Gunakan enter untuk memisahkan paragraf.' })}
+                          className="mt-1 w-full px-3 py-2 border border-border rounded-md text-sm resize-none"
+                          rows={8}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="desc-id">{t({ en: 'Description (ID)', id: 'Deskripsi (ID)' })}</Label>
+                        <textarea
+                          id="desc-id"
+                          value={reportData.descriptionId}
+                          onChange={(e) => setReportData({ ...reportData, descriptionId: e.target.value })}
+                          placeholder={t({ en: 'Enter description in Indonesian. Use line breaks to separate paragraphs.', id: 'Masukkan deskripsi dalam bahasa Indonesia. Gunakan enter untuk memisahkan paragraf.' })}
+                          className="mt-1 w-full px-3 py-2 border border-border rounded-md text-sm resize-none"
+                          rows={8}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Download Button Section */}
+                  <div className="border-t pt-4">
+                    <h3 className="font-semibold mb-4">{t({ en: 'Download Button', id: 'Tombol Unduh' })}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <Label htmlFor="btn-text-en">{t({ en: 'Button Text (EN)', id: 'Teks Tombol (EN)' })}</Label>
+                        <Input
+                          id="btn-text-en"
+                          value={reportData.buttonTextEn}
+                          onChange={(e) => setReportData({ ...reportData, buttonTextEn: e.target.value })}
+                          placeholder="e.g., Download Here"
+                          className="mt-1"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="btn-text-id">{t({ en: 'Button Text (ID)', id: 'Teks Tombol (ID)' })}</Label>
+                        <Input
+                          id="btn-text-id"
+                          value={reportData.buttonTextId}
+                          onChange={(e) => setReportData({ ...reportData, buttonTextId: e.target.value })}
+                          placeholder="cth., Unduh Di Sini"
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label>{t({ en: 'PDF File (max 10MB)', id: 'File PDF (maks 10MB)' })}</Label>
+                      <div className="mt-2 space-y-3">
+                        {reportData.pdfFile && (
+                          <div className="flex items-center gap-3 p-3 border border-border rounded-lg bg-muted/50">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-foreground">
+                                {t({ en: 'PDF file uploaded', id: 'File PDF terupload' })}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {t({ en: 'Click upload to replace', id: 'Klik upload untuk mengganti' })}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => setReportData({ ...reportData, pdfFile: '' })}
+                              className="p-2 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        )}
+                        <label className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                          <div className="flex items-center gap-2">
+                            <Upload className="h-4 w-4" />
+                            <span className="text-sm text-muted-foreground">
+                              {t({ en: 'Upload PDF File', id: 'Unggah File PDF' })}
+                            </span>
+                          </div>
+                          <input
+                            type="file"
+                            accept=".pdf,application/pdf"
+                            onChange={handleReportPdfUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button onClick={() => handleSave('report')} disabled={isSaving === 'report'} className="w-full">
+                    {isSaving === 'report' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                  </Button>
                 </div>
               </>
             )}
