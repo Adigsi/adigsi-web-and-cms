@@ -17,6 +17,7 @@ import {
   User,
   Monitor,
   Group,
+  ChartLine,
 } from 'lucide-react'
 
 import { CMSLogoutButton } from '@/components/cms-logout-button'
@@ -38,6 +39,12 @@ const cmsNavigation: NavigationItem[] = [
     labelTranslation: { en: 'Dashboard', id: 'Dashboard' },
     href: '/cms/dashboard',
     icon: Monitor,
+  },
+  { 
+    label: "Analytics",
+    labelTranslation: { en: 'Analytics', id: 'Analitik' },
+    href: '/cms/analytics',
+    icon: ChartLine,
   },
   {
     label: 'Home',
