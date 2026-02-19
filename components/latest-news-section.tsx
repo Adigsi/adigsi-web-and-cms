@@ -152,7 +152,7 @@ export function LatestNewsSection() {
                 <Link
                   key={article._id}
                   href={`/news/${article.slug}`}
-                  className={`bg-white rounded-2xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all duration-1000 ease-out hover:shadow-lg flex flex-col max-w-[350px] w-full ${
+                  className={`bg-white rounded-2xl overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all duration-1000 ease-out hover:shadow-lg flex flex-col max-w-87.5 w-full ${
                     isVisible ? 'animate-fade-in-up' : 'opacity-0'
                   }`}
                   style={{
@@ -168,7 +168,7 @@ export function LatestNewsSection() {
                       className="object-cover"
                       style={{ width: '100%', height: '200px' }}
                     />
-                    <div className="absolute bottom-3 left-6 bg-white shadow-[0_2px_6px_rgba(0,0,0,0.1)] rounded-lg px-[10px] py-1">
+                    <div className="absolute bottom-3 left-6 bg-white shadow-[0_2px_6px_rgba(0,0,0,0.1)] rounded-lg px-2.5 py-1">
                       <span className="text-xs font-semibold text-[#29294b]">
                         {language === 'en' ? article.categoryEn : article.categoryId}
                       </span>
