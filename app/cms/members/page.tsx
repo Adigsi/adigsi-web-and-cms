@@ -77,8 +77,8 @@ function IconPicker({
           <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-56 p-3">
-        <div className="grid grid-cols-5 gap-2">
+      <PopoverContent className="w-96 p-3">
+        <div className="grid grid-cols-10 gap-2">
           {ICON_OPTIONS.map((iconType) => (
             <button
               key={iconType}
@@ -106,15 +106,16 @@ function IconPicker({
 }
 
 const ICON_OPTIONS = [
-  // Cybersecurity Icons
+  // Cybersecurity Icons (28)
   'network', 'web', 'endpoint', 'app', 'mssp', 'data', 'mobile', 'risk',
   'secops', 'threat', 'identity', 'digitalrisk', 'blockchain', 'iot',
   'messaging', 'consulting', 'fraud', 'cloud', 'server', 'database',
   'firewall', 'vpn', 'encryption', 'malware', 'virus', 'monitoring',
   'audit', 'compliance',
-  // Digital Business Icons
+  // Digital Business Icons (19)
   'ecommerce', 'logistic', 'financial', 'edutech', 'telecom', 'media',
-  'healthcare', 'venture', 'consultant', 'university', 'bumn'
+  'healthcare', 'venture', 'consultant', 'university', 'bumn',
+  'retail', 'shopping', 'cart', 'manufacturing', 'agriculture', 'energy', 'construction'
 ]
 
 export default function CMSMembersPage() {
@@ -795,8 +796,8 @@ export default function CMSMembersPage() {
                                 <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />
                               </button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-56 p-3">
-                              <div className="grid grid-cols-5 gap-2">
+                            <PopoverContent className="w-96 p-3">
+                              <div className="grid grid-cols-10 gap-2">
                                 {ICON_OPTIONS.map((iconType) => (
                                   <button
                                     key={iconType}
