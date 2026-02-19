@@ -34,7 +34,7 @@ export function MembersBanner() {
   }, [])
 
   return (
-    <section className="relative w-full h-[620px] flex items-center justify-center overflow-hidden">
+    <section className="relative w-full h-155 flex items-center justify-center overflow-hidden">
       <Image
         alt={language === 'en' ? bannerData.titleEn : bannerData.titleId}
         src={bannerData.imageUrl}
