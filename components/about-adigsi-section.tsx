@@ -241,6 +241,14 @@ export function PartnersSection() {
           </div>
         </div>
       </div>
+      <div className="flex justify-center mt-8">
+          <Link
+            href="/about"
+            className="bg-[#3350E6] text-white font-semibold px-6 py-4 rounded-[10px] hover:bg-[#2940cc] transition-colors"
+          >
+            Learn More
+          </Link>
+        </div>
     </section>
   )
 }
