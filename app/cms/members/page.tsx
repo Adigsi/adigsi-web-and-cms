@@ -50,6 +50,24 @@ interface HeadingData {
   titleId: string
 }
 
+interface PartnerLogo {
+  alt: string
+  imageUrl: string
+}
+
+interface PartnerCategory {
+  categoryNameEn: string
+  categoryNameId: string
+  width: number
+  height: number
+  logos: PartnerLogo[]
+}
+
+interface PartnerLogosData {
+  heading: HeadingData
+  categories: PartnerCategory[]
+}
+
 // Custom Icon Picker Component
 function IconPicker({
   value,
@@ -118,14 +136,23 @@ const ICON_OPTIONS = [
   'retail', 'shopping', 'cart', 'manufacturing', 'agriculture', 'energy', 'construction'
 ]
 
+const PRESET_SIZES = [
+  { label: 'Platinum (220x140)', width: 220, height: 140 },
+  { label: 'Gold (190x115)', width: 190, height: 115 },
+  { label: 'Silver (160x95)', width: 160, height: 95 },
+  { label: 'Bronze (130x75)', width: 130, height: 75 },
+]
+
 export default function CMSMembersPage() {
   const { t } = useLanguage()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [draggedLogo, setDraggedLogo] = useState<{ categoryIndex: number; logoIndex: number } | null>(null)
   const [expandedSections, setExpandedSections] = useState({
     banner: false,
     cybersecurity: false,
     digital: false,
+    partners: false,
   })
   const [saveStatus, setSaveStatus] = useState<{
     section: string | null
@@ -179,14 +206,34 @@ export default function CMSMembersPage() {
     ]
   })
 
+  // Partner Logos section state
+  const [partnerLogosData, setPartnerLogosData] = useState<PartnerLogosData>({
+    heading: {
+      subtitleEn: 'OUR PARTNERS',
+      subtitleId: 'MITRA KAMI',
+      titleEn: 'ADIGSI Members',
+      titleId: 'Anggota ADIGSI',
+    },
+    categories: [
+      {
+        categoryNameEn: 'Platinum',
+        categoryNameId: 'Platinum',
+        width: 220,
+        height: 140,
+        logos: [],
+      }
+    ]
+  })
+
   // Fetch data on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [bannerRes, categoriesRes, digitalCategoriesRes] = await Promise.all([
+        const [bannerRes, categoriesRes, digitalCategoriesRes, partnerLogosRes] = await Promise.all([
           fetch('/api/cms/members/banner'),
           fetch('/api/cms/members/categories'),
-          fetch('/api/cms/members/digital-categories')
+          fetch('/api/cms/members/digital-categories'),
+          fetch('/api/cms/members/partner-logos')
         ])
 
         if (bannerRes.ok) {
@@ -236,6 +283,27 @@ export default function CMSMembersPage() {
                 nameId: '',
                 count: 0,
                 icon: 'ecommerce',
+              }
+            ]
+          })
+        }
+
+        if (partnerLogosRes.ok) {
+          const data = await partnerLogosRes.json()
+          setPartnerLogosData({
+            heading: {
+              subtitleEn: data.heading?.subtitleEn || 'OUR PARTNERS',
+              subtitleId: data.heading?.subtitleId || 'MITRA KAMI',
+              titleEn: data.heading?.titleEn || 'ADIGSI Members',
+              titleId: data.heading?.titleId || 'Anggota ADIGSI',
+            },
+            categories: data.categories || [
+              {
+                categoryNameEn: 'Platinum',
+                categoryNameId: 'Platinum',
+                width: 220,
+                height: 140,
+                logos: [],
               }
             ]
           })
@@ -319,6 +387,25 @@ export default function CMSMembersPage() {
           section: 'digital-categories',
           type: 'success',
           message: t({ en: 'Digital member categories saved successfully', id: 'Kategori member digital berhasil disimpan' }),
+        })
+      } else if (section === 'partners') {
+        const response = await fetch('/api/cms/members/partner-logos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(partnerLogosData),
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to save partner logos')
+        }
+
+        setSaveStatus({
+          section: 'partners',
+          type: 'success',
+          message: t({ en: 'Partner logos section saved successfully', id: 'Seksi partner logos berhasil disimpan' }),
         })
       }
 
@@ -851,6 +938,316 @@ export default function CMSMembersPage() {
 
                   <Button onClick={() => handleSave('digital')} disabled={isSaving === 'digital'}>
                     {isSaving === 'digital' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Digital Categories', id: 'Simpan Kategori Digital' })}
+                  </Button>
+                </div>
+              </>
+            )}
+          </Card>
+
+          {/* Partner Logos Section */}
+          <Card className="p-6">
+            <div
+              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
+              onClick={() => setExpandedSections({ ...expandedSections, partners: !expandedSections.partners })}
+            >
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Partner Logos', id: 'Logo Partner' })}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t({ en: 'Manage partner logos with categories and custom sizes', id: 'Kelola logo partner dengan kategori dan ukuran custom' })}
+                </p>
+              </div>
+              <ChevronDown
+                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.partners ? 'rotate-0' : '-rotate-90'
+                  }`}
+              />
+            </div>
+
+            {expandedSections.partners && (
+              <>
+                {saveStatus.section === 'partners' && saveStatus.type && (
+                  <Alert className={`${saveStatus.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
+                    {saveStatus.type === 'success' ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                    )}
+                    <AlertDescription className={saveStatus.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+                      {saveStatus.message}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Section Heading Fields */}
+                <div className="bg-muted/30 border border-muted rounded-lg p-4 mt-4 mb-6">
+                  <h3 className="text-sm font-semibold mb-4 text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="partner-subtitle-en">{t({ en: 'Subtitle (EN)', id: 'Subtitle (EN)' })}</Label>
+                      <Input
+                        id="partner-subtitle-en"
+                        value={partnerLogosData.heading.subtitleEn}
+                        onChange={(e) => setPartnerLogosData({ ...partnerLogosData, heading: { ...partnerLogosData.heading, subtitleEn: e.target.value } })}
+                        placeholder={t({ en: 'Enter subtitle in English', id: 'Masukkan subtitle dalam Inggris' })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="partner-subtitle-id">{t({ en: 'Subtitle (ID)', id: 'Subtitle (ID)' })}</Label>
+                      <Input
+                        id="partner-subtitle-id"
+                        value={partnerLogosData.heading.subtitleId}
+                        onChange={(e) => setPartnerLogosData({ ...partnerLogosData, heading: { ...partnerLogosData.heading, subtitleId: e.target.value } })}
+                        placeholder={t({ en: 'Enter subtitle in Indonesian', id: 'Masukkan subtitle dalam Indonesia' })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="partner-title-en">{t({ en: 'Title (EN)', id: 'Judul (EN)' })}</Label>
+                      <Input
+                        id="partner-title-en"
+                        value={partnerLogosData.heading.titleEn}
+                        onChange={(e) => setPartnerLogosData({ ...partnerLogosData, heading: { ...partnerLogosData.heading, titleEn: e.target.value } })}
+                        placeholder={t({ en: 'Enter title in English', id: 'Masukkan judul dalam Inggris' })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="partner-title-id">{t({ en: 'Title (ID)', id: 'Judul (ID)' })}</Label>
+                      <Input
+                        id="partner-title-id"
+                        value={partnerLogosData.heading.titleId}
+                        onChange={(e) => setPartnerLogosData({ ...partnerLogosData, heading: { ...partnerLogosData.heading, titleId: e.target.value } })}
+                        placeholder={t({ en: 'Enter title in Indonesian', id: 'Masukkan judul dalam Indonesia' })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Partner Categories */}
+                <div className="space-y-4">
+                  {partnerLogosData.categories.map((category, catIndex) => (
+                    <Card key={catIndex} className="p-4 border-muted bg-muted/20">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-semibold text-foreground">{t({ en: 'Category', id: 'Kategori' })} {catIndex + 1}</h3>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            const newCategories = partnerLogosData.categories.filter((_, i) => i !== catIndex)
+                            setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                          }}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                        <div>
+                          <Label className="text-xs">{t({ en: 'Category Name (EN)', id: 'Nama Kategori (EN)' })}</Label>
+                          <Input
+                            value={category.categoryNameEn}
+                            onChange={(e) => {
+                              const newCategories = [...partnerLogosData.categories]
+                              newCategories[catIndex] = { ...category, categoryNameEn: e.target.value }
+                              setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                            }}
+                            placeholder="e.g., Platinum"
+                            className="h-8 text-xs"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">{t({ en: 'Category Name (ID)', id: 'Nama Kategori (ID)' })}</Label>
+                          <Input
+                            value={category.categoryNameId}
+                            onChange={(e) => {
+                              const newCategories = [...partnerLogosData.categories]
+                              newCategories[catIndex] = { ...category, categoryNameId: e.target.value }
+                              setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                            }}
+                            placeholder="e.g., Platinum"
+                            className="h-8 text-xs"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">{t({ en: 'Width (px)', id: 'Lebar (px)' })}</Label>
+                          <Input
+                            type="number"
+                            value={category.width}
+                            onChange={(e) => {
+                              const newCategories = [...partnerLogosData.categories]
+                              newCategories[catIndex] = { ...category, width: parseInt(e.target.value) || 0 }
+                              setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                            }}
+                            placeholder="220"
+                            min="50"
+                            className="h-8 text-xs"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">{t({ en: 'Height (px)', id: 'Tinggi (px)' })}</Label>
+                          <Input
+                            type="number"
+                            value={category.height}
+                            onChange={(e) => {
+                              const newCategories = [...partnerLogosData.categories]
+                              newCategories[catIndex] = { ...category, height: parseInt(e.target.value) || 0 }
+                              setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                            }}
+                            placeholder="140"
+                            min="50"
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Quick Preset Sizes */}
+                      <div className="mb-4">
+                        <Label className="text-xs mb-2 block">{t({ en: 'Quick Preset Sizes', id: 'Ukuran Preset Cepat' })}</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {PRESET_SIZES.map((preset) => (
+                            <Button
+                              key={preset.label}
+                              size="sm"
+                              variant={category.width === preset.width && category.height === preset.height ? 'default' : 'outline'}
+                              onClick={() => {
+                                const newCategories = [...partnerLogosData.categories]
+                                newCategories[catIndex] = { ...category, width: preset.width, height: preset.height }
+                                setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                              }}
+                              className="text-xs"
+                            >
+                              {preset.label}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Logos List */}
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-semibold text-foreground">{t({ en: 'Logos', id: 'Logo' })}</h4>
+
+                        {category.logos.length > 0 && (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            {category.logos.map((logo, logoIndex) => (
+                              <div
+                                key={logoIndex}
+                                draggable
+                                onDragStart={() => setDraggedLogo({ categoryIndex: catIndex, logoIndex })}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={() => {
+                                  if (draggedLogo && draggedLogo.categoryIndex === catIndex && draggedLogo.logoIndex !== logoIndex) {
+                                    const newCategories = [...partnerLogosData.categories]
+                                    const [draggedLogoItem] = newCategories[catIndex].logos.splice(draggedLogo.logoIndex, 1)
+                                    newCategories[catIndex].logos.splice(logoIndex, 0, draggedLogoItem)
+                                    setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                                    setDraggedLogo(null)
+                                  }
+                                }}
+                                className={`border rounded-lg p-3 space-y-2 flex flex-col cursor-grab active:cursor-grabbing transition-opacity ${
+                                  draggedLogo?.categoryIndex === catIndex && draggedLogo?.logoIndex === logoIndex
+                                    ? 'border-dashed border-primary bg-primary/5 opacity-50'
+                                    : 'border-dashed border-border'
+                                }`}
+                              >
+                                {logo.imageUrl && (
+                                  <div className="flex-1 flex items-center justify-center bg-gray-50 rounded h-20">
+                                    <img src={logo.imageUrl} alt={logo.alt} className="h-16 w-auto object-contain" />
+                                  </div>
+                                )}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0]
+                                    if (file) {
+                                      const reader = new FileReader()
+                                      reader.onload = (event) => {
+                                        const base64 = event.target?.result as string
+                                        const newCategories = [...partnerLogosData.categories]
+                                        newCategories[catIndex].logos[logoIndex].imageUrl = base64
+                                        // Auto-generate alt text from filename without extension
+                                        const filename = file.name.split('.')[0].replace(/[-_]/g, ' ')
+                                        newCategories[catIndex].logos[logoIndex].alt = filename
+                                        setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                                      }
+                                      reader.readAsDataURL(file)
+                                    }
+                                  }}
+                                  className="hidden"
+                                  id={`logo-upload-${catIndex}-${logoIndex}`}
+                                />
+                                <label htmlFor={`logo-upload-${catIndex}-${logoIndex}`} className="cursor-pointer">
+                                  <div className="text-xs text-center text-muted-foreground hover:text-foreground transition-colors">
+                                    {logo.imageUrl ? t({ en: 'Change', id: 'Ubah' }) : t({ en: 'Upload', id: 'Upload' })}
+                                  </div>
+                                </label>
+                                {category.logos.length > 0 && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-full p-0 text-xs"
+                                    onClick={() => {
+                                      const newCategories = [...partnerLogosData.categories]
+                                      newCategories[catIndex].logos = newCategories[catIndex].logos.filter((_, i) => i !== logoIndex)
+                                      setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                                    }}
+                                  >
+                                    {t({ en: 'Remove', id: 'Hapus' })}
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                          onClick={() => {
+                            const newCategories = [...partnerLogosData.categories]
+                            newCategories[catIndex].logos.push({
+                              alt: '',
+                              imageUrl: ''
+                            })
+                            setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                          }}
+                        >
+                          {t({ en: '+ Add Logo', id: '+ Tambah Logo' })}
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2 mt-4">
+                  <Button
+                    onClick={() => {
+                      setPartnerLogosData({
+                        ...partnerLogosData,
+                        categories: [
+                          ...partnerLogosData.categories,
+                          {
+                            categoryNameEn: '',
+                            categoryNameId: '',
+                            width: 220,
+                            height: 140,
+                            logos: [],
+                          }
+                        ]
+                      })
+                    }}
+                    variant="outline"
+                  >
+                    {t({ en: '+ Add Category', id: '+ Tambah Kategori' })}
+                  </Button>
+
+                  <Button onClick={() => handleSave('partners')} disabled={isSaving === 'partners'}>
+                    {isSaving === 'partners' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Partner Logos', id: 'Simpan Logo Partner' })}
                   </Button>
                 </div>
               </>
