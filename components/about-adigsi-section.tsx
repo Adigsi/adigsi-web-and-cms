@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { CheckCircle } from '@/components/icons/check-circle'
 import { useLanguage } from '@/contexts/language-context'
 
@@ -109,7 +110,7 @@ export function AboutAdigsiSection() {
           <h1 className="text-[#29294b] text-[28.8px] font-bold text-center mb-4">
             {title}
           </h1>
-          
+
           <p className="text-[#29294b] leading-relaxed mb-6">
             {description}
           </p>
@@ -151,6 +152,7 @@ export function PartnersSection() {
   const [isLoading, setIsLoading] = useState(true)
   const sectionRef = useRef<HTMLElement>(null)
   const { t, language } = useLanguage()
+  const pathname = usePathname()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -241,14 +243,16 @@ export function PartnersSection() {
           </div>
         </div>
       </div>
-      <div className="flex justify-center mt-8">
+      {pathname === '/' && (
+        <div className="flex justify-center mt-8">
           <Link
             href="/about"
             className="bg-[#3350E6] text-white font-semibold px-6 py-4 rounded-[10px] hover:bg-[#2940cc] transition-colors"
           >
-            Learn More
+            {t({ en: 'Learn More', id: 'Pelajari Lebih Lanjut' })}
           </Link>
         </div>
+      )}
     </section>
   )
 }

@@ -71,7 +71,7 @@ export function AgendaSection() {
       ref={sectionRef}
       className="bg-[#f5f6f7] py-20"
     >
-      <div className="max-w-[1240px] mx-auto px-4 md:px-8 lg:px-[131px]">
+      <div className="max-w-310 mx-auto px-4 md:px-8 lg:px-32.75">
         <div
           className={`flex flex-col items-center justify-center text-center mb-8 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
             }`}
@@ -94,7 +94,7 @@ export function AgendaSection() {
               {events.map((event, index) => (
                 <div
                   key={event._id}
-                  className={`bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col max-w-[350px] w-full transition-all duration-1000 hover:shadow-md ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
+                  className={`bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col max-w-87.5 w-full transition-all duration-1000 hover:shadow-md ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
                     }`}
                   style={{
                     animationDelay: `${(index + 1) * 100}ms`,
