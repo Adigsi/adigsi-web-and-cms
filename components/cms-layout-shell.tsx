@@ -27,6 +27,8 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/contexts/language-context'
 
+import { Separator } from '@/components/ui/separator'
+
 type NavigationItem = {
   label: string
   labelTranslation?: { en: string; id: string }
@@ -35,61 +37,79 @@ type NavigationItem = {
   children?: NavigationItem[]
 }
 
-const cmsNavigation: NavigationItem[] = [
+interface NavigationSection {
+  title: string
+  titleTranslation?: { en: string; id: string }
+  items: NavigationItem[]
+}
+
+const cmsNavigation: NavigationSection[] = [
   {
-    label: 'Dashboard',
-    labelTranslation: { en: 'Dashboard', id: 'Dashboard' },
-    href: '/cms/dashboard',
-    icon: Monitor,
-  },
-  {
-    label: "Analytics",
-    labelTranslation: { en: 'Analytics', id: 'Analitik' },
-    href: '/cms/analytics',
-    icon: ChartLine,
-  },
-  {
-    label: 'Home',
-    labelTranslation: { en: 'Home', id: 'Beranda' },
-    href: '/cms/home',
-    icon: House,
-  },
-  {
-    label: 'About Us',
-    labelTranslation: { en: 'About Us', id: 'Tentang Kami' },
-    href: '/cms/about',
-    icon: Info,
-  },
-  {
-    label: 'Community',
-    labelTranslation: { en: 'Community', id: 'Komunitas' },
-    icon: Group,
-    children: [
+    title: 'Analytics',
+    titleTranslation: { en: 'Analytics', id: 'Analitik' },
+    items: [
       {
-        label: 'Adigsi Members',
-        labelTranslation: { en: 'Adigsi Members', id: 'Anggota Adigsi' },
-        href: '/cms/members',
-        icon: Users,
+        label: 'Dashboard',
+        labelTranslation: { en: 'Dashboard', id: 'Dashboard' },
+        href: '/cms/dashboard',
+        icon: Monitor,
       },
       {
-        label: 'Register',
-        labelTranslation: { en: 'Register', id: 'Daftar' },
-        href: '/cms/register',
-        icon: UserPlus,
+        label: "Visitor Analytics",
+        labelTranslation: { en: 'Visitor Analytics', id: 'Analitik Pengunjung' },
+        href: '/cms/analytics',
+        icon: ChartLine,
       },
     ],
   },
   {
-    label: 'Events',
-    labelTranslation: { en: 'Events', id: 'Agenda' },
-    href: '/cms/events',
-    icon: CalendarDays,
-  },
-  {
-    label: 'Latest News',
-    labelTranslation: { en: 'Latest News', id: 'Berita Terbaru' },
-    href: '/cms/news',
-    icon: Newspaper,
+    title: 'Content Management',
+    titleTranslation: { en: 'Content Management', id: 'Manajemen Konten' },
+    items: [
+      {
+        label: 'Home',
+        labelTranslation: { en: 'Home', id: 'Beranda' },
+        href: '/cms/home',
+        icon: House,
+      },
+      {
+        label: 'About Us',
+        labelTranslation: { en: 'About Us', id: 'Tentang Kami' },
+        href: '/cms/about',
+        icon: Info,
+      },
+      {
+        label: 'Community',
+        labelTranslation: { en: 'Community', id: 'Komunitas' },
+        icon: Group,
+        children: [
+          {
+            label: 'Adigsi Members',
+            labelTranslation: { en: 'Adigsi Members', id: 'Anggota Adigsi' },
+            href: '/cms/members',
+            icon: Users,
+          },
+          {
+            label: 'Register',
+            labelTranslation: { en: 'Register', id: 'Daftar' },
+            href: '/cms/register',
+            icon: UserPlus,
+          },
+        ],
+      },
+      {
+        label: 'Events',
+        labelTranslation: { en: 'Events', id: 'Agenda' },
+        href: '/cms/events',
+        icon: CalendarDays,
+      },
+      {
+        label: 'Latest News',
+        labelTranslation: { en: 'Latest News', id: 'Berita Terbaru' },
+        href: '/cms/news',
+        icon: Newspaper,
+      },
+    ],
   },
 ]
 
@@ -299,8 +319,20 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          <nav className="flex-1 space-y-2 overflow-y-auto p-4">
-            {cmsNavigation.map((item) => renderNavItem(item))}
+          <nav className="flex-1 overflow-y-auto p-4">
+            <div className="space-y-4">
+              {cmsNavigation.map((section, index) => (
+                <div key={section.title}>
+                  {!isSidebarCollapsed && (<div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 pb-3">
+                    {section.titleTranslation ? t(section.titleTranslation) : section.title}
+                  </div>)}
+                  <div className="space-y-1">
+                    {section.items.map((item) => renderNavItem(item))}
+                  </div>
+                  {index < cmsNavigation.length - 1 && <Separator className="my-2" />}
+                </div>
+              ))}
+            </div>
           </nav>
 
           <div className="space-y-2 border-t border-border p-4">
