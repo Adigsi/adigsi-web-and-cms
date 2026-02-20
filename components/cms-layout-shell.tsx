@@ -18,6 +18,8 @@ import {
   Monitor,
   Group,
   ChartLine,
+  Menu,
+  X,
 } from 'lucide-react'
 
 import { CMSLogoutButton } from '@/components/cms-logout-button'
@@ -40,7 +42,7 @@ const cmsNavigation: NavigationItem[] = [
     href: '/cms/dashboard',
     icon: Monitor,
   },
-  { 
+  {
     label: "Analytics",
     labelTranslation: { en: 'Analytics', id: 'Analitik' },
     href: '/cms/analytics',
@@ -93,6 +95,7 @@ const cmsNavigation: NavigationItem[] = [
 
 export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['Community'])
   const pathname = usePathname()
   const { language, setLanguage, t } = useLanguage()
@@ -202,22 +205,57 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="mx-auto flex min-h-screen max-w-screen-2xl relative">
+        {/* Mobile topbar */}
+        <div className="fixed top-0 left-0 right-0 h-16 bg-card border-b border-border flex items-center px-4 md:hidden z-40">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setIsSidebarOpen((prev) => !prev)}
+            aria-label="Toggle sidebar"
+          >
+            {isSidebarOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+          </Button>
+          <div className="ml-4">
+            <Image
+              alt="ADIGSI"
+              src="/images/design-mode/logo-adigsi.png"
+              width={112}
+              height={32}
+              priority
+              className="h-6 w-auto"
+            />
+          </div>
+        </div>
+
+        {/* Mobile overlay */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 md:hidden z-30"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
         <aside
           className={cn(
-            'fixed left-0 top-0 h-screen border-r border-border bg-card/70 transition-all duration-300 md:flex md:flex-col md:backdrop-blur z-50',
-            isSidebarCollapsed ? 'w-20' : 'w-72',
+            'fixed left-0 top-0 h-screen border-r border-border bg-card/70 transition-all duration-300 md:flex md:flex-col md:backdrop-blur z-40',
+            'md:translate-x-0 bg-white',
+            isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+            'w-72',
+            isSidebarCollapsed && 'md:w-20',
           )}
         >
           <div
             className={cn(
               'border-b border-border',
-              isSidebarCollapsed ? 'p-2.5' : 'p-4',
+              'p-4',
+              isSidebarCollapsed && 'md:p-2.5',
             )}
           >
             <div
               className={cn(
                 'flex items-center gap-2',
-                isSidebarCollapsed ? 'justify-center' : 'justify-between',
+                'justify-between',
+                isSidebarCollapsed && 'md:justify-center',
               )}
             >
               {!isSidebarCollapsed ? (
@@ -237,6 +275,7 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
                 type="button"
                 variant="outline"
                 size="icon"
+                className="hidden md:inline-flex"
                 onClick={() => setIsSidebarCollapsed((prev) => !prev)}
                 aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               >
@@ -245,6 +284,17 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
                 ) : (
                   <ChevronsLeft className="size-4" />
                 )}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="md:hidden"
+                onClick={() => setIsSidebarOpen(false)}
+                aria-label="Close sidebar"
+              >
+                <X className="size-4" />
               </Button>
             </div>
           </div>
@@ -308,33 +358,7 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
           'flex min-w-0 flex-1 flex-col transition-all duration-300',
           isSidebarCollapsed ? 'md:ml-20' : 'md:ml-72'
         )}>
-          <main className="flex-1 px-4 py-5 sm:px-6 md:px-8 md:py-8">
-            <nav className="mb-4 flex gap-2 overflow-x-auto border-b border-border pb-4 md:hidden">
-              {cmsNavigation.map((item) =>
-                item.children ? (
-                  <div
-                    key={item.label}
-                    className="inline-flex shrink-0 items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground"
-                  >
-                    <span>{item.labelTranslation ? t(item.labelTranslation) : item.label}</span>
-                  </div>
-                ) : (
-                  <Link
-                    key={item.href}
-                    href={item.href ?? '#'}
-                    className={cn(
-                      'inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-1.5 text-xs transition-colors',
-                      isActiveMenu(item.href)
-                        ? 'border-primary/30 bg-primary/10 text-primary'
-                        : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                    )}
-                  >
-                    {item.icon && <item.icon className="size-3.5" />}
-                    <span>{item.labelTranslation ? t(item.labelTranslation) : item.label}</span>
-                  </Link>
-                ),
-              )}
-            </nav>
+          <main className="flex-1 px-4 py-5 sm:px-6 md:px-8 md:py-8 pt-20">
             {children}
           </main>
         </div>
