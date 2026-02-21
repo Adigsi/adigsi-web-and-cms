@@ -27,7 +27,7 @@ interface PartnerLogosData {
 }
 
 export function PartnerLogosSection() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const [partnerLogosData, setPartnerLogosData] = useState<PartnerLogosData | null>(null)
   const [windowWidth, setWindowWidth] = useState<number | null>(null)
   const sectionRef = useRef<HTMLElement>(null)
@@ -72,6 +72,10 @@ export function PartnerLogosSection() {
 
     if (sectionRef.current) {
       observer.observe(sectionRef.current)
+      // Check if already in view on mount
+      if (sectionRef.current.getBoundingClientRect().top < window.innerHeight) {
+        setIsVisible(true)
+      }
     }
 
     return () => {
