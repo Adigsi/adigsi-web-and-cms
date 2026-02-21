@@ -1,8 +1,10 @@
 'use client'
 
 import Image from 'next/image'
-import { useLanguage } from '@/contexts/language-context'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import {
+  type CarouselApi,
   Carousel,
   CarouselContent,
   CarouselItem,
@@ -10,26 +12,82 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel'
 
-const slides = [
+interface CarousellSlide {
+  image: string
+  link?: string
+  published?: boolean
+}
+
+interface CarousellData {
+  slides: CarousellSlide[]
+}
+
+const fallbackSlides: CarousellSlide[] = [
   {
     image: '/images/hero-background.webp',
-    titleEn: 'Strengthening Indonesia Digital Security',
-    titleId: 'Memperkuat Keamanan Digital Indonesia',
+    link: '',
+    published: true,
   },
   {
     image: '/images/cybersecurity-hero.jpg',
-    titleEn: 'Building Collaboration Across the Industry',
-    titleId: 'Membangun Kolaborasi Antar Industri',
+    link: '',
+    published: true,
   },
   {
     image: '/images/image-hero-banner.webp',
-    titleEn: 'Driving Innovation for National Resilience',
-    titleId: 'Mendorong Inovasi untuk Ketahanan Nasional',
+    link: '',
+    published: true,
   },
 ]
 
 export function CarousellSection() {
-  const { language } = useLanguage()
+  const [carousellData, setCarousellData] = useState<CarousellData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null)
+
+  useEffect(() => {
+    const fetchCarousellData = async () => {
+      try {
+        const response = await fetch('/api/cms/home/carousell')
+        if (response.ok) {
+          const data = await response.json()
+          setCarousellData({
+            slides: Array.isArray(data.slides) ? data.slides : [],
+          })
+          return
+        }
+      } catch (error) {
+        console.error('Error fetching carousell data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+
+      setCarousellData({ slides: fallbackSlides })
+    }
+
+    fetchCarousellData()
+  }, [])
+
+  const visibleSlides = (carousellData?.slides || []).filter(
+    (slide) => slide.published && slide.image && slide.image.trim().length > 0
+  )
+  const slidesCount = visibleSlides.length
+
+  useEffect(() => {
+    if (!carouselApi || slidesCount < 2) return
+
+    const intervalId = window.setInterval(() => {
+      carouselApi.scrollNext()
+    }, 5000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [carouselApi, slidesCount])
+
+  if (isLoading || !carousellData || visibleSlides.length === 0) {
+    return null
+  }
 
   return (
     <section className="w-full bg-background pt-24">
@@ -38,28 +96,43 @@ export function CarousellSection() {
           opts={{
             loop: true,
           }}
+          setApi={setCarouselApi}
           className="w-full"
         >
           <CarouselContent>
-            {slides.map((slide, index) => (
-              <CarouselItem key={index}>
+            {visibleSlides.map((slide, index) => {
+              const link = slide.link?.trim()
+              const isExternal = link ? /^https?:\/\//.test(link) : false
+              const slideContent = (
                 <div className="relative h-55 md:h-75 lg:h-90 w-full overflow-hidden rounded-2xl">
                   <Image
                     src={slide.image}
-                    alt={language === 'en' ? slide.titleEn : slide.titleId}
+                    alt="Carousel banner"
                     fill
                     className="object-cover"
                     priority={index === 0}
                   />
-                  <div className="absolute inset-0 bg-black/45" />
-                  <div className="absolute inset-0 flex items-end p-6 md:p-8">
-                    <h2 className="text-white text-xl md:text-3xl font-bold max-w-3xl leading-tight">
-                      {language === 'en' ? slide.titleEn : slide.titleId}
-                    </h2>
-                  </div>
                 </div>
-              </CarouselItem>
-            ))}
+              )
+
+              return (
+                <CarouselItem key={index}>
+                  {link ? (
+                    <Link
+                      href={link}
+                      className="block h-full w-full"
+                      aria-label="Carousel banner link"
+                      target={isExternal ? '_blank' : undefined}
+                      rel={isExternal ? 'noopener noreferrer' : undefined}
+                    >
+                      {slideContent}
+                    </Link>
+                  ) : (
+                    slideContent
+                  )}
+                </CarouselItem>
+              )
+            })}
           </CarouselContent>
           <CarouselPrevious className="left-3 md:left-4 text-white border-white/40 bg-black/35 hover:bg-black/55" />
           <CarouselNext className="right-3 md:right-4 text-white border-white/40 bg-black/35 hover:bg-black/55" />
