@@ -27,7 +27,6 @@ interface PartnerLogosData {
 }
 
 export function PartnerLogosSection() {
-  const [isVisible, setIsVisible] = useState(true)
   const [partnerLogosData, setPartnerLogosData] = useState<PartnerLogosData | null>(null)
   const [windowWidth, setWindowWidth] = useState<number | null>(null)
   const sectionRef = useRef<HTMLElement>(null)
@@ -60,30 +59,6 @@ export function PartnerLogosSection() {
     fetchData()
   }, [])
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-      // Check if already in view on mount
-      if (sectionRef.current.getBoundingClientRect().top < window.innerHeight) {
-        setIsVisible(true)
-      }
-    }
-
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current)
-      }
-    }
-  }, [])
 
   if (!partnerLogosData) {
     return null
@@ -117,7 +92,7 @@ export function PartnerLogosSection() {
   return (
     <section ref={sectionRef} className="w-full bg-white py-20">
       <div className="max-w-310 mx-auto px-5">
-        <div className={`text-center mb-14 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+        <div className="text-center mb-14">
           <h2 className="text-primary text-[21px] uppercase mb-2 font-bold tracking-wider">
             {t({ 
               en: partnerLogosData.heading.subtitleEn, 
