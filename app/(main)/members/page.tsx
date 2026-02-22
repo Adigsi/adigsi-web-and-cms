@@ -16,7 +16,6 @@ export default function MembersPage() {
       <MemberCategoriesSection />
       <DigitalMemberCategoriesSection />
       <PartnerLogosSection />
-      <MembershipBenefitsSection />
     </>
   )
 }
