@@ -12,8 +12,8 @@ export function Navbar() {
   const { language, setLanguage, t } = useLanguage()
 
   return (
-    <header className="fixed top-0 left-0 right-0 w-full z-[99] bg-white border-b border-[#eeeeee]">
-      <div className="w-full max-w-[1240px] mx-auto px-5 py-5">
+    <header className="fixed top-0 left-0 right-0 w-full z-99 bg-white border-b border-[#eeeeee]">
+      <div className="w-full max-w-310 mx-auto px-5 py-5">
         <nav className="flex justify-between items-center">
           {/* Logo */}
           <Link href="/" className="text-[#29294b]">
@@ -101,7 +101,7 @@ export function Navbar() {
               <Globe className="w-4 h-4 text-[#333333]" />
               <select
                 value={language}
-                onChange={(e) => setLanguage(e.target.value)}
+                onChange={(e) => setLanguage(e.target.value as 'en' | 'id')}
                 className="text-base font-medium bg-transparent text-[#333333] border-0 cursor-pointer focus:outline-none"
               >
                 <option value="en">EN</option>
@@ -129,14 +129,14 @@ export function Navbar() {
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`fixed top-0 right-0 bottom-0 left-0 bg-white z-[999] flex-col justify-center items-center transition-opacity duration-[350ms] ease-in-out ${mobileMenuOpen
+        className={`fixed top-0 right-0 bottom-0 left-0 bg-white z-999 flex-col justify-center items-center transition-opacity duration-350 ease-in-out ${mobileMenuOpen
           ? 'flex opacity-100 pointer-events-auto'
           : 'hidden opacity-0 pointer-events-none'
           }`}
       >
         {/* Close Button */}
         <button
-          className="absolute top-5 right-5 bg-transparent text-[28px] z-[9999] cursor-pointer border-0 text-[#29294b]"
+          className="absolute top-5 right-5 bg-transparent text-[28px] z-9999 cursor-pointer border-0 text-[#29294b]"
           onClick={() => setMobileMenuOpen(false)}
           aria-label="Close menu"
         >
@@ -148,7 +148,7 @@ export function Navbar() {
           <Globe className="w-4 h-4 text-[#333333]" />
           <select
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
+            onChange={(e) => setLanguage(e.target.value as 'en' | 'id')}
             className="text-base font-medium bg-transparent text-[#333333] border-0 cursor-pointer focus:outline-none"
           >
             <option value="en">EN</option>
