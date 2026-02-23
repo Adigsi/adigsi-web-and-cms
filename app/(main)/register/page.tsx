@@ -1,6 +1,7 @@
 import { RegisterBanner } from '@/components/register-banner'
 import { MembershipCategorySection } from '@/components/membership-category-section'
 import { JoinAdigsiSection } from '@/components/join-adigsi-section'
+import { MembershipBenefitsSection } from '@/components/membership-benefits-section'
 
 export const metadata = {
   title: 'Register - ADIGSI',
@@ -13,6 +14,7 @@ export default function RegisterPage() {
       <RegisterBanner />
       <MembershipCategorySection />
       <JoinAdigsiSection />
+      <MembershipBenefitsSection />
     </>
   )
 }

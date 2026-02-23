@@ -25,6 +25,16 @@ interface BannerData {
   joinButtonLink: string
 }
 
+interface CarousellSlide {
+  image: string
+  link?: string
+  published?: boolean
+}
+
+interface CarousellData {
+  slides: CarousellSlide[]
+}
+
 interface Testimonial {
   quoteEn: string
   quoteId: string
@@ -74,11 +84,17 @@ export default function CMSHomePage() {
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [draggedTestimonial, setDraggedTestimonial] = useState<number | null>(null)
+  // const [draggedCarousellSlide, setDraggedCarousellSlide] = useState<number | null>(null)
   const [expandedSections, setExpandedSections] = useState({
+    carousell: false,
     banner: false,
     welcome: false,
     report: false,
     footer: false,
+  })
+
+  const [carousellData, setCarousellData] = useState<CarousellData>({
+    slides: [],
   })
 
   const [bannerData, setBannerData] = useState<BannerData>({
@@ -135,12 +151,21 @@ export default function CMSHomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [bannerRes, welcomeRes, reportRes, footerRes] = await Promise.all([
+        const [carousellRes, bannerRes, welcomeRes, reportRes, footerRes] = await Promise.all([
+          fetch('/api/cms/home/carousell'),
           fetch('/api/cms/home/banner'),
           fetch('/api/cms/home/welcome'),
           fetch('/api/cms/home/report'),
           fetch('/api/cms/home/footer')
         ])
+
+        if (carousellRes.ok) {
+          const data = await carousellRes.json()
+          setCarousellData({
+            slides: Array.isArray(data.slides) ? data.slides : [],
+          })
+          console.log('Fetched carousell data:', data)
+        }
 
         if (bannerRes.ok) {
           const data = await bannerRes.json()
@@ -195,6 +220,29 @@ export default function CMSHomePage() {
     }
     reader.readAsDataURL(file)
   }
+
+  // const handleCarousellImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, slideIndex: number) => {
+  //   const file = e.target.files?.[0]
+  //   if (!file) return
+
+  //   if (file.size > 5 * 1024 * 1024) {
+  //     toast({
+  //       title: t({ en: 'Error', id: 'Kesalahan' }),
+  //       description: t({ en: 'File size must be less than 5MB', id: 'Ukuran file harus kurang dari 5MB' }),
+  //       variant: 'destructive'
+  //     })
+  //     return
+  //   }
+
+  //   const reader = new FileReader()
+  //   reader.onload = (event) => {
+  //     const base64 = event.target?.result as string
+  //     const newSlides = [...carousellData.slides]
+  //     newSlides[slideIndex].image = base64
+  //     setCarousellData({ ...carousellData, slides: newSlides })
+  //   }
+  //   reader.readAsDataURL(file)
+  // }
 
   const handleTestimonialImageUpload = (e: React.ChangeEvent<HTMLInputElement>, testimonialIndex: number) => {
     const file = e.target.files?.[0]
@@ -274,7 +322,25 @@ export default function CMSHomePage() {
     setIsSaving(section)
 
     try {
-      if (section === 'banner') {
+      if (section === 'carousell') {
+        const response = await fetch('/api/cms/home/carousell', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(carousellData),
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to save carousell')
+        }
+
+        toast({
+          title: t({ en: 'Success', id: 'Sukses' }),
+          description: t({ en: 'Carousell saved successfully', id: 'Carousell berhasil disimpan' })
+        })
+      } else if (section === 'banner') {
         const response = await fetch('/api/cms/home/banner', {
           method: 'POST',
           headers: {
@@ -384,6 +450,30 @@ export default function CMSHomePage() {
     setDraggedTestimonial(null)
   }
 
+  // const handleCarousellDragStart = (index: number) => {
+  //   setDraggedCarousellSlide(index)
+  // }
+
+  // const handleCarousellDragEnd = () => {
+  //   setDraggedCarousellSlide(null)
+  // }
+
+  // const handleCarousellDragOver = (e: React.DragEvent) => {
+  //   e.preventDefault()
+  // }
+
+  // const handleCarousellDrop = (targetIndex: number) => {
+  //   if (draggedCarousellSlide === null) return
+
+  //   const newSlides = [...carousellData.slides]
+  //   const draggedItem = newSlides[draggedCarousellSlide]
+  //   newSlides.splice(draggedCarousellSlide, 1)
+  //   newSlides.splice(targetIndex, 0, draggedItem)
+
+  //   setCarousellData({ ...carousellData, slides: newSlides })
+  //   setDraggedCarousellSlide(null)
+  // }
+
   return (
     <div className="space-y-6">
       <div>
@@ -401,6 +491,159 @@ export default function CMSHomePage() {
         </Card>
       ) : (
         <>
+          {/* Carousell Section */}
+          {/* <Card className="p-6">
+            <div
+              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
+              onClick={() => setExpandedSections({ ...expandedSections, carousell: !expandedSections.carousell })}
+            >
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-foreground">
+                  {t({ en: 'Carousell Section', id: 'Section Carousell' })}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t({ en: 'Manage carousell banners with images and optional links', id: 'Kelola banner carousell dengan gambar dan link opsional' })}
+                </p>
+              </div>
+              <ChevronDown
+                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.carousell ? 'rotate-0' : '-rotate-90'}`}
+              />
+            </div>
+
+            {expandedSections.carousell && (
+              <>
+                <div className="space-y-6 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {carousellData.slides.length > 0 ? (
+                      carousellData.slides.map((slide, index) => (
+                        <div
+                          key={index}
+                          draggable
+                          onDragStart={() => handleCarousellDragStart(index)}
+                          onDragEnd={handleCarousellDragEnd}
+                          onDragOver={handleCarousellDragOver}
+                          onDrop={() => handleCarousellDrop(index)}
+                          className={`border border-border rounded-lg p-4 space-y-4 cursor-move transition-all ${
+                            draggedCarousellSlide === index ? 'opacity-50 scale-[0.98]' : 'opacity-100 scale-100'
+                          } hover:shadow-md`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-sm">
+                              {t({ en: 'Slide', id: 'Slide' })} {index + 1}
+                            </h4>
+                            <label className="inline-flex items-center gap-2 text-xs">
+                              <input
+                                type="checkbox"
+                                checked={slide.published ?? false}
+                                onChange={(e) => {
+                                  const newSlides = [...carousellData.slides]
+                                  newSlides[index].published = e.target.checked
+                                  setCarousellData({ ...carousellData, slides: newSlides })
+                                }}
+                                className="h-3.5 w-3.5"
+                              />
+                              <span>
+                                {slide.published ? t({ en: 'Published', id: 'Terpublish' }) : t({ en: 'Unpublished', id: 'Tidak Terpublish' })}
+                              </span>
+                            </label>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              disabled={carousellData.slides.length === 1}
+                              onClick={() => {
+                                const newSlides = carousellData.slides.filter((_, i) => i !== index)
+                                setCarousellData({ ...carousellData, slides: newSlides })
+                              }}
+                            >
+                              {t({ en: 'Delete', id: 'Hapus' })}
+                            </Button>
+                          </div>
+
+                          <div>
+                            <Label>{t({ en: 'Image', id: 'Gambar' })}</Label>
+                            <div className="mt-2 space-y-3">
+                              {slide.image && (
+                                <div className="relative w-full h-40 rounded-lg overflow-hidden bg-muted">
+                                  <img
+                                    src={slide.image}
+                                    alt="Carousell preview"
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const newSlides = [...carousellData.slides]
+                                      newSlides[index].image = ''
+                                      setCarousellData({ ...carousellData, slides: newSlides })
+                                    }}
+                                    className="absolute top-2 right-2 p-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              )}
+                              <label className="flex items-center justify-center px-4 py-2 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                                <div className="flex items-center gap-2">
+                                  <Upload className="h-4 w-4" />
+                                  <span className="text-sm text-muted-foreground">
+                                    {t({ en: 'Upload Image', id: 'Unggah Gambar' })}
+                                  </span>
+                                </div>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleCarousellImageUpload(e, index)}
+                                  className="hidden"
+                                />
+                              </label>
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label htmlFor={`carousell-link-${index}`}>
+                              {t({ en: 'Optional Link', id: 'Link Opsional' })}
+                            </Label>
+                            <Input
+                              id={`carousell-link-${index}`}
+                              value={slide.link || ''}
+                              onChange={(e) => {
+                                const newSlides = [...carousellData.slides]
+                                newSlides[index].link = e.target.value
+                                setCarousellData({ ...carousellData, slides: newSlides })
+                              }}
+                              placeholder="https://..."
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-2 text-center text-muted-foreground py-6">
+                        {t({ en: 'No slides added yet', id: 'Belum ada slide' })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setCarousellData({
+                          ...carousellData,
+                          slides: [...carousellData.slides, { image: '', link: '', published: true }]
+                        })
+                      }}
+                    >
+                      + {t({ en: 'Add Slide', id: 'Tambah Slide' })}
+                    </Button>
+                    <Button onClick={() => handleSave('carousell')} disabled={isSaving === 'carousell'}>
+                      {isSaving === 'carousell' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </Card> */}
+
           {/* Banner Section */}
           <Card className="p-6">
             <div
