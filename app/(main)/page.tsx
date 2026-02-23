@@ -9,7 +9,7 @@ import { CarousellSection } from '@/components/carousell-section'
 export default function Home() {
   return (
     <>
-      <CarousellSection />
+      {/* <CarousellSection /> */}
       <HeroSection />
       <WelcomeSection />
       <LatestNewsSection />
