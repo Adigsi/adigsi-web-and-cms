@@ -130,21 +130,21 @@ export function Footer() {
               <Link
                 href={footerData.instagramUrl}
                 target="_blank"
-                className="w-9 h-9 flex items-center justify-center text-foreground border border-border rounded-full transition-all duration-200 hover:bg-secondary hover:text-secondary-foreground"
+                className="w-9 h-9 flex items-center justify-center text-foreground border border-border rounded-full transition-all duration-200 hover:bg-accent hover:text-accent-foreground"
               >
                 <InstagramIcon className="w-4 h-4" />
               </Link>
               <Link
                 href={footerData.whatsappUrl}
                 target="_blank"
-                className="w-9 h-9 flex items-center justify-center text-foreground border border-border rounded-full transition-all duration-200 hover:bg-secondary hover:text-secondary-foreground"
+                className="w-9 h-9 flex items-center justify-center text-foreground border border-border rounded-full transition-all duration-200 hover:bg-accent hover:text-accent-foreground"
               >
                 <WhatsAppIcon className="w-4 h-4" />
               </Link>
               <Link
                 href={footerData.linkedinUrl}
                 target="_blank"
-                className="w-9 h-9 flex items-center justify-center text-foreground border border-border rounded-full transition-all duration-200 hover:bg-secondary hover:text-secondary-foreground"
+                className="w-9 h-9 flex items-center justify-center text-foreground border border-border rounded-full transition-all duration-200 hover:bg-accent hover:text-accent-foreground"
               >
                 <LinkedinIcon className="w-4 h-4" />
               </Link>

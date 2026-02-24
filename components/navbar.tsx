@@ -176,7 +176,7 @@ export function Navbar() {
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleDarkMode}
-              className="px-2.5 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+              className="px-3 py-2.5 rounded-lg gradient-primary text-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 font-semibold text-sm"
               aria-label="Toggle dark mode"
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -184,27 +184,21 @@ export function Navbar() {
 
             {/* Language Selector with Flags */}
             <div className="relative group">
-              <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground transition-all duration-200">
+              <button className="flex items-center gap-2 px-4 py-2.5 rounded-lg gradient-primary text-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 font-semibold text-xs">
                 {language === 'en' ? <FlagEN /> : <FlagID />}
                 <span className="text-xs font-medium">{language.toUpperCase()}</span>
               </button>
               <div className="absolute top-full right-0 mt-2 w-32 p-2 bg-popover/95 backdrop-blur-md shadow-lg rounded-xl border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                 <button
                   onClick={() => setLanguage('en')}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-popover-foreground hover:bg-primary hover:text-white transition-all duration-200 rounded-lg"
-                  style={{ transition: 'all 0.2s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #2B4E9B, #12126B)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = ''}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg"
                 >
                   <FlagEN />
                   <span>English</span>
                 </button>
                 <button
                   onClick={() => setLanguage('id')}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-popover-foreground hover:text-white transition-all duration-200 rounded-lg"
-                  style={{ transition: 'all 0.2s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'linear-gradient(90deg, #2B4E9B, #12126B)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = ''}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg"
                 >
                   <FlagID />
                   <span>Indonesia</span>
@@ -266,11 +260,11 @@ export function Navbar() {
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleDarkMode}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/15 hover:bg-white/25 transition-all duration-200 text-white backdrop-blur-sm border border-white/20"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg gradient-primary text-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 font-semibold text-sm backdrop-blur-sm"
               aria-label="Toggle dark mode"
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              <span className="text-sm font-semibold">
+              <span>
                 {isDarkMode ? 'Light' : 'Dark'}
               </span>
             </button>
@@ -279,17 +273,17 @@ export function Navbar() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setLanguage('en')}
-                className={`p-2.5 rounded-lg transition-all duration-200 border ${
-                  language === 'en' ? 'bg-white/25 ring-2 ring-white/50 border-white/30' : 'bg-white/15 hover:bg-white/25 border-white/20'
-                } backdrop-blur-sm`}
+                className={`p-2.5 rounded-lg transition-all duration-200 font-semibold ${
+                  language === 'en' ? 'gradient-primary text-white shadow-lg scale-110' : 'bg-white/15 hover:bg-white/25 hover:scale-105 text-white border border-white/30 backdrop-blur-sm'
+                }`}
               >
                 <FlagEN />
               </button>
               <button
                 onClick={() => setLanguage('id')}
-                className={`p-2.5 rounded-lg transition-all duration-200 border ${
-                  language === 'id' ? 'bg-white/25 ring-2 ring-white/50 border-white/30' : 'bg-white/15 hover:bg-white/25 border-white/20'
-                } backdrop-blur-sm`}
+                className={`p-2.5 rounded-lg transition-all duration-200 font-semibold ${
+                  language === 'id' ? 'gradient-primary text-white shadow-lg scale-110' : 'bg-white/15 hover:bg-white/25 hover:scale-105 text-white border border-white/30 backdrop-blur-sm'
+                }`}
               >
                 <FlagID />
               </button>
