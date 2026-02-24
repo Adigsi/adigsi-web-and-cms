@@ -99,7 +99,7 @@ export function Navbar() {
       className={`fixed top-0 left-0 right-0 w-full z-99 transition-all duration-300 backdrop-blur-md ${
         isScrolled
           ? 'bg-card/95 shadow-md border-b border-border'
-          : 'bg-card/60 border-b border-transparent'
+          : 'bg-card/0 border-b border-transparent'
       }`}
     >
       <div className="w-full max-w-310 mx-auto px-5 py-3">
