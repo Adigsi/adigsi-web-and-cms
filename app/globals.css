@@ -244,6 +244,21 @@
   animation: fadeInUp 0.8s ease-out forwards;
 }
 
+@keyframes bounceLight {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-light {
+  animation: bounceLight 2s ease-in-out infinite;
+}
+
 .animate-delay-100 {
   animation-delay: 0.1s;
 }
