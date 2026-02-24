@@ -27,7 +27,7 @@ function WhatsAppIcon( props: React.SVGProps<SVGSVGElement> ) {
     xmlns="http://www.w3.org/2000/svg"
     width="21"
     height="21"
-    fill="#fff"
+    fill="currentColor"
     viewBox="0 0 256 256"
     style={{}}
     {...props}
@@ -46,7 +46,7 @@ function InstagramIcon( props: React.SVGProps<SVGSVGElement> ) {
     xmlns="http://www.w3.org/2000/svg"
     width="21"
     height="21"
-    fill="#fff"
+    fill="currentColor"
     viewBox="0 0 256 256"
     style={{}}
     {...props}
@@ -65,7 +65,7 @@ function LinkedinIcon( props: React.SVGProps<SVGSVGElement> ) {
     xmlns="http://www.w3.org/2000/svg"
     width="21"
     height="21"
-    fill="#fff"
+    fill="currentColor"
     viewBox="0 0 256 256"
     style={{}}
     {...props}
@@ -103,16 +103,16 @@ export function Footer() {
 
   if (isLoading || !footerData) {
     return (
-      <footer className="bg-[#2d2d2d] text-white font-sans">
-        <div className="max-w-300 mx-auto px-6 pt-12 pb-4">Loading footer...</div>
+      <footer className="bg-card text-foreground border-t border-border">
+        <div className="max-w-300 mx-auto px-5 py-6 text-sm">Loading footer...</div>
       </footer>
     )
   }
 
   return (
-    <footer className="bg-[#2d2d2d] text-white font-sans">
-      <div className="max-w-300 mx-auto px-6 pt-12 pb-4">
-        <div className="flex flex-wrap gap-8 pb-8 mb-4 border-b border-dashed border-[#6e6e6e]">
+    <footer className="bg-card text-foreground border-t border-border">
+      <div className="max-w-300 mx-auto px-5 py-8">
+        <div className="flex flex-wrap gap-6 pb-6 mb-4 border-b border-border">
           {/* Left Section - About */}
           <div className="flex-1 min-w-70">
             <Image
@@ -120,71 +120,71 @@ export function Footer() {
               alt="ADIGSI Logo"
               width={120}
               height={120}
-              className="mb-4"
-              style={{ width: 'auto', height: '120px' }}
+              className="mb-3"
+              style={{ width: 'auto', height: '80px' }}
             />
-            <p className="text-[15.2px] leading-[24.32px] text-[#e0e0e0] mb-6">
+            <p className="text-sm leading-6 text-muted-foreground mb-4">
               {language === 'id' ? footerData.aboutDescriptionId : footerData.aboutDescriptionEn}
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <Link
                 href={footerData.instagramUrl}
                 target="_blank"
-                className="w-10 h-10 flex items-center justify-center text-white border-[1.5px] border-white rounded-full transition-all duration-300 hover:bg-white hover:text-[#2d2d2d]"
+                className="w-9 h-9 flex items-center justify-center text-foreground border border-border rounded-full transition-all duration-200 hover:bg-secondary hover:text-secondary-foreground"
               >
-                <InstagramIcon className="w-5 h-5" />
+                <InstagramIcon className="w-4 h-4" />
               </Link>
               <Link
                 href={footerData.whatsappUrl}
                 target="_blank"
-                className="w-10 h-10 flex items-center justify-center text-white border-[1.5px] border-white rounded-full transition-all duration-300 hover:bg-white hover:text-[#2d2d2d]"
+                className="w-9 h-9 flex items-center justify-center text-foreground border border-border rounded-full transition-all duration-200 hover:bg-secondary hover:text-secondary-foreground"
               >
-                <WhatsAppIcon className="w-5 h-5" />
+                <WhatsAppIcon className="w-4 h-4" />
               </Link>
               <Link
                 href={footerData.linkedinUrl}
                 target="_blank"
-                className="w-10 h-10 flex items-center justify-center text-white border-[1.5px] border-white rounded-full transition-all duration-300 hover:bg-white hover:text-[#2d2d2d]"
+                className="w-9 h-9 flex items-center justify-center text-foreground border border-border rounded-full transition-all duration-200 hover:bg-secondary hover:text-secondary-foreground"
               >
-                <LinkedinIcon className="w-5 h-5" />
+                <LinkedinIcon className="w-4 h-4" />
               </Link>
             </div>
           </div>
 
           {/* Right Section - Contact */}
-          <div className="flex-1 min-w-70 border-l border-dashed border-[#6e6e6e] pl-8">
-            <h3 className="text-[22.4px] font-bold text-white mb-6">
+          <div className="flex-1 min-w-70 border-l border-border pl-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">
               Contact Us
             </h3>
 
             {/* Email */}
-            <div className="flex items-start gap-4 mb-5">
-              <div className="flex items-center justify-center border-2 border-white rounded-full p-2">
-                <Mail className="w-5 h-5 text-white" />
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex items-center justify-center border border-border rounded-full p-2">
+                <Mail className="w-4 h-4 text-foreground" />
               </div>
-              <div className="text-[15.2px] leading-[22.8px] text-[#e0e0e0]">
-                <div className="font-medium">Email</div>
+              <div className="text-sm leading-5 text-muted-foreground">
+                <div className="font-medium text-foreground">Email</div>
                 <div>{footerData.email}</div>
               </div>
             </div>
 
             {/* Phone */}
-            <div className="flex items-start gap-4 mb-5">
-              <div className="flex items-center justify-center border-2 border-white rounded-full p-2">
-                <Phone className="w-5 h-5 text-white" />
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex items-center justify-center border border-border rounded-full p-2">
+                <Phone className="w-4 h-4 text-foreground" />
               </div>
-              <div className="text-[15.2px] leading-[22.8px] text-[#e0e0e0]">
-                <div className="font-medium">Phone</div>
+              <div className="text-sm leading-5 text-muted-foreground">
+                <div className="font-medium text-foreground">Phone</div>
                 <div>{footerData.phone}</div>
               </div>
             </div>
 
             {/* Address */}
-            <div className="flex items-start gap-4 mb-5">
-              <div className="flex items-center justify-center border-2 border-white rounded-full p-2">
-                <MapPin className="w-5 h-5 text-white" />
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex items-center justify-center border border-border rounded-full p-2">
+                <MapPin className="w-4 h-4 text-foreground" />
               </div>
-              <div className="text-[15.2px] leading-[22.8px] text-[#e0e0e0]">
+              <div className="text-sm leading-5 text-muted-foreground">
                 {language === 'id' ? footerData.addressId : footerData.addressEn}
               </div>
             </div>
@@ -192,21 +192,21 @@ export function Footer() {
         </div>
 
         {/* Bottom Copyright */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6 text-[13.6px]">
-          <p className="text-white text-center md:text-left">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-3 pb-4 text-xs">
+          <p className="text-muted-foreground text-center md:text-left">
             Copyright © {footerData.copyrightYear} Asosiasi Digital dan Keamanan Siber Indonesia
             (ADIGSI) All Rights Reserved.
           </p>
           <div className="flex gap-6">
             <Link
               href="#"
-              className="text-[#b0b0b0] hover:text-white transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               Terms & Conditions
             </Link>
             <Link
               href="#"
-              className="text-[#b0b0b0] hover:text-white transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               Privacy Policy
             </Link>
