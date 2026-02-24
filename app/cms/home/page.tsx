@@ -84,7 +84,7 @@ export default function CMSHomePage() {
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [draggedTestimonial, setDraggedTestimonial] = useState<number | null>(null)
-  // const [draggedCarousellSlide, setDraggedCarousellSlide] = useState<number | null>(null)
+  const [draggedCarousellSlide, setDraggedCarousellSlide] = useState<number | null>(null)
   const [expandedSections, setExpandedSections] = useState({
     carousell: false,
     banner: false,
@@ -221,28 +221,28 @@ export default function CMSHomePage() {
     reader.readAsDataURL(file)
   }
 
-  // const handleCarousellImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, slideIndex: number) => {
-  //   const file = e.target.files?.[0]
-  //   if (!file) return
+  const handleCarousellImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, slideIndex: number) => {
+    const file = e.target.files?.[0]
+    if (!file) return
 
-  //   if (file.size > 5 * 1024 * 1024) {
-  //     toast({
-  //       title: t({ en: 'Error', id: 'Kesalahan' }),
-  //       description: t({ en: 'File size must be less than 5MB', id: 'Ukuran file harus kurang dari 5MB' }),
-  //       variant: 'destructive'
-  //     })
-  //     return
-  //   }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: t({ en: 'File size must be less than 5MB', id: 'Ukuran file harus kurang dari 5MB' }),
+        variant: 'destructive'
+      })
+      return
+    }
 
-  //   const reader = new FileReader()
-  //   reader.onload = (event) => {
-  //     const base64 = event.target?.result as string
-  //     const newSlides = [...carousellData.slides]
-  //     newSlides[slideIndex].image = base64
-  //     setCarousellData({ ...carousellData, slides: newSlides })
-  //   }
-  //   reader.readAsDataURL(file)
-  // }
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string
+      const newSlides = [...carousellData.slides]
+      newSlides[slideIndex].image = base64
+      setCarousellData({ ...carousellData, slides: newSlides })
+    }
+    reader.readAsDataURL(file)
+  }
 
   const handleTestimonialImageUpload = (e: React.ChangeEvent<HTMLInputElement>, testimonialIndex: number) => {
     const file = e.target.files?.[0]
@@ -450,29 +450,29 @@ export default function CMSHomePage() {
     setDraggedTestimonial(null)
   }
 
-  // const handleCarousellDragStart = (index: number) => {
-  //   setDraggedCarousellSlide(index)
-  // }
+  const handleCarousellDragStart = (index: number) => {
+    setDraggedCarousellSlide(index)
+  }
 
-  // const handleCarousellDragEnd = () => {
-  //   setDraggedCarousellSlide(null)
-  // }
+  const handleCarousellDragEnd = () => {
+    setDraggedCarousellSlide(null)
+  }
 
-  // const handleCarousellDragOver = (e: React.DragEvent) => {
-  //   e.preventDefault()
-  // }
+  const handleCarousellDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
 
-  // const handleCarousellDrop = (targetIndex: number) => {
-  //   if (draggedCarousellSlide === null) return
+  const handleCarousellDrop = (targetIndex: number) => {
+    if (draggedCarousellSlide === null) return
 
-  //   const newSlides = [...carousellData.slides]
-  //   const draggedItem = newSlides[draggedCarousellSlide]
-  //   newSlides.splice(draggedCarousellSlide, 1)
-  //   newSlides.splice(targetIndex, 0, draggedItem)
+    const newSlides = [...carousellData.slides]
+    const draggedItem = newSlides[draggedCarousellSlide]
+    newSlides.splice(draggedCarousellSlide, 1)
+    newSlides.splice(targetIndex, 0, draggedItem)
 
-  //   setCarousellData({ ...carousellData, slides: newSlides })
-  //   setDraggedCarousellSlide(null)
-  // }
+    setCarousellData({ ...carousellData, slides: newSlides })
+    setDraggedCarousellSlide(null)
+  }
 
   return (
     <div className="space-y-6">
@@ -492,7 +492,7 @@ export default function CMSHomePage() {
       ) : (
         <>
           {/* Carousell Section */}
-          {/* <Card className="p-6">
+          <Card className="p-6">
             <div
               className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
               onClick={() => setExpandedSections({ ...expandedSections, carousell: !expandedSections.carousell })}
@@ -642,7 +642,7 @@ export default function CMSHomePage() {
                 </div>
               </>
             )}
-          </Card> */}
+          </Card>
 
           {/* Banner Section */}
           <Card className="p-6">

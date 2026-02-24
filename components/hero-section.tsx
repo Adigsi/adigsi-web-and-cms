@@ -52,8 +52,8 @@ export function HeroSection() {
   return (
     <section className="w-full bg-gradient-to-br from-card via-background to-card border-b border-border">
       {/* Main content with Carousel */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-12 md:py-16 lg:py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[600px] lg:min-h-[700px]">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-12 md:py-16 lg:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-10 lg:gap-16 items-center min-h-[600px] lg:min-h-[520px]">
           {/* Left Content */}
           <div className="flex flex-col justify-center space-y-6">
             <div>
@@ -93,11 +93,11 @@ export function HeroSection() {
           </div>
 
           {/* Right Carousel */}
-          <div className="hidden lg:block">
-            <div className="relative">
-              {/* Decorative elements */}
-              <div className="absolute -top-4 -right-4 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-              <div className="absolute -bottom-4 -left-4 w-72 h-72 bg-accent/5 rounded-full blur-3xl" />
+          <div className="hidden lg:flex">
+            <div className="relative w-full">
+              {/* Decorative elements - larger */}
+              <div className="absolute -top-8 -right-8 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+              <div className="absolute -bottom-8 -left-8 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
               
               {/* Inline Carousel */}
               <div className="relative z-10">
@@ -109,8 +109,14 @@ export function HeroSection() {
       </div>
 
       {/* Mobile Carousel */}
-      <div className="lg:hidden">
-        <CarousellSection />
+      <div className="lg:hidden px-4 md:px-8 pb-8 md:pb-12">
+        <div className="relative">
+          <div className="absolute -top-4 -right-4 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-4 -left-4 w-64 h-64 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10">
+            <CarousellSection />
+          </div>
+        </div>
       </div>
     </section>
   )
