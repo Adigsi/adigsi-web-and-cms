@@ -213,12 +213,12 @@ export function Navbar() {
             </div>
 
             {/* Contact Button */}
-            <Link
+            {/* <Link
               href="mailto:info@adigsi.id"
               className="text-xs font-semibold bg-secondary text-secondary-foreground flex items-center border-0 rounded-lg px-4 py-2 hover:bg-primary hover:text-primary-foreground hover:shadow-lg transition-all duration-200 no-underline"
             >
               {t({ en: 'Contact Us', id: 'Hubungi Kami' })}
-            </Link>
+            </Link> */}
           </div>
 
           {/* Mobile Menu Button */}
@@ -330,7 +330,7 @@ export function Navbar() {
           </div>
 
           {/* Contact Button */}
-          <div className="px-5 pb-8">
+          {/* <div className="px-5 pb-8">
             <Link
               href="mailto:info@adigsi.id"
               className="text-sm font-semibold gradient-primary text-white flex items-center justify-center border-0 rounded-lg px-6 py-3 hover:opacity-90 hover:shadow-lg transition-all duration-200 no-underline w-full"
@@ -338,7 +338,7 @@ export function Navbar() {
             >
               {t({ en: 'Contact Us', id: 'Hubungi Kami' })}
             </Link>
-          </div>
+          </div> */}
         </div>
       </div>
     </header>
