@@ -3,6 +3,7 @@ import Script from 'next/script'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { FloatingContactButton } from '@/components/floating-contact-button'
+import { FloatingJoinButton } from '@/components/floating-join-button'
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -19,6 +20,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       </main>
       <Footer />
       <FloatingContactButton />
+      <FloatingJoinButton />
       {umamiWebsiteId ? (
         <Script
           defer
