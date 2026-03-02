@@ -331,13 +331,13 @@ export function PartnersSection() {
                   category.logos.map((logo, logoIndex) => (
                     <div
                       key={logoIndex}
-                      className="relative h-16 w-32 flex items-center justify-center rounded-xl border border-border bg-muted/30 px-3 py-2 hover:border-primary/30 hover:bg-muted/60 transition-all duration-200"
+                      className="relative h-40 w-40 flex items-center justify-center rounded-xl border border-border bg-muted/30 px-4 py-3 hover:border-primary/30 hover:bg-muted/60 transition-all duration-200"
                     >
                       <Image
                         src={logo.imageUrl || '/placeholder.svg'}
                         alt={logo.alt}
-                        height={48}
-                        width={120}
+                        height={148}
+                        width={148}
                         className="object-contain h-full w-auto"
                       />
                     </div>
