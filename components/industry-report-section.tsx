@@ -223,7 +223,7 @@ export function IndustryReportSection() {
             </div>
 
             {/* Floating year badge */}
-            <div className="absolute -bottom-4 -right-4 lg:bottom-4 lg:right-4 bg-card border border-border rounded-xl px-4 py-3 shadow-lg flex items-center gap-3">
+            {/* <div className="absolute -bottom-4 -right-4 lg:bottom-4 lg:right-4 bg-card border border-border rounded-xl px-4 py-3 shadow-lg flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
               <div>
                 <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -231,7 +231,7 @@ export function IndustryReportSection() {
                 </div>
                 <div className="text-sm font-bold text-foreground">{new Date().getFullYear()}</div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Content column */}
