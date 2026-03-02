@@ -119,7 +119,7 @@ export function AgendaSection() {
       {/* Accent lines */}
       <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/40 to-transparent" />
 
-      <div className="relative max-w-310 mx-auto px-4 md:px-8 lg:px-32.75">
+      <div className="relative max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
 
         {/* Section header */}
         <div

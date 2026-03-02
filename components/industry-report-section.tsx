@@ -134,7 +134,7 @@ export function IndustryReportSection() {
   if (isLoading) {
     return (
       <section className="w-full py-20 bg-background">
-        <div className="max-w-310 mx-auto px-4 md:px-8 lg:px-32.75">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
           <div className="text-center py-8 text-muted-foreground">
             {t({ en: 'Loading...', id: 'Memuat...' })}
           </div>
@@ -169,7 +169,7 @@ export function IndustryReportSection() {
       {/* Bottom accent line */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-accent/60 to-transparent" />
 
-      <div className="relative max-w-310 mx-auto px-4 md:px-8 lg:px-32.75">
+      <div className="relative max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
 
         {/* Section header */}
         <div
