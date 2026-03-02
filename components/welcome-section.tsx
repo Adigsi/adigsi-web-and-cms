@@ -24,31 +24,65 @@ interface WelcomeData {
 
 export function WelcomeSection() {
   const [isVisible, setIsVisible] = useState(false)
+  const [isFadingOut, setIsFadingOut] = useState(false)
   const [welcomeData, setWelcomeData] = useState<WelcomeData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const sectionRef = useRef<HTMLElement>(null)
+  const scrollDirectionRef = useRef('down')
+  const lastScrollYRef = useRef(0)
+  const fadeOutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { t, language } = useLanguage()
 
   useEffect(() => {
+    const handleScroll = () => {
+      scrollDirectionRef.current = window.scrollY > lastScrollYRef.current ? 'down' : 'up'
+      lastScrollYRef.current = window.scrollY
+    }
+
+    window.addEventListener('scroll', handleScroll, true)
+    return () => window.removeEventListener('scroll', handleScroll, true)
+  }, [])
+
+  useEffect(() => {
+    if (isLoading || !welcomeData || !sectionRef.current) {
+      return
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && scrollDirectionRef.current === 'down') {
+          if (fadeOutTimeoutRef.current) {
+            clearTimeout(fadeOutTimeoutRef.current)
+            fadeOutTimeoutRef.current = null
+          }
           setIsVisible(true)
+          setIsFadingOut(false)
+        } else if (!entry.isIntersecting && scrollDirectionRef.current === 'up') {
+          setIsFadingOut(true)
+
+          if (fadeOutTimeoutRef.current) {
+            clearTimeout(fadeOutTimeoutRef.current)
+          }
+
+          fadeOutTimeoutRef.current = setTimeout(() => {
+            setIsVisible(false)
+            setIsFadingOut(false)
+            fadeOutTimeoutRef.current = null
+          }, 1200)
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.15 }
     )
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-    }
+    observer.observe(sectionRef.current)
 
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current)
+      observer.disconnect()
+      if (fadeOutTimeoutRef.current) {
+        clearTimeout(fadeOutTimeoutRef.current)
       }
     }
-  }, [])
+  }, [isLoading, welcomeData])
 
   useEffect(() => {
     const fetchWelcomeData = async () => {
@@ -92,7 +126,19 @@ export function WelcomeSection() {
 
   return (
     <section ref={sectionRef} className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-20 w-full relative">
-      <div className="flex flex-col items-center justify-center text-center mb-12">
+      <div
+        className={`flex flex-col items-center justify-center text-center mb-12 ${
+          isFadingOut
+            ? 'animate-fade-out-down'
+            : isVisible && !isLoading
+              ? 'animate-fade-in-up'
+              : 'opacity-0 translate-y-30'
+        }`}
+        style={{
+          animationDelay: '0ms',
+          animationDuration: isFadingOut || (isVisible && !isLoading) ? '1.2s' : '0s',
+        }}
+      >
         <h2 className="text-primary text-sm md:text-base font-bold uppercase tracking-widest mb-3">
           {language === 'en' ? welcomeData.titleSmallEn : welcomeData.titleSmallId}
         </h2>
@@ -107,10 +153,15 @@ export function WelcomeSection() {
             <div
               key={index}
               className={`relative bg-card border border-border rounded-xl p-6 md:p-8 max-w-xl w-full flex flex-col justify-between shadow-sm hover:shadow-lg hover:scale-105 transition-all duration-200 overflow-hidden group ${
-                isVisible ? 'animate-fade-in-up' : ''
+                isFadingOut
+                  ? 'animate-fade-out-down'
+                  : isVisible && !isLoading
+                    ? 'animate-fade-in-up'
+                    : 'opacity-0 translate-y-30'
               }`}
               style={{
-                animationDelay: isVisible ? `${index * 100}ms` : '0ms',
+                animationDelay: isFadingOut ? '0ms' : isVisible && !isLoading ? `${250 + (index + 1) * 150}ms` : '0ms',
+                animationDuration: isFadingOut || (isVisible && !isLoading) ? '1.2s' : '0s',
               }}
             >
               {/* Subtle top line accent on hover */}
