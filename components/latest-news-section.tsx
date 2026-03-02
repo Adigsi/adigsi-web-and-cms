@@ -156,7 +156,7 @@ export function LatestNewsSection() {
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-20">
         <div
           className={`flex flex-col items-center justify-center text-center ${
-            isFadingOut ? 'animate-fade-out-down' : (isVisible && !isLoading ? 'animate-fade-in-up' : 'opacity-0 translate-y-[120px]')
+            isFadingOut ? 'animate-fade-out-down' : (isVisible && !isLoading ? 'animate-fade-in-up' : 'opacity-0 translate-y-30')
           }`}
           style={{
             animationDelay: isFadingOut ? '0ms' : (isVisible && !isLoading ? '0ms' : '0ms'),
@@ -183,7 +183,7 @@ export function LatestNewsSection() {
                   key={article._id}
                   href={`/news/${article.slug}`}
                   className={`group relative bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:scale-105 flex flex-col max-w-sm w-full ${
-                    isFadingOut ? 'animate-fade-out-down' : (isVisible && !isLoading ? 'animate-fade-in-up' : 'opacity-0 translate-y-[120px]')
+                    isFadingOut ? 'animate-fade-out-down' : (isVisible && !isLoading ? 'animate-fade-in-up' : 'opacity-0 translate-y-30')
                   }`}
                   style={{
                     animationDelay: isFadingOut ? '0ms' : (isVisible && !isLoading ? `${250 + (index + 1) * 150}ms` : '0ms'),
@@ -210,17 +210,17 @@ export function LatestNewsSection() {
                     />
                     
                     {/* Top gradient accent on hover */}
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-accent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-primary via-accent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     
                     {/* Category badge - enhanced design */}
-                    <div className="absolute bottom-3 left-3 bg-gradient-to-r from-accent/90 to-accent bg-accent text-accent-foreground rounded-md px-2 py-1 shadow-md group-hover:shadow-lg transition-all duration-300 flex items-center justify-center">
+                    <div className="absolute bottom-3 left-3 bg-linear-to-r from-accent/90 to-accent bg-accent text-accent-foreground rounded-md px-2 py-1 shadow-md group-hover:shadow-lg transition-all duration-300 flex items-center justify-center">
                       <span className="text-[10px] font-bold uppercase tracking-wider leading-none">
                         {language === 'en' ? article.categoryEn : article.categoryId}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex flex-col p-5 flex-grow">
+                  <div className="flex flex-col p-5 grow">
                     <h3 className="text-base font-bold text-foreground mt-1 line-clamp-3 group-hover:text-primary transition-colors duration-200">
                       {language === 'en' ? article.titleEn : article.titleId}
                     </h3>
@@ -239,7 +239,7 @@ export function LatestNewsSection() {
             <Link
               href="/news"
               className={`flex justify-center mt-12 ${
-                isFadingOut ? 'animate-fade-out-down' : (isVisible && !isLoading ? 'animate-fade-in-up' : 'opacity-0 translate-y-[120px]')
+                isFadingOut ? 'animate-fade-out-down' : (isVisible && !isLoading ? 'animate-fade-in-up' : 'opacity-0 translate-y-30')
               }`}
               style={{
                 animationDelay: isFadingOut ? '0ms' : (isVisible && !isLoading ? `${250 + 4 * 150}ms` : '0ms'),
