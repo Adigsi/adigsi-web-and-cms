@@ -121,9 +121,9 @@ export function MemberCategoriesSection() {
           className={`flex flex-col items-center text-center mb-14 transition-all duration-700 ${animClass()}`}
         >
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-accent/30 bg-accent/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-accent">
+          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/10">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
               {language === 'en' ? heading.subtitleEn : heading.subtitleId}
             </span>
           </div>
@@ -140,71 +140,68 @@ export function MemberCategoriesSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-24 rounded-2xl bg-muted animate-pulse"
-                />
-              ))
+              <div
+                key={i}
+                className="h-24 rounded-2xl bg-muted animate-pulse"
+              />
+            ))
             : categories.map((category, index) => (
-                <div
-                  key={index}
-                  className={`group relative rounded-2xl border border-border bg-card overflow-hidden p-5
+              <div
+                key={index}
+                className={`group relative rounded-2xl border border-border bg-card overflow-hidden p-5
                     hover:border-primary/40 hover:shadow-[0_8px_32px_rgba(58,111,247,0.12)]
                     hover:-translate-y-0.5 transition-all duration-300 ${animClass()}`}
-                  style={{ animationDelay: `${index * 60}ms` }}
-                >
-                  {/* Left accent bar */}
-                  {/* <div className="absolute left-0 top-4 bottom-4 w-0.5 rounded-full bg-linear-to-b from-primary/60 via-accent/50 to-primary/20 opacity-60 group-hover:opacity-100 transition-opacity duration-300" /> */}
+                style={{ animationDelay: `${index * 60}ms` }}
+              >
+                {/* Subtle dot-grid in background */}
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-[0.08] dark:group-hover:opacity-[0.16] pointer-events-none transition-opacity duration-500"
+                  style={{
+                    backgroundImage: `radial-gradient(var(--color-primary) 1px, transparent 1px)`,
+                    backgroundSize: '14px 14px',
+                  }}
+                />
 
-                  {/* Top scan line on hover */}
-                  <div className="absolute top-0 left-6 right-6 h-px bg-linear-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/50 transition-all duration-500" />
+                {/* Top scan line on hover */}
+                <div className="absolute top-0 left-6 right-6 h-px bg-linear-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/50 transition-all duration-500" />
 
-                  {/* Subtle dot-grid in background */}
-                  <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-[0.08] dark:group-hover:opacity-[0.16] pointer-events-none transition-opacity duration-500"
-                    style={{
-                      backgroundImage: `radial-gradient(var(--color-primary) 1px, transparent 1px)`,
-                      backgroundSize: '14px 14px',
-                    }}
-                  />
+                {/* Corner brackets */}
+                <span className="absolute top-2 right-2 w-3 h-3 border-t border-r border-accent/20 group-hover:border-accent/60 transition-colors duration-300 rounded-tr-sm" />
+                <span className="absolute bottom-2 left-2 w-3 h-3 border-b border-l border-primary/20 group-hover:border-primary/50 transition-colors duration-300 rounded-bl-sm" />
 
-                  {/* Corner brackets */}
-                  <span className="absolute top-2 right-2 w-3 h-3 border-t border-r border-accent/20 group-hover:border-accent/60 transition-colors duration-300 rounded-tr-sm" />
-                  <span className="absolute bottom-2 left-2 w-3 h-3 border-b border-l border-primary/20 group-hover:border-primary/50 transition-colors duration-300 rounded-bl-sm" />
-
-                  <div className="flex items-center gap-4 pl-1">
-                    {/* Icon container */}
-                    <div className="shrink-0 w-13 h-13 rounded-xl bg-primary/8 dark:bg-primary/15 border border-primary/20
+                <div className="flex items-center gap-4 pl-1">
+                  {/* Icon container */}
+                  <div className="shrink-0 w-13 h-13 rounded-xl bg-primary/8 dark:bg-primary/15 border border-primary/20
                       flex items-center justify-center text-primary
                       group-hover:bg-primary/15 group-hover:border-primary/40
                       transition-all duration-300">
-                      <CyberIcon type={category.icon} size={26} />
-                    </div>
+                    <CyberIcon type={category.icon} size={26} />
+                  </div>
 
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-foreground font-semibold text-sm leading-snug mb-1.5">
-                        {language === 'en' ? category.titleEn : category.titleId}
-                      </h3>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-primary text-xl font-bold tabular-nums">
-                          {category.count}
-                        </span>
-                        <span className="text-muted-foreground text-xs">
-                          {language === 'en' ? 'Members' : 'Anggota'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Mini cyber badge */}
-                    <div className="shrink-0 flex flex-col items-end gap-0.5 opacity-20 group-hover:opacity-60 transition-opacity duration-300">
-                      <div className="w-4 h-0.5 rounded-full bg-accent" />
-                      <div className="w-2.5 h-0.5 rounded-full bg-primary" />
-                      <div className="w-3.5 h-0.5 rounded-full bg-accent" />
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-foreground font-semibold text-sm leading-snug mb-1.5">
+                      {language === 'en' ? category.titleEn : category.titleId}
+                    </h3>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-primary text-xl font-bold tabular-nums">
+                        {category.count}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {language === 'en' ? 'Members' : 'Anggota'}
+                      </span>
                     </div>
                   </div>
+
+                  {/* Mini cyber badge */}
+                  <div className="shrink-0 flex flex-col items-end gap-0.5 opacity-20 group-hover:opacity-60 transition-opacity duration-300">
+                    <div className="w-4 h-0.5 rounded-full bg-accent" />
+                    <div className="w-2.5 h-0.5 rounded-full bg-primary" />
+                    <div className="w-3.5 h-0.5 rounded-full bg-accent" />
+                  </div>
                 </div>
-              ))}
+              </div>
+            ))}
         </div>
       </div>
     </section>
