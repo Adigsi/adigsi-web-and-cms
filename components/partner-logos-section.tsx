@@ -121,7 +121,7 @@ export function PartnerLogosSection() {
     >
       {/* Dot-grid background */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04] dark:opacity-[0.07]"
+        className="pointer-events-none absolute inset-0 opacity-[0.1] dark:opacity-[0.2]"
         style={{
           backgroundImage: `radial-gradient(var(--color-primary) 1px, transparent 1px)`,
           backgroundSize: '28px 28px',
