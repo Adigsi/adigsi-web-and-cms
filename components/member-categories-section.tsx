@@ -98,7 +98,7 @@ export function MemberCategoriesSection() {
     >
       {/* Dot-grid background */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04] dark:opacity-[0.07]"
+        className="pointer-events-none absolute inset-0 opacity-[0.10] dark:opacity-[0.2]"
         style={{
           backgroundImage: `radial-gradient(var(--color-primary) 1px, transparent 1px)`,
           backgroundSize: '28px 28px',
@@ -133,7 +133,7 @@ export function MemberCategoriesSection() {
           </h2>
 
           {/* Gradient underline */}
-          <div className="h-1 w-16 rounded-full bg-linear-to-r from-primary to-accent" />
+          <div className="h-px w-16 bg-linear-to-r from-primary to-accent" />
         </div>
 
         {/* Cards grid */}

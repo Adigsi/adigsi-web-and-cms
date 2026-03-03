@@ -14,7 +14,7 @@ export function PageBannerSection({
   isLoading = false,
 }: PageBannerSectionProps) {
   return (
-    <section className="relative w-full pt-28 pb-14 overflow-hidden bg-secondary/40 dark:bg-secondary/20 border-b border-border">
+    <section className="relative w-full pt-28 pb-14 overflow-hidden bg-secondary/40 dark:bg-secondary/20">
 
       {/* Grid background */}
       <div
@@ -32,7 +32,8 @@ export function PageBannerSection({
       {/* Top accent line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-accent/60 to-transparent" />
       {/* Bottom accent line */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/40 to-transparent" />
+      {/* <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/40 to-transparent" /> */}
+      {/* <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-accent/50 to-transparent" /> */}
 
       {/* Decorative corner brackets */}
       <span className="absolute top-6 left-6 w-6 h-6 border-t-2 border-l-2 border-accent/40 rounded-tl-lg" />

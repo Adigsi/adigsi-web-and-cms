@@ -76,7 +76,7 @@ function useScrollAnimation(deps: unknown[] = []) {
   const animClass = () =>
     isFadingOut ? 'animate-fade-out-down'
       : isVisible ? 'animate-fade-in-up'
-      : 'opacity-0 translate-y-[120px]'
+        : 'opacity-0 translate-y-[120px]'
 
   const animStyle = (delay: string) => ({
     animationDelay: isFadingOut ? '0ms' : isVisible ? delay : '0ms',
@@ -142,11 +142,15 @@ export function AboutAdigsiSection() {
     >
       {/* Grid background */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03] dark:opacity-[0.06]"
+        className="pointer-events-none absolute inset-0 opacity-[0.10] dark:opacity-[0.2]"
+        // style={{
+        //   backgroundImage: `linear-gradient(var(--color-primary) 1px, transparent 1px),
+        //                     linear-gradient(90deg, var(--color-primary) 1px, transparent 1px)`,
+        //   backgroundSize: '40px 40px',
+        // }}
         style={{
-          backgroundImage: `linear-gradient(var(--color-primary) 1px, transparent 1px),
-                            linear-gradient(90deg, var(--color-primary) 1px, transparent 1px)`,
-          backgroundSize: '40px 40px',
+          backgroundImage: `radial-gradient(var(--color-primary) 1px, transparent 1px)`,
+          backgroundSize: '28px 28px',
         }}
       />
       <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-accent/60 to-transparent" />

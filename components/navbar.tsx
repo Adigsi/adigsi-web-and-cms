@@ -96,16 +96,16 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 w-full z-99 transition-all duration-300 backdrop-blur-md ${
+      className={`fixed top-0 left-0 right-0 w-full z-99 transition-all duration-300 ${
         isScrolled
-          ? 'bg-card/95 shadow-md border-b border-border'
+          ? 'bg-card/95 shadow-md border-b border-border backdrop-blur-md dark:bg-card/90'
           : 'bg-card/0 border-b border-transparent'
       }`}
     >
       <div className="w-full max-w-310 mx-auto px-5 py-3">
         <nav className="flex justify-between items-center">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0">
+          <Link href="/" className="shrink-0">
             <Image
               alt="logo"
               src="/images/design-mode/logo-adigsi.png"
@@ -234,7 +234,7 @@ export function Navbar() {
             : 'hidden opacity-0 pointer-events-none'
         }`}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-800 via-primary-700 to-primary-900 opacity-98" />
+        <div className="absolute inset-0 bg-linear-to-br from-primary-800 via-primary-700 to-primary-900 opacity-98" />
         
         <div className="relative w-full h-full overflow-y-auto">
           {/* Close Button */}
