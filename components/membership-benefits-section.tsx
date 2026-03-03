@@ -12,6 +12,103 @@ interface Membership {
   iconUrl: string
 }
 
+type TierKey = 'bronze' | 'silver' | 'gold' | 'platinum' | 'default'
+
+const TIER_CONFIG: Record<TierKey, {
+  primaryColor: string
+  secondaryColor: string
+  glowRgb: string
+  panelBg: string
+  panelBgHover: string
+}> = {
+  bronze: {
+    primaryColor: '#B5651D',   /* dark copper / sienna */
+    secondaryColor: '#6B2F0A',
+    glowRgb: '181,101,29',
+    panelBg: 'rgba(181,101,29,0.12)',
+    panelBgHover: 'rgba(181,101,29,0.20)',
+  },
+  silver: {
+    primaryColor: '#A8A9AD',
+    secondaryColor: '#6B7280',
+    glowRgb: '168,169,173',
+    panelBg: 'rgba(168,169,173,0.10)',
+    panelBgHover: 'rgba(168,169,173,0.18)',
+  },
+  gold: {
+    primaryColor: '#F5C518',   /* bright gold / amber */
+    secondaryColor: '#B8870B',
+    glowRgb: '245,197,24',
+    panelBg: 'rgba(245,197,24,0.10)',
+    panelBgHover: 'rgba(245,197,24,0.18)',
+  },
+  platinum: {
+    primaryColor: '#00C2FF',
+    secondaryColor: '#0284C7',
+    glowRgb: '0,194,255',
+    panelBg: 'rgba(0,194,255,0.08)',
+    panelBgHover: 'rgba(0,194,255,0.16)',
+  },
+  default: {
+    primaryColor: '#3A6FF7',
+    secondaryColor: '#1E2F8A',
+    glowRgb: '58,111,247',
+    panelBg: 'rgba(58,111,247,0.08)',
+    panelBgHover: 'rgba(58,111,247,0.16)',
+  },
+}
+
+function getTierConfig(tier: string) {
+  const key = tier.toLowerCase() as TierKey
+  return TIER_CONFIG[key] ?? TIER_CONFIG.default
+}
+
+/**
+ * All tiers share the same medal silhouette (ribbon + circle).
+ * Only the number of rank stripes inside the medal differs:
+ *   Bronze   → 1 stripe
+ *   Silver   → 2 stripes
+ *   Gold     → 3 stripes
+ *   Platinum → 4 stripes
+ */
+function TierIcon({ tier }: { tier: string }) {
+  const t = tier.toLowerCase()
+
+  // Stripe layouts per tier, positioned inside the inner ring (circle r≈8 at cy=24)
+  const stripeGroups: Record<string, { y: number; x1: number; x2: number }[]> = {
+    bronze:   [{ y: 24.5, x1: 13, x2: 27 }],
+    silver:   [{ y: 22.5, x1: 13.5, x2: 26.5 }, { y: 26.5, x1: 13.5, x2: 26.5 }],
+    gold:     [{ y: 21, x1: 14, x2: 26 }, { y: 24.5, x1: 13, x2: 27 }, { y: 28, x1: 14, x2: 26 }],
+    platinum: [{ y: 20, x1: 14.5, x2: 25.5 }, { y: 23, x1: 13, x2: 27 }, { y: 26, x1: 13, x2: 27 }, { y: 29, x1: 14.5, x2: 25.5 }],
+  }
+  const stripes = stripeGroups[t] ?? stripeGroups.bronze
+
+  return (
+    <svg viewBox="0 0 40 40" fill="none" className="w-11 h-11" stroke="currentColor" strokeWidth="1.5">
+      {/* Ribbon — identical for all tiers */}
+      <line x1="15" y1="4" x2="25" y2="4" strokeLinecap="round" />
+      <line x1="15" y1="4" x2="17" y2="12" strokeLinecap="round" />
+      <line x1="25" y1="4" x2="23" y2="12" strokeLinecap="round" />
+
+      {/* Medal circle */}
+      <circle cx="20" cy="24" r="12" />
+
+      {/* Inner detail ring — identical for all tiers */}
+      <circle cx="20" cy="24" r="8" strokeOpacity="0.22" strokeDasharray="2.5 2" />
+
+      {/* Rank stripes — vary by tier */}
+      {stripes.map((s, i) => (
+        <line
+          key={i}
+          x1={s.x1} y1={s.y} x2={s.x2} y2={s.y}
+          strokeLinecap="round"
+          strokeWidth={1.8}
+        />
+      ))}
+    </svg>
+  )
+}
+
 export function MembershipBenefitsSection() {
   const [isVisible, setIsVisible] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
@@ -137,87 +234,133 @@ export function MembershipBenefitsSection() {
               : 'grid-cols-1 lg:grid-cols-2'
           }`}
         >
-          {memberships.map((membership, index) => (
-            <div
-              key={`${membership.tier}-${index}`}
-              className={`group relative rounded-2xl border border-border bg-card overflow-hidden
-                hover:border-primary/40 hover:shadow-[0_8px_32px_rgba(58,111,247,0.12)]
-                hover:-translate-y-0.5 transition-all duration-300 ${animClass()}`}
-              style={{ animationDelay: `${index * 80}ms` }}
-            >
-              {/* Left accent bar */}
-              <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl bg-linear-to-b from-primary/60 via-accent/50 to-primary/20 group-hover:from-primary group-hover:via-accent group-hover:to-primary/50 transition-all duration-500" />
-
-              {/* Top scan line */}
-              <div className="absolute top-0 left-6 right-6 h-px bg-linear-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/50 transition-all duration-500" />
-
-              {/* Dot-grid overlay on hover */}
+          {memberships.map((membership, index) => {
+            const cfg = getTierConfig(membership.tier)
+            return (
               <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-[0.06] dark:group-hover:opacity-[0.12] pointer-events-none transition-opacity duration-500"
+                key={`${membership.tier}-${index}`}
+                className={`group relative flex flex-col rounded-2xl border bg-card overflow-hidden
+                  transition-all duration-300 ${animClass()}`}
                 style={{
-                  backgroundImage: `radial-gradient(var(--color-primary) 1px, transparent 1px)`,
-                  backgroundSize: '14px 14px',
+                  borderColor: `rgba(${cfg.glowRgb},0.25)`,
+                  animationDelay: `${index * 80}ms`,
                 }}
-              />
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget
+                  el.style.borderColor = `rgba(${cfg.glowRgb},0.55)`
+                  el.style.boxShadow = `0 0 0 1px rgba(${cfg.glowRgb},0.15), 0 8px 28px rgba(${cfg.glowRgb},0.18)`
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget
+                  el.style.borderColor = `rgba(${cfg.glowRgb},0.25)`
+                  el.style.boxShadow = ''
+                }}
+              >
+                {/* Shimmer sweep on hover */}
+                <div
+                  className="absolute inset-0 translate-x-[-110%] group-hover:translate-x-[110%] transition-transform duration-700 ease-in-out pointer-events-none z-10"
+                  style={{ background: `linear-gradient(90deg, transparent, rgba(${cfg.glowRgb},0.06), transparent)` }}
+                />
 
-              {/* Corner brackets */}
-              <span className="absolute top-2 right-2 w-3 h-3 border-t border-r border-accent/20 group-hover:border-accent/60 transition-colors duration-300 rounded-tr-sm" />
-              <span className="absolute bottom-2 left-2 w-3 h-3 border-b border-l border-primary/20 group-hover:border-primary/50 transition-colors duration-300 rounded-bl-sm" />
+                {/* Top gradient stripe */}
+                {/* <div
+                  className="h-1 w-full transition-opacity duration-300"
+                  style={{ background: `linear-gradient(90deg, ${cfg.primaryColor}90, ${cfg.secondaryColor}60, ${cfg.primaryColor}30)` }}
+                /> */}
 
-              <div className="flex items-start gap-5 p-5 pl-6">
-                {/* Badge Icon */}
-                <div className="relative shrink-0 w-16 h-16">
+                {/* Left icon panel — absolute so it always fills full card height */}
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-22 flex flex-col items-center justify-between py-5 border-r transition-colors duration-300"
+                  style={{
+                    background: cfg.panelBg,
+                    borderRightColor: `rgba(${cfg.glowRgb},0.20)`,
+                  }}
+                >
+                  {/* Tier icon */}
                   <div
-                    className="w-full h-full rounded-xl bg-primary/8 dark:bg-primary/15 border border-primary/20
-                      group-hover:bg-primary/15 group-hover:border-primary/40
-                      flex items-center justify-center overflow-hidden
-                      transition-all duration-300 group-hover:scale-105"
+                    className="flex items-center justify-center w-13 h-13 rounded-xl"
+                    style={{
+                      color: cfg.primaryColor,
+                      background: `rgba(${cfg.glowRgb},0.12)`,
+                      border: `1px solid rgba(${cfg.glowRgb},0.25)`,
+                    }}
                   >
-                    {membership.iconUrl &&
-                    (membership.iconUrl.startsWith('data:') ||
-                      membership.iconUrl.startsWith('http') ||
-                      membership.iconUrl.startsWith('/')) ? (
-                      <img
-                        src={membership.iconUrl}
-                        alt={language === 'en' ? membership.nameEn : membership.nameId}
-                        className="w-10 h-10 object-contain dark:brightness-90 dark:group-hover:brightness-110 transition-all duration-300"
-                      />
-                    ) : (
-                      <span className="text-xl font-bold text-primary">
-                        {(language === 'en' ? membership.nameEn : membership.nameId).charAt(0)}
-                      </span>
-                    )}
+                    <TierIcon tier={membership.tier} />
                   </div>
-                  {/* Glow behind icon */}
-                  <div className="absolute inset-0 rounded-xl blur-xl bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
+
+                  {/* Tier label vertical */}
+                  <span
+                    className="text-[12px] font-black tracking-[0.2em] uppercase select-none"
+                    style={{
+                      color: cfg.primaryColor,
+                      writingMode: 'vertical-rl',
+                      textOrientation: 'mixed',
+                      transform: 'rotate(180deg)',
+                      opacity: 0.55,
+                    }}
+                  >
+                    {membership.tier || 'MEMBER'}
+                  </span>
                 </div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-foreground font-bold text-base uppercase tracking-wide">
-                      {language === 'en' ? membership.nameEn : membership.nameId}
-                    </h3>
-                    {membership.tier && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-primary/20 bg-primary/8 text-primary uppercase tracking-wider">
-                        {membership.tier}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {language === 'en' ? membership.descriptionEn : membership.descriptionId}
-                  </p>
-                </div>
+                {/* Main content — left padding clears the absolute panel */}
+                <div className="flex flex-col flex-1 pl-26 pr-4 py-4 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="text-foreground font-bold text-sm uppercase tracking-wide leading-snug">
+                        {language === 'en' ? membership.nameEn : membership.nameId}
+                      </h3>
 
-                {/* Mini barcode bars */}
-                <div className="shrink-0 flex flex-col items-end gap-0.5 opacity-20 group-hover:opacity-60 transition-opacity duration-300">
-                  <div className="w-4 h-0.5 rounded-full bg-accent" />
-                  <div className="w-2.5 h-0.5 rounded-full bg-primary" />
-                  <div className="w-3.5 h-0.5 rounded-full bg-accent" />
-                </div>
+                      {/* Tier badge */}
+                      {/* {membership.tier && (
+                        <span
+                          className="shrink-0 text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest border"
+                          style={{
+                            color: cfg.primaryColor,
+                            borderColor: `rgba(${cfg.glowRgb},0.30)`,
+                            backgroundColor: `rgba(${cfg.glowRgb},0.06)`,
+                          }}
+                        >
+                          {membership.tier}
+                        </span>
+                      )} */}
+                    </div>
+
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {language === 'en' ? membership.descriptionEn : membership.descriptionId}
+                    </p>
+
+                    {/* Tier progress indicator — pinned to bottom, count matches stripe count */}
+                    {(() => {
+                      const ALL_TIERS = ['bronze', 'silver', 'gold', 'platinum'] as const
+                      const tierStr = membership.tier.toLowerCase()
+                      // match exact first, then partial (handles "Bronze Member" etc.)
+                      const matched = ALL_TIERS.find(t => tierStr === t)
+                        ?? ALL_TIERS.find(t => tierStr.includes(t))
+                        ?? 'bronze'
+                      const count = ALL_TIERS.indexOf(matched) + 1   // bronze=1, silver=2, gold=3, platinum=4
+                      return (
+                        <div className="flex items-center gap-1.5 mt-auto pt-3">
+                          {ALL_TIERS.slice(0, count).map((t, i) => {
+                            const segCfg = TIER_CONFIG[t]
+                            const isLast = i === count - 1
+                            return (
+                              <div
+                                key={t}
+                                className="h-1 w-1/4 rounded-full"
+                                style={{
+                                  backgroundColor: segCfg.primaryColor,
+                                  opacity: isLast ? 1 : 0.35,
+                                }}
+                              />
+                            )
+                          })}
+                        </div>
+                      )
+                    })()}
+                  </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>
