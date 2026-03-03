@@ -19,7 +19,7 @@ interface HeadingData {
 }
 
 export function DigitalMemberCategoriesSection() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const [categories, setCategories] = useState<DigitalCategory[]>([])
   const [heading, setHeading] = useState<HeadingData>({
     subtitleEn: 'DIGITAL ECOSYSTEM',

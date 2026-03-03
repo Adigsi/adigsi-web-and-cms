@@ -31,7 +31,7 @@ const defaultEvents = [
 ]
 
 export function EventsListSection() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const [events, setEvents] = useState<EventData[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)

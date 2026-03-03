@@ -21,7 +21,7 @@ interface NewsData {
 }
 
 export function LatestNewsSection() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [news, setNews] = useState<NewsData[]>([])
   const [isLoading, setIsLoading] = useState(true)

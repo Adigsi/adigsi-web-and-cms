@@ -13,7 +13,7 @@ interface Category {
 }
 
 export function MembershipCategorySection() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const [sectionData, setSectionData] = useState<{
     sectionTitleEn: string
     sectionTitleId: string

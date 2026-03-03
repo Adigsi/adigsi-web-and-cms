@@ -12,7 +12,7 @@ interface MemberCategory {
 }
 
 export function MemberCategoriesSection() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const [categories, setCategories] = useState<MemberCategory[]>([])
   const [heading, setHeading] = useState({
     subtitleEn: 'OUR COMMUNITY',

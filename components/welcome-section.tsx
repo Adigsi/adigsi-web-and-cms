@@ -23,7 +23,7 @@ interface WelcomeData {
 }
 
 export function WelcomeSection() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [welcomeData, setWelcomeData] = useState<WelcomeData | null>(null)
   const [isLoading, setIsLoading] = useState(true)

@@ -21,7 +21,7 @@ interface NewsData {
 }
 
 export function NewsListSection() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const [news, setNews] = useState<NewsData[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)

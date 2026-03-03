@@ -18,7 +18,7 @@ interface EventData {
 }
 
 export function AgendaSection() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [events, setEvents] = useState<EventData[]>([])
   const [isLoading, setIsLoading] = useState(true)

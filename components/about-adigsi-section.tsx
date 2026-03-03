@@ -29,7 +29,7 @@ interface Category {
 
 // ─── Shared animation hook ───────────────────────────────────────────────────
 function useScrollAnimation(deps: unknown[] = []) {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
   const scrollDirectionRef = useRef('down')
