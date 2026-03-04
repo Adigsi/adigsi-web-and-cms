@@ -146,16 +146,6 @@ export default function NewsDetailPage({
             className={`relative w-full max-w-4xl overflow-hidden rounded-xl border border-border mb-10 transition-all duration-700 delay-150 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0 translate-y-15'}`}
             style={{ height: '420px' }}
           >
-            {/* Corner brackets */}
-            {/* <span className="absolute top-3 left-3 w-5 h-5 border-t-2 border-l-2 border-accent/50 z-10" />
-            <span className="absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-primary/40 z-10" />
-            <span className="absolute bottom-3 left-3 w-5 h-5 border-b-2 border-l-2 border-primary/40 z-10" />
-            <span className="absolute bottom-3 right-3 w-5 h-5 border-b-2 border-r-2 border-accent/50 z-10" /> */}
-
-            {/* Top scan-line */}
-            <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/60 to-transparent z-10" />
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-accent/40 to-transparent z-10" />
-
             <Image
               src={article.image || '/placeholder.svg'}
               alt={title}
@@ -163,9 +153,6 @@ export default function NewsDetailPage({
               className="object-cover"
               priority
             />
-
-            {/* Bottom gradient overlay */}
-            <div className="absolute inset-0 bg-linear-to-t from-background/30 via-transparent to-transparent" />
           </div>
 
           {/* Article body */}
