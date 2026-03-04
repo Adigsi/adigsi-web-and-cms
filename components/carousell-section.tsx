@@ -104,7 +104,7 @@ export function CarousellSection() {
               const link = slide.link?.trim()
               const isExternal = link ? /^https?:\/\//.test(link) : false
               const slideContent = (
-                <div className="relative h-64 md:h-96 lg:h-[32rem] w-full overflow-hidden rounded-xl shadow-lg">
+                <div className="relative h-64 md:h-96 lg:h-128 w-full overflow-hidden rounded-xl shadow-lg">
                   <Image
                     src={slide.image}
                     alt="Carousel banner"

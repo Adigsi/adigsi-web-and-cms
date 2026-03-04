@@ -23,7 +23,7 @@ interface HeroBannerData {
 }
 
 export function HeroSection() {
-  const { t, language } = useLanguage()
+  const { language } = useLanguage()
   const [bannerData, setBannerData] = useState<HeroBannerData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -50,7 +50,7 @@ export function HeroSection() {
   }
 
   return (
-    <section className="w-full bg-gradient-to-br from-card via-background to-card border-b border-border relative overflow-hidden">
+    <section className="w-full bg-linear-to-br from-card via-background to-card border-b border-border relative overflow-hidden">
       {/* Cybersecurity Theme - Decorative Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Top left - Primary security accent */}
@@ -62,8 +62,8 @@ export function HeroSection() {
         <div className="absolute -top-24 -right-40 w-72 h-72 border border-accent/20 rounded-full" />
         
         {/* Middle - Tech vertical lines (circuit board aesthetic) */}
-        <div className="absolute top-1/4 right-0 w-px h-64 bg-gradient-to-b from-transparent via-primary/15 to-transparent" />
-        <div className="absolute top-1/3 right-20 w-px h-40 bg-gradient-to-b from-accent/20 via-accent/10 to-transparent" />
+        <div className="absolute top-1/4 right-0 w-px h-64 bg-linear-to-b from-transparent via-primary/15 to-transparent" />
+        <div className="absolute top-1/3 right-20 w-px h-40 bg-linear-to-b from-accent/20 via-accent/10 to-transparent" />
         
         {/* Digital grid pattern - enhanced for tech feel */}
         <svg className="absolute inset-0 w-full h-full opacity-4" preserveAspectRatio="none">
@@ -90,12 +90,12 @@ export function HeroSection() {
         <div className="hidden lg:block absolute bottom-12 right-12 w-32 h-40 border border-primary/10 rounded-lg transform -rotate-45 opacity-30" />
         
         {/* Horizontal security line - bottom accent */}
-        <div className="absolute bottom-20 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
+        <div className="absolute bottom-20 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/10 to-transparent" />
       </div>
 
       {/* Main content with Carousel */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-12 md:py-16 lg:py-24 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-4 md:gap-6 lg:gap-16 items-center min-h-auto md:min-h-[500px] lg:min-h-[520px]">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-4 md:gap-6 lg:gap-16 items-center min-h-auto md:min-h-125 lg:min-h-130">
           {/* Left Content */}
           <div className="flex flex-col justify-center space-y-6">
             <div>
