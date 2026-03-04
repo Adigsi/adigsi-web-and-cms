@@ -7,14 +7,82 @@ import { ImagePreviewModal } from '@/components/image-preview-modal'
 
 const defaultEvents: EventData[] = [
   {
-    _id: '0',
-    titleEn: 'No Event Available',
-    titleId: 'Tidak Ada Event',
-    categoryEn: 'No Category',
-    categoryId: 'Tanpa Kategori',
+    _id: '1',
+    titleEn: 'National Cybersecurity Summit 2026',
+    titleId: 'Summit Keamanan Siber Nasional 2026',
+    categoryEn: 'Conference',
+    categoryId: 'Konferensi',
     image: '/placeholder.svg',
     registerLink: 'https://adigsi.id/agenda',
-    published: false,
+    published: true,
+    date: '15 Mar 2026',
+    time: '08:00 – 17:00 WIB',
+    location: 'Jakarta Convention Center',
+  },
+  {
+    _id: '2',
+    titleEn: 'Digital Forensics Workshop',
+    titleId: 'Workshop Forensik Digital',
+    categoryEn: 'Workshop',
+    categoryId: 'Workshop',
+    image: '/placeholder.svg',
+    registerLink: 'https://adigsi.id/agenda',
+    published: true,
+    date: '22 Mar 2026',
+    time: '09:00 – 15:00 WIB',
+    location: 'Gedung BSSN, Depok',
+  },
+  {
+    _id: '3',
+    titleEn: 'Cyber Threat Intelligence Webinar',
+    titleId: 'Webinar Intelijen Ancaman Siber',
+    categoryEn: 'Webinar',
+    categoryId: 'Webinar',
+    image: '/placeholder.svg',
+    registerLink: 'https://adigsi.id/agenda',
+    published: true,
+    date: '28 Mar 2026',
+    time: '10:00 – 12:00 WIB',
+    location: 'Online (Zoom)',
+  },
+  {
+    _id: '4',
+    titleEn: 'Penetration Testing Masterclass',
+    titleId: 'Masterclass Penetration Testing',
+    categoryEn: 'Workshop',
+    categoryId: 'Workshop',
+    image: '/placeholder.svg',
+    registerLink: 'https://adigsi.id/agenda',
+    published: true,
+    date: '05 Apr 2026',
+    time: '09:00 – 16:00 WIB',
+    location: 'Universitas Indonesia, Depok',
+  },
+  {
+    _id: '5',
+    titleEn: 'ADIGSI Annual Member Meeting',
+    titleId: 'Rapat Anggota Tahunan ADIGSI',
+    categoryEn: 'Conference',
+    categoryId: 'Konferensi',
+    image: '/placeholder.svg',
+    registerLink: 'https://adigsi.id/agenda',
+    published: true,
+    date: '12 Apr 2026',
+    time: '13:00 – 17:00 WIB',
+    location: 'Hotel Mulia, Jakarta',
+  },
+  {
+    _id: '6',
+    titleEn: 'Zero-Trust Architecture Seminar',
+    titleId: 'Seminar Arsitektur Zero-Trust',
+    categoryEn: 'Seminar',
+    categoryId: 'Seminar',
+    image: '/placeholder.svg',
+    registerLink: 'https://adigsi.id/agenda',
+    published: true,
+    date: '19 Apr 2026',
+    time: '09:00 – 13:00 WIB',
+    location: 'Online (Google Meet)',
   },
 ]
 
@@ -26,6 +94,7 @@ export function EventsListSection() {
   const [totalPages, setTotalPages] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string>('')
   const sectionRef = useRef<HTMLElement>(null)
   const scrollDirectionRef = useRef<'up' | 'down'>('down')
   const lastScrollYRef = useRef(0)
@@ -97,7 +166,19 @@ export function EventsListSection() {
     }
   }, [isLoading, events])
 
-  const displayEvents = events.length > 0 ? events : defaultEvents
+  const rawEvents = events.length > 0 ? events : defaultEvents
+
+  // Derive unique categories from current data
+  const categories = Array.from(
+    new Set(rawEvents.map((e) => language === 'en' ? e.categoryEn : e.categoryId))
+  )
+
+  // Apply category filter
+  const displayEvents = selectedCategory
+    ? rawEvents.filter((e) =>
+        (language === 'en' ? e.categoryEn : e.categoryId) === selectedCategory
+      )
+    : rawEvents
 
   return (
     <>
@@ -123,6 +204,47 @@ export function EventsListSection() {
         <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-accent/30 to-transparent" />
 
         <div className="relative max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
+
+          {/* Category filter bar */}
+          {!isLoading && (
+            <div className={`mb-8 flex flex-wrap items-center gap-2 ${animClass()}`}>
+              <button
+                onClick={() => setSelectedCategory('')}
+                className={`relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest
+                  border transition-all duration-200 overflow-hidden
+                  ${
+                    selectedCategory === ''
+                      ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(58,111,247,0.2)]'
+                      : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5'
+                  }`}
+              >
+                {selectedCategory === '' && (
+                  <span className="absolute inset-0 bg-linear-to-r from-transparent via-primary/10 to-transparent animate-[shimmer_2s_infinite]" />
+                )}
+                <span className={`w-1 h-1 rounded-full ${selectedCategory === '' ? 'bg-primary animate-pulse' : 'bg-muted-foreground/40'}`} />
+                {language === 'en' ? 'All' : 'Semua'}
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat === selectedCategory ? '' : cat)}
+                  className={`relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest
+                    border transition-all duration-200 overflow-hidden
+                    ${
+                      selectedCategory === cat
+                        ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(58,111,247,0.2)]'
+                        : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5'
+                    }`}
+                >
+                  {selectedCategory === cat && (
+                    <span className="absolute inset-0 bg-linear-to-r from-transparent via-primary/10 to-transparent animate-[shimmer_2s_infinite]" />
+                  )}
+                  <span className={`w-1 h-1 rounded-full ${selectedCategory === cat ? 'bg-primary animate-pulse' : 'bg-muted-foreground/40'}`} />
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Loading skeleton */}
           {isLoading ? (

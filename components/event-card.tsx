@@ -13,6 +13,9 @@ export interface EventData {
   image: string
   registerLink: string
   published: boolean
+  date?: string
+  time?: string
+  location?: string
 }
 
 interface EventCardProps {
@@ -98,12 +101,45 @@ export function EventCard({ event, index, animClass, onPreviewClick }: EventCard
       {/* Card body */}
       <div className="flex flex-col flex-1 p-4">
         {/* Corner brackets accent */}
-        <div className="relative mb-4">
+        <div className="relative mb-3">
           <span className="absolute -top-1 -left-1 w-3 h-3 border-t border-l border-primary/30" />
           <h3 className="text-foreground font-bold text-sm leading-snug pl-2 pr-2 pt-1">
             {title}
           </h3>
         </div>
+
+        {/* Meta info: date, time, location */}
+        {(event.date || event.time || event.location) && (
+          <div className="flex flex-col gap-1.5 mb-3">
+            {event.date && (
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <svg className="w-3 h-3 shrink-0 text-primary/60" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <path d="M16 2v4M8 2v4M3 10h18" strokeLinecap="round" />
+                </svg>
+                <span>{event.date}</span>
+              </div>
+            )}
+            {event.time && (
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <svg className="w-3 h-3 shrink-0 text-primary/60" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>{event.time}</span>
+              </div>
+            )}
+            {event.location && (
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <svg className="w-3 h-3 shrink-0 text-primary/60" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M12 21C12 21 5 13.5 5 8.5a7 7 0 1114 0C19 13.5 12 21 12 21z" />
+                  <circle cx="12" cy="8.5" r="2.5" />
+                </svg>
+                <span className="truncate">{event.location}</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Spacer */}
         <div className="flex-1" />
