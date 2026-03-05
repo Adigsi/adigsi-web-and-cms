@@ -14,7 +14,7 @@ export function PageBannerSection({
   isLoading = false,
 }: PageBannerSectionProps) {
   return (
-    <section className="relative w-full pt-28 pb-14 overflow-hidden bg-secondary/40 dark:bg-secondary/20">
+    <section className="relative w-full pt-12 sm:pt-28 pb-14 overflow-hidden bg-secondary/40 dark:bg-secondary/20">
 
       {/* Grid background */}
       <div

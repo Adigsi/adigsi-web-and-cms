@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Search, ChevronLeft, ChevronRight, FileText, Calendar, Users, Building2, Award, Download, UserPlus } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight, FileText, Calendar, Users, Building2, Award, Download } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
 
 interface DownloadRecord {
@@ -239,33 +239,33 @@ export default function CMSDashboard() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-gray-900">{t.dashboard}</h1>
-      
+      <h1 className="text-3xl font-bold text-foreground">{t.dashboard}</h1>
+
       {/* Website Statistics Section */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t.websiteContentStatistics} ({t.totalContent}: {statistics.news + statistics.events})</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-4">{t.websiteContentStatistics} ({t.totalContent}: {statistics.news + statistics.events})</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <Card className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.totalNews}</h3>
-                <p className="text-3xl font-bold text-blue-600">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">{t.totalNews}</h3>
+                <p className="text-3xl font-bold text-primary">
                   {isStatsLoading ? '...' : statistics.news}
                 </p>
               </div>
-              <FileText className="h-10 w-10 text-blue-600 opacity-20" />
+              <FileText className="h-10 w-10 text-primary opacity-20" />
             </div>
           </Card>
 
-          <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <Card className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.totalEvents}</h3>
-                <p className="text-3xl font-bold text-purple-600">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">{t.totalEvents}</h3>
+                <p className="text-3xl font-bold text-purple-500">
                   {isStatsLoading ? '...' : statistics.events}
                 </p>
               </div>
-              <Calendar className="h-10 w-10 text-purple-600 opacity-20" />
+              <Calendar className="h-10 w-10 text-purple-500 opacity-20" />
             </div>
           </Card>
         </div>
@@ -273,53 +273,53 @@ export default function CMSDashboard() {
 
       {/* Members Statistics Section */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t.membersStatistics} ({t.totalMembers}: {statistics.cybersecurityMembers.totalMembers + statistics.digitalMembers.totalMembers})</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-4">{t.membersStatistics} ({t.totalMembers}: {statistics.cybersecurityMembers.totalMembers + statistics.digitalMembers.totalMembers})</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <Card className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.cybersecurityCategories}</h3>
-                <p className="text-3xl font-bold text-indigo-600">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">{t.cybersecurityCategories}</h3>
+                <p className="text-3xl font-bold text-indigo-500">
                   {isStatsLoading ? '...' : statistics.cybersecurityMembers.categories}
                 </p>
               </div>
-              <Award className="h-8 w-8 text-indigo-600 opacity-20" />
+              <Award className="h-8 w-8 text-indigo-500 opacity-20" />
             </div>
           </Card>
 
-          <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <Card className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.cybersecurityMembers}</h3>
-                <p className="text-3xl font-bold text-blue-600">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">{t.cybersecurityMembers}</h3>
+                <p className="text-3xl font-bold text-primary">
                   {isStatsLoading ? '...' : statistics.cybersecurityMembers.totalMembers}
                 </p>
               </div>
-              <Users className="h-8 w-8 text-blue-600 opacity-20" />
+              <Users className="h-8 w-8 text-primary opacity-20" />
             </div>
           </Card>
 
-          <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <Card className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.digitalCategories}</h3>
-                <p className="text-3xl font-bold text-purple-600">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">{t.digitalCategories}</h3>
+                <p className="text-3xl font-bold text-purple-500">
                   {isStatsLoading ? '...' : statistics.digitalMembers.categories}
                 </p>
               </div>
-              <Award className="h-8 w-8 text-purple-600 opacity-20" />
+              <Award className="h-8 w-8 text-purple-500 opacity-20" />
             </div>
           </Card>
 
-          <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <Card className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.digitalMembers}</h3>
-                <p className="text-3xl font-bold text-teal-600">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">{t.digitalMembers}</h3>
+                <p className="text-3xl font-bold text-teal-500">
                   {isStatsLoading ? '...' : statistics.digitalMembers.totalMembers}
                 </p>
               </div>
-              <Users className="h-8 w-8 text-teal-600 opacity-20" />
+              <Users className="h-8 w-8 text-teal-500 opacity-20" />
             </div>
           </Card>
         </div>
@@ -327,14 +327,14 @@ export default function CMSDashboard() {
 
       {/* Partner Logos Statistics Section */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t.partnerStatistics} ({t.totalPartners}: {statistics.partnerLogos.total})</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-4">{t.partnerStatistics} ({t.totalPartners}: {statistics.partnerLogos.total})</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {isStatsLoading ? (
-            <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <Card className="bg-card p-6 rounded-lg shadow-sm border border-border">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-600 mb-2">{t.loading}</h3>
-                  <p className="text-3xl font-bold text-gray-400">...</p>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">{t.loading}</h3>
+                  <p className="text-3xl font-bold text-muted-foreground">...</p>
                 </div>
               </div>
             </Card>
@@ -342,18 +342,18 @@ export default function CMSDashboard() {
             <>
               {statistics.partnerLogos.categories.map((category, index) => {
                 const colors = [
-                  { text: 'text-amber-600', icon: 'text-amber-600' },
-                  { text: 'text-yellow-600', icon: 'text-yellow-600' },
-                  { text: 'text-gray-500', icon: 'text-gray-500' },
-                  { text: 'text-orange-600', icon: 'text-orange-600' },
+                  { text: 'text-amber-500', icon: 'text-amber-500' },
+                  { text: 'text-yellow-500', icon: 'text-yellow-500' },
+                  { text: 'text-muted-foreground', icon: 'text-muted-foreground' },
+                  { text: 'text-orange-500', icon: 'text-orange-500' },
                 ]
                 const color = colors[index % colors.length]
 
                 return (
-                  <Card key={index} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                  <Card key={index} className="bg-card p-6 rounded-lg shadow-sm border border-border">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-sm font-medium text-gray-600 mb-2">{category.categoryName || `${t.category} ${index + 1}`}</h3>
+                        <h3 className="text-sm font-medium text-muted-foreground mb-2">{category.categoryName || `${t.category} ${index + 1}`}</h3>
                         <p className={`text-3xl font-bold ${color.text}`}>
                           {category.count}
                         </p>
@@ -363,17 +363,6 @@ export default function CMSDashboard() {
                   </Card>
                 )
               })}
-              {/* <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-600 mb-2">Total Partners</h3>
-                    <p className="text-3xl font-bold text-green-600">
-                      {statistics.partnerLogos.total}
-                    </p>
-                  </div>
-                  <Users className="h-8 w-8 text-green-600 opacity-20" />
-                </div>
-              </Card> */}
             </>
           )}
         </div>
@@ -381,12 +370,12 @@ export default function CMSDashboard() {
 
       {/* Download Statistics Section */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t.reportDownloadStatistics}</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-4">{t.reportDownloadStatistics}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <Card className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.totalDownloads}</h3>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">{t.totalDownloads}</h3>
                 <p className="text-3xl font-bold text-primary">
                   {isStatsLoading ? '...' : statistics.downloads.total}
                 </p>
@@ -395,27 +384,27 @@ export default function CMSDashboard() {
             </div>
           </Card>
 
-          <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <Card className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.adigsiMembers}</h3>
-                <p className="text-3xl font-bold text-green-600">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">{t.adigsiMembers}</h3>
+                <p className="text-3xl font-bold text-teal-500">
                   {isStatsLoading ? '...' : statistics.downloads.members}
                 </p>
               </div>
-              <Users className="h-8 w-8 text-green-600 opacity-20" />
+              <Users className="h-8 w-8 text-teal-500 opacity-20" />
             </div>
           </Card>
 
-          <Card className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <Card className="bg-card p-6 rounded-lg shadow-sm border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-600 mb-2">{t.nonMembers}</h3>
-                <p className="text-3xl font-bold text-blue-600">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">{t.nonMembers}</h3>
+                <p className="text-3xl font-bold text-primary">
                   {isStatsLoading ? '...' : statistics.downloads.nonMembers}
                 </p>
               </div>
-              <Users className="h-8 w-8 text-blue-600 opacity-20" />
+              <Users className="h-8 w-8 text-primary opacity-20" />
             </div>
           </Card>
         </div>
@@ -423,14 +412,14 @@ export default function CMSDashboard() {
 
       {/* Downloads Table Section */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t.downloadRecordsHistory}</h2>
-        <Card className="bg-white rounded-lg shadow-sm border border-gray-200 p-0">
-          <div className="p-6 border-b border-gray-200">
+        <h2 className="text-xl font-semibold text-foreground mb-4">{t.downloadRecordsHistory}</h2>
+        <Card className="bg-card rounded-lg shadow-sm border border-border p-0">
+          <div className="p-6 border-b border-border">
             {/* Filters */}
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 flex gap-2">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"
                     placeholder={t.searchPlaceholder}
@@ -442,11 +431,11 @@ export default function CMSDashboard() {
                 </div>
                 <Button onClick={handleSearch}>{t.search}</Button>
               </div>
-              
+
               <select
                 value={memberFilter}
                 onChange={(e) => setMemberFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="px-4 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">{t.allMembers}</option>
                 <option value="Yes">{t.adigsiMembers}</option>
@@ -455,99 +444,99 @@ export default function CMSDashboard() {
             </div>
           </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          {isLoading ? (
-            <div className="p-8 text-center text-gray-500">{t.loading}</div>
-          ) : downloads.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">{t.noRecords}</div>
-          ) : (
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t.fullName}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t.company}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t.position}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t.email}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t.member}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t.downloadedAt}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {downloads.map((record) => (
-                  <tr key={record._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {record.fullname}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {record.company}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {record.position}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {record.email}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        record.member === 'Yes' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {record.member}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(record.downloadedAt)}
-                    </td>
+          {/* Table */}
+          <div className="overflow-x-auto">
+            {isLoading ? (
+              <div className="p-8 text-center text-muted-foreground">{t.loading}</div>
+            ) : downloads.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">{t.noRecords}</div>
+            ) : (
+              <table className="w-full">
+                <thead className="bg-muted/50 border-b border-border">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {t.fullName}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {t.company}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {t.position}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {t.email}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {t.member}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {t.downloadedAt}
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {/* Pagination */}
-        {!isLoading && downloads.length > 0 && (
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-              {t.showing} {((pagination.page - 1) * pagination.limit) + 1} {t.to}{' '}
-              {Math.min(pagination.page * pagination.limit, pagination.total)} {t.of}{' '}
-              {pagination.total} {t.results}
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
-                disabled={pagination.page === 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-                {t.previous}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
-                disabled={pagination.page === pagination.totalPages}
-              >
-                {t.next}
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+                </thead>
+                <tbody className="bg-card divide-y divide-border">
+                  {downloads.map((record) => (
+                    <tr key={record._id} className="hover:bg-muted/40 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                        {record.fullname}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        {record.company}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        {record.position}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        {record.email}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          record.member === 'Yes'
+                            ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400'
+                            : 'bg-primary/10 text-primary'
+                        }`}>
+                          {record.member}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                        {formatDate(record.downloadedAt)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
-        )}
-      </Card>
+
+          {/* Pagination */}
+          {!isLoading && downloads.length > 0 && (
+            <div className="px-6 py-4 border-t border-border flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                {t.showing} {((pagination.page - 1) * pagination.limit) + 1} {t.to}{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} {t.of}{' '}
+                {pagination.total} {t.results}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
+                  disabled={pagination.page === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  {t.previous}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
+                  disabled={pagination.page === pagination.totalPages}
+                >
+                  {t.next}
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </Card>
       </div>
     </div>
   )

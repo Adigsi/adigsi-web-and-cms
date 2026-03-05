@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/contexts/language-context'
 import type { NewsData } from '@/components/news-card'
+import { ImagePreviewModal } from '@/components/image-preview-modal'
 
 export default function NewsDetailPage({
   params,
@@ -19,6 +20,7 @@ export default function NewsDetailPage({
   const [newsSlug, setNewsSlug] = useState<string>('')
   const [isVisible, setIsVisible] = useState(false)
   const [readingProgress, setReadingProgress] = useState(0)
+  const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null)
   const articleRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -122,8 +124,8 @@ export default function NewsDetailPage({
   const readTime = Math.max(1, Math.ceil(wordCount / 200))
   const formattedDate = article.createdAt
     ? new Date(article.createdAt).toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', {
-        year: 'numeric', month: 'long', day: 'numeric',
-      })
+      year: 'numeric', month: 'long', day: 'numeric',
+    })
     : ''
 
   return (
@@ -193,27 +195,42 @@ export default function NewsDetailPage({
           </header>
 
           {/* ─ Featured Image ─ */}
-          <div className={`relative w-full overflow-hidden rounded-xl border border-border mb-10 transition-all duration-700 delay-150 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0 translate-y-15'}`}
+          <div className={`group relative w-full overflow-hidden rounded-xl border border-border mb-10 transition-all duration-700 delay-150 ${isVisible ? 'animate-fade-in-up opacity-100' : 'opacity-0 translate-y-15'}`}
             style={{ height: '420px' }}
           >
             <Image
               src={article.image || '/placeholder.svg'}
               alt={title}
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
               priority
             />
+            {/* Dark overlay on hover */}
+            <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors duration-300" />
             {/* Scan-line overlay */}
             <div className="absolute inset-0 pointer-events-none"
               style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px)' }}
             />
+            {/* Preview button */}
+            <button
+              onClick={() => setPreviewImage({ src: article.image || '/placeholder.svg', alt: title })}
+              aria-label="Preview image"
+              className="cursor-pointer absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20"
+            >
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest bg-card/90 border border-primary/40 text-primary backdrop-blur-sm">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Preview
+              </span>
+            </button>
             {/* Corner brackets */}
-            <span className="absolute top-3 left-3 w-5 h-5 border-t-2 border-l-2 border-primary/60" />
-            <span className="absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-primary/60" />
-            <span className="absolute bottom-3 left-3 w-5 h-5 border-b-2 border-l-2 border-primary/60" />
-            <span className="absolute bottom-3 right-3 w-5 h-5 border-b-2 border-r-2 border-primary/60" />
+            <span className="absolute top-3 left-3 w-5 h-5 border-t-2 border-l-2 border-primary/60 z-10" />
+            <span className="absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-primary/60 z-10" />
+            <span className="absolute bottom-3 left-3 w-5 h-5 border-b-2 border-l-2 border-primary/60 z-10" />
+            <span className="absolute bottom-3 right-3 w-5 h-5 border-b-2 border-r-2 border-primary/60 z-10" />
             {/* Bottom gradient caption bar */}
-            <div className="absolute bottom-0 left-0 right-0 h-16 bg-linear-to-t from-black/60 to-transparent flex items-end px-5 pb-3">
+            <div className="absolute bottom-0 left-0 right-0 h-16 bg-linear-to-t from-black/60 to-transparent flex items-end px-5 pb-3 z-10">
               <span className="text-[11px] font-mono text-white/70 uppercase tracking-widest">{category} — ADIGSI</span>
             </div>
           </div>
@@ -485,6 +502,8 @@ export default function NewsDetailPage({
           margin: 1.5em 0;
         }
       `}</style>
+
+      <ImagePreviewModal previewImage={previewImage} onClose={() => setPreviewImage(null)} />
     </div>
   )
 }

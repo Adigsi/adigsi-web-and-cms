@@ -15,7 +15,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen">
+      <main className="min-h-screen pt-16 sm:pt-0">
         {children}
       </main>
       <Footer />
