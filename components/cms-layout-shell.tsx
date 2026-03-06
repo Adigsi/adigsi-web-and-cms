@@ -10,6 +10,7 @@ import {
   ChevronsRight,
   House,
   Info,
+  Inbox,
   Moon,
   Newspaper,
   Sun,
@@ -78,6 +79,12 @@ const cmsNavigation: NavigationSection[] = [
         href: '/cms/analytics',
         icon: ChartLine,
       },
+      {
+        label: 'Inbox',
+        labelTranslation: { en: 'Inbox', id: 'Kotak Masuk' },
+        href: '/cms/inbox',
+        icon: Inbox,
+      },
     ],
   },
   {
@@ -136,8 +143,26 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['Community'])
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const pathname = usePathname()
   const { language, setLanguage, t } = useLanguage()
+
+  useEffect(() => {
+    const fetchUnreadCount = () => {
+      fetch('/api/cms/messages/unread-count')
+        .then((res) => res.ok ? res.json() : null)
+        .then((data) => { if (data?.count != null) setUnreadCount(data.count) })
+        .catch(() => {})
+    }
+    fetchUnreadCount()
+    const interval = setInterval(fetchUnreadCount, 60_000)
+    // Also refresh immediately whenever the inbox marks a message as read/deleted
+    window.addEventListener('cms:unread-changed', fetchUnreadCount)
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('cms:unread-changed', fetchUnreadCount)
+    }
+  }, [pathname])
 
   useEffect(() => {
     setIsDarkMode(document.documentElement.classList.contains('dark'))
@@ -228,6 +253,8 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
 
     const Icon = item.icon
     const isActive = isActiveMenu(item.href)
+    const isInbox = item.href === '/cms/inbox'
+    const badge = isInbox && unreadCount > 0 ? unreadCount : 0
 
     return (
       <Link
@@ -235,7 +262,7 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
         href={item.href}
         onClick={() => setIsSidebarOpen(false)}
         className={cn(
-          'flex rounded-lg py-2.5 text-sm transition-colors',
+          'flex rounded-lg py-2.5 text-sm transition-colors relative',
           isActive
             ? 'bg-primary/10 text-primary'
             : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
@@ -249,8 +276,24 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
         )}
         title={isSidebarCollapsed ? label : undefined}
       >
-        {Icon && <Icon className="size-4 shrink-0" />}
-        {!isSidebarCollapsed ? <span>{label}</span> : null}
+        <div className="relative shrink-0">
+          {Icon && <Icon className="size-4" />}
+          {badge > 0 && isSidebarCollapsed && (
+            <span className="absolute -top-1.5 -right-1.5 min-w-3.5 h-3.5 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground px-0.5">
+              {badge > 99 ? '99+' : badge}
+            </span>
+          )}
+        </div>
+        {!isSidebarCollapsed ? (
+          <>
+            <span className="flex-1">{label}</span>
+            {badge > 0 && (
+              <span className="ml-auto min-w-4.5 h-4.5 flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground px-1">
+                {badge > 99 ? '99+' : badge}
+              </span>
+            )}
+          </>
+        ) : null}
       </Link>
     )
   }

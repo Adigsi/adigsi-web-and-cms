@@ -1,10 +1,49 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/language-context'
+import { CyberIcon } from '@/components/ui/cyber-icon'
+
+interface JoinButtonConfig {
+  textEn: string
+  textId: string
+  link: string
+  icon: string
+}
+
+const DEFAULT_CONFIG: JoinButtonConfig = {
+  textEn: 'Join Now',
+  textId: 'Daftar',
+  link: '/register',
+  icon: 'network',
+}
 
 export function FloatingJoinButton() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const [config, setConfig] = useState<JoinButtonConfig>(DEFAULT_CONFIG)
+
+  useEffect(() => {
+    fetch('/api/cms/home/floating-buttons')
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.joinButton) setConfig({ ...DEFAULT_CONFIG, ...data.joinButton })
+      })
+      .catch(() => {})
+  }, [])
+
+  const label = language === 'en' ? config.textEn : config.textId
+
+  function FloatingIcon() {
+    if (config.icon === 'join') {
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+        </svg>
+      )
+    }
+    return <CyberIcon type={config.icon || 'network'} />
+  }
 
   return (
     <>
@@ -34,13 +73,15 @@ export function FloatingJoinButton() {
 
       <div className="fjb-wrapper fixed right-0 top-1/2 z-40 group">
         <Link
-          href="/register"
+          href={config.link || '/register'}
+          target={config.link?.startsWith('http') ? '_blank' : undefined}
+          rel={config.link?.startsWith('http') ? 'noopener noreferrer' : undefined}
           className="fjb-link relative flex flex-col items-center justify-center gap-2 px-3 pt-5 pb-7 w-11
             bg-primary text-primary-foreground
             transition-all duration-300
             group-hover:w-14 group-hover:brightness-110"
           style={{ clipPath: 'polygon(0 0, 100% 0, 100% 88%, 50% 100%, 0 88%)' }}
-          aria-label={t({ en: 'Join Now', id: 'Daftar Sekarang' })}
+          aria-label={label}
         >
           {/* Shimmer sweep on hover */}
           <span
@@ -49,23 +90,16 @@ export function FloatingJoinButton() {
           />
 
           {/* Icon */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-4 h-4 shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-          </svg>
+          <div className="shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110 text-primary-foreground [&_svg]:w-4 [&_svg]:h-4 [&_svg]:stroke-current">
+            <FloatingIcon />
+          </div>
 
           {/* Vertical text */}
           <span
             className="relative z-10 text-[10px] font-black uppercase tracking-widest leading-none"
             style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)' }}
           >
-            {t({ en: 'Join Now', id: 'Daftar' })}
+            {label}
           </span>
         </Link>
       </div>
