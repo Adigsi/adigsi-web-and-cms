@@ -1,14 +1,88 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { ChevronDown, Plus, Trash2 } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { ChevronDown, Plus, Trash2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { CyberIcon } from '@/components/ui/cyber-icon'
 import { useLanguage } from '@/contexts/language-context'
 import { useToast } from '@/hooks/use-toast'
+
+function IconPicker({
+  value,
+  onChange
+}: {
+  value: string
+  onChange: (icon: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          ref={triggerRef}
+          className="w-full h-8 px-2 border border-input rounded-md bg-background text-xs focus:outline-none focus:ring-1 focus:ring-ring flex items-center gap-2 justify-between hover:bg-muted/50 transition-colors"
+        >
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="text-muted-foreground shrink-0">
+              <CyberIcon type={value} />
+            </div>
+            <span className="text-foreground capitalize truncate text-xs">{value || 'Select icon...'}</span>
+          </div>
+          <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-96 p-3">
+        <div className="grid grid-cols-10 gap-2">
+          {ICON_OPTIONS.map((iconType) => (
+            <button
+              key={iconType}
+              onClick={() => {
+                onChange(iconType)
+                setOpen(false)
+              }}
+              className={`p-2 rounded border transition-all flex flex-col items-center justify-center gap-1 text-xs capitalize hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950 ${
+                value === iconType
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                  : 'border-muted hover:border-gray-400'
+              }`}
+              title={iconType}
+            >
+              <div className="text-muted-foreground">
+                {value === iconType && <Check className="h-3 w-3 text-blue-500" />}
+              </div>
+              <div className="shrink-0">
+                <CyberIcon type={iconType} />
+              </div>
+              <span className="text-[10px] text-center">{iconType.substring(0, 5)}</span>
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+const ICON_OPTIONS = [
+  // Cybersecurity Icons
+  'network', 'web', 'endpoint', 'app', 'mssp', 'data', 'mobile', 'risk',
+  'secops', 'threat', 'identity', 'digitalrisk', 'blockchain', 'iot',
+  'messaging', 'consulting', 'fraud', 'cloud', 'server', 'database',
+  'firewall', 'vpn', 'encryption', 'malware', 'virus', 'monitoring',
+  'audit', 'compliance',
+  // Digital Business Icons
+  'ecommerce', 'logistic', 'financial', 'edutech', 'telecom', 'media',
+  'healthcare', 'venture', 'consultant', 'university', 'bumn',
+  'retail', 'shopping', 'cart', 'manufacturing', 'agriculture', 'energy', 'construction',
+  // Custom Icons
+  'shield-check', 'tri-network', 'hex-core',
+]
 
 interface BannerData {
   titleEn: string
@@ -457,68 +531,15 @@ export default function CMSRegisterPage() {
                       <div className="space-y-3">
                         <div>
                           <Label className="text-xs">{t({ en: 'Icon', id: 'Icon' })}</Label>
-                          <div className="mt-2 space-y-3">
-                            <div className="flex gap-2">
-                              <Button
-                                type="button"
-                                variant={category.iconUrl === '/images/icon/icon1.png' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => {
-                                  const newData = { ...membershipData }
-                                  newData.categories[index].iconUrl = '/images/icon/icon1.png'
-                                  setMembershipData(newData)
-                                }}
-                                className="flex-1 flex flex-col items-center gap-2 h-auto py-2"
-                              >
-                                <img src="/images/icon/icon1.png" alt="Icon 1" className="h-8 w-8 object-cover" />
-                                <span className="text-xs">Icon 1</span>
-                              </Button>
-                              <Button
-                                type="button"
-                                variant={category.iconUrl === '/images/icon/icon2.png' ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => {
-                                  const newData = { ...membershipData }
-                                  newData.categories[index].iconUrl = '/images/icon/icon2.png'
-                                  setMembershipData(newData)
-                                }}
-                                className="flex-1 flex flex-col items-center gap-2 h-auto py-2"
-                              >
-                                <img src="/images/icon/icon2.png" alt="Icon 2" className="h-8 w-8 object-cover" />
-                                <span className="text-xs">Icon 2</span>
-                              </Button>
-                            </div>
-
-                            <div className="border-2 border-dashed border-border rounded-lg p-3 text-center">
-                              {category.iconUrl && !category.iconUrl.startsWith('/images/icon/') && (
-                                <div className="mb-2">
-                                  <img src={category.iconUrl} alt="Icon preview" className="h-12 w-12 mx-auto rounded" />
-                                </div>
-                              )}
-                              <input
-                                id={`icon-upload-${index}`}
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0]
-                                  if (file) {
-                                    const reader = new FileReader()
-                                    reader.onloadend = () => {
-                                      const newData = { ...membershipData }
-                                      newData.categories[index].iconUrl = reader.result as string
-                                      setMembershipData(newData)
-                                    }
-                                    reader.readAsDataURL(file)
-                                  }
-                                }}
-                                className="hidden"
-                              />
-                              <label htmlFor={`icon-upload-${index}`} className="cursor-pointer">
-                                <div className="text-xs text-muted-foreground">
-                                  {t({ en: 'Click to upload custom icon', id: 'Klik untuk upload custom icon' })}
-                                </div>
-                              </label>
-                            </div>
+                          <div className="mt-1">
+                            <IconPicker
+                              value={category.iconUrl}
+                              onChange={(icon) => {
+                                const newData = { ...membershipData }
+                                newData.categories[index].iconUrl = icon
+                                setMembershipData(newData)
+                              }}
+                            />
                           </div>
                         </div>
 
