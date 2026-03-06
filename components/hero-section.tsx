@@ -6,6 +6,13 @@ import { ArrowRight } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
 import { CarousellSection } from './carousell-section'
 
+interface HeroBannerButton {
+  enabled: boolean
+  textEn: string
+  textId: string
+  link: string
+}
+
 interface HeroBannerData {
   titleSmallEn: string
   titleSmallId: string
@@ -13,13 +20,8 @@ interface HeroBannerData {
   titleLargeId: string
   descriptionEn: string
   descriptionId: string
-  backgroundImage: string
-  aboutButtonTextEn: string
-  aboutButtonTextId: string
-  aboutButtonLink: string
-  joinButtonTextEn: string
-  joinButtonTextId: string
-  joinButtonLink: string
+  primaryButton: HeroBannerButton
+  secondaryButton: HeroBannerButton
 }
 
 export function HeroSection() {
@@ -113,25 +115,31 @@ export function HeroSection() {
             </p>
             
             {/* Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link
-                href={bannerData.aboutButtonLink}
-                className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-lg px-6 py-3 font-semibold no-underline hover:opacity-90 hover:shadow-lg transition-all duration-200 group"
-              >
-                <span>{language === 'en' ? bannerData.aboutButtonTextEn : bannerData.aboutButtonTextId}</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              
-              <Link
-                href={bannerData.joinButtonLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 border border-primary text-primary rounded-lg px-6 py-3 font-semibold no-underline hover:bg-primary hover:text-primary-foreground transition-all duration-200 group"
-              >
-                <span>{language === 'en' ? bannerData.joinButtonTextEn : bannerData.joinButtonTextId}</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
+            {(bannerData.primaryButton?.enabled || bannerData.secondaryButton?.enabled) && (
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                {bannerData.primaryButton?.enabled && (
+                  <Link
+                    href={bannerData.primaryButton.link}
+                    className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-lg px-6 py-3 font-semibold no-underline hover:opacity-90 hover:shadow-lg transition-all duration-200 group"
+                  >
+                    <span>{language === 'en' ? bannerData.primaryButton.textEn : bannerData.primaryButton.textId}</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                )}
+
+                {bannerData.secondaryButton?.enabled && (
+                  <Link
+                    href={bannerData.secondaryButton.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 border border-primary text-primary rounded-lg px-6 py-3 font-semibold no-underline hover:bg-primary hover:text-primary-foreground transition-all duration-200 group"
+                  >
+                    <span>{language === 'en' ? bannerData.secondaryButton.textEn : bannerData.secondaryButton.textId}</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right Carousel */}

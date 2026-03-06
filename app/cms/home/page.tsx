@@ -8,6 +8,14 @@ import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { ChevronDown, Upload, X } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { Checkbox } from '@/components/ui/checkbox'
+
+interface BannerButton {
+  enabled: boolean
+  textEn: string
+  textId: string
+  link: string
+}
 
 interface BannerData {
   titleSmallEn: string
@@ -16,13 +24,8 @@ interface BannerData {
   titleLargeId: string
   descriptionEn: string
   descriptionId: string
-  backgroundImage: string
-  aboutButtonTextEn: string
-  aboutButtonTextId: string
-  aboutButtonLink: string
-  joinButtonTextEn: string
-  joinButtonTextId: string
-  joinButtonLink: string
+  primaryButton: BannerButton
+  secondaryButton: BannerButton
 }
 
 interface CarousellSlide {
@@ -104,13 +107,8 @@ export default function CMSHomePage() {
     titleLargeId: '',
     descriptionEn: '',
     descriptionId: '',
-    backgroundImage: '',
-    aboutButtonTextEn: '',
-    aboutButtonTextId: '',
-    aboutButtonLink: '',
-    joinButtonTextEn: '',
-    joinButtonTextId: '',
-    joinButtonLink: '',
+    primaryButton: { enabled: true, textEn: '', textId: '', link: '' },
+    secondaryButton: { enabled: false, textEn: '', textId: '', link: '' },
   })
 
   const [welcomeData, setWelcomeData] = useState<WelcomeData>({
@@ -199,27 +197,6 @@ export default function CMSHomePage() {
 
     fetchData()
   }, [])
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: t({ en: 'Error', id: 'Kesalahan' }),
-        description: t({ en: 'File size must be less than 5MB', id: 'Ukuran file harus kurang dari 5MB' }),
-        variant: 'destructive'
-      })
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string
-      setBannerData({ ...bannerData, backgroundImage: base64 })
-    }
-    reader.readAsDataURL(file)
-  }
 
   const handleCarousellImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, slideIndex: number) => {
     const file = e.target.files?.[0]
@@ -653,7 +630,7 @@ export default function CMSHomePage() {
               <div className="flex-1">
                 <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Hero Banner', id: 'Banner Hero' })}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage the hero banner with titles, description, image and buttons', id: 'Kelola banner hero dengan judul, deskripsi, gambar dan tombol' })}
+                  {t({ en: 'Manage the hero banner with titles, description and optional buttons', id: 'Kelola banner hero dengan judul, deskripsi dan tombol opsional' })}
                 </p>
               </div>
               <ChevronDown
@@ -664,46 +641,8 @@ export default function CMSHomePage() {
             {expandedSections.banner && (
               <>
                 <div className="space-y-6 mt-4">
-                  {/* Background Image Section */}
-                  <div>
-                    <Label>{t({ en: 'Background Image', id: 'Gambar Latar Belakang' })}</Label>
-                    <div className="mt-2 space-y-3">
-                      {bannerData.backgroundImage && (
-                        <div className="relative w-full h-48 rounded-lg overflow-hidden bg-muted">
-                          <img
-                            src={bannerData.backgroundImage}
-                            alt="Banner preview"
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            onClick={() => setBannerData({ ...bannerData, backgroundImage: '' })}
-                            className="absolute top-2 right-2 p-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <label className="flex-1 flex items-center justify-center px-4 py-2 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
-                          <div className="flex items-center gap-2">
-                            <Upload className="h-4 w-4" />
-                            <span className="text-sm text-muted-foreground">
-                              {t({ en: 'Upload Image', id: 'Unggah Gambar' })}
-                            </span>
-                          </div>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Titles Section */}
-                  <div className="border-t pt-4">
+                  <div>
                     <h3 className="font-semibold mb-4">{t({ en: 'Titles', id: 'Judul' })}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -782,82 +721,110 @@ export default function CMSHomePage() {
                     </div>
                   </div>
 
-                  {/* About Button Section */}
+                  {/* Primary Button Section */}
                   <div className="border-t pt-4">
-                    <h3 className="font-semibold mb-4">{t({ en: 'About Button', id: 'Tombol About' })}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <Label htmlFor="about-btn-text-en">{t({ en: 'Button Text (EN)', id: 'Teks Tombol (EN)' })}</Label>
-                        <Input
-                          id="about-btn-text-en"
-                          value={bannerData.aboutButtonTextEn}
-                          onChange={(e) => setBannerData({ ...bannerData, aboutButtonTextEn: e.target.value })}
-                          placeholder="e.g., About Us"
-                          className="mt-1"
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold">{t({ en: 'Primary Button', id: 'Tombol Primer' })}</h3>
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id="primary-btn-enabled"
+                          checked={bannerData.primaryButton.enabled}
+                          onCheckedChange={(checked) =>
+                            setBannerData({ ...bannerData, primaryButton: { ...bannerData.primaryButton, enabled: !!checked } })
+                          }
                         />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="about-btn-text-id">{t({ en: 'Button Text (ID)', id: 'Teks Tombol (ID)' })}</Label>
-                        <Input
-                          id="about-btn-text-id"
-                          value={bannerData.aboutButtonTextId}
-                          onChange={(e) => setBannerData({ ...bannerData, aboutButtonTextId: e.target.value })}
-                          placeholder="cth., Tentang Kami"
-                          className="mt-1"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="about-btn-link">{t({ en: 'Button Link', id: 'Link Tombol' })}</Label>
-                        <Input
-                          id="about-btn-link"
-                          value={bannerData.aboutButtonLink}
-                          onChange={(e) => setBannerData({ ...bannerData, aboutButtonLink: e.target.value })}
-                          placeholder="e.g., /about"
-                          className="mt-1"
-                        />
+                        <Label htmlFor="primary-btn-enabled">{t({ en: 'Enabled', id: 'Aktif' })}</Label>
                       </div>
                     </div>
+                    {bannerData.primaryButton.enabled && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="primary-btn-text-en">{t({ en: 'Button Text (EN)', id: 'Teks Tombol (EN)' })}</Label>
+                          <Input
+                            id="primary-btn-text-en"
+                            value={bannerData.primaryButton.textEn}
+                            onChange={(e) => setBannerData({ ...bannerData, primaryButton: { ...bannerData.primaryButton, textEn: e.target.value } })}
+                            placeholder="e.g., About Us"
+                            className="mt-1"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="primary-btn-text-id">{t({ en: 'Button Text (ID)', id: 'Teks Tombol (ID)' })}</Label>
+                          <Input
+                            id="primary-btn-text-id"
+                            value={bannerData.primaryButton.textId}
+                            onChange={(e) => setBannerData({ ...bannerData, primaryButton: { ...bannerData.primaryButton, textId: e.target.value } })}
+                            placeholder="cth., Tentang Kami"
+                            className="mt-1"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="primary-btn-link">{t({ en: 'Button Link', id: 'Link Tombol' })}</Label>
+                          <Input
+                            id="primary-btn-link"
+                            value={bannerData.primaryButton.link}
+                            onChange={(e) => setBannerData({ ...bannerData, primaryButton: { ...bannerData.primaryButton, link: e.target.value } })}
+                            placeholder="e.g., /about"
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Join Button Section */}
+                  {/* Secondary Button Section */}
                   <div className="border-t pt-4">
-                    <h3 className="font-semibold mb-4">{t({ en: 'Join Button', id: 'Tombol Bergabung' })}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <Label htmlFor="join-btn-text-en">{t({ en: 'Button Text (EN)', id: 'Teks Tombol (EN)' })}</Label>
-                        <Input
-                          id="join-btn-text-en"
-                          value={bannerData.joinButtonTextEn}
-                          onChange={(e) => setBannerData({ ...bannerData, joinButtonTextEn: e.target.value })}
-                          placeholder="e.g., Join Now"
-                          className="mt-1"
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold">{t({ en: 'Secondary Button', id: 'Tombol Sekunder' })}</h3>
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id="secondary-btn-enabled"
+                          checked={bannerData.secondaryButton.enabled}
+                          onCheckedChange={(checked) =>
+                            setBannerData({ ...bannerData, secondaryButton: { ...bannerData.secondaryButton, enabled: !!checked } })
+                          }
                         />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="join-btn-text-id">{t({ en: 'Button Text (ID)', id: 'Teks Tombol (ID)' })}</Label>
-                        <Input
-                          id="join-btn-text-id"
-                          value={bannerData.joinButtonTextId}
-                          onChange={(e) => setBannerData({ ...bannerData, joinButtonTextId: e.target.value })}
-                          placeholder="cth., Bergabung Sekarang"
-                          className="mt-1"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="join-btn-link">{t({ en: 'Button Link', id: 'Link Tombol' })}</Label>
-                        <Input
-                          id="join-btn-link"
-                          value={bannerData.joinButtonLink}
-                          onChange={(e) => setBannerData({ ...bannerData, joinButtonLink: e.target.value })}
-                          placeholder="e.g., https://forms.example.com"
-                          className="mt-1"
-                        />
+                        <Label htmlFor="secondary-btn-enabled">{t({ en: 'Enabled', id: 'Aktif' })}</Label>
                       </div>
                     </div>
+                    {bannerData.secondaryButton.enabled && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="secondary-btn-text-en">{t({ en: 'Button Text (EN)', id: 'Teks Tombol (EN)' })}</Label>
+                          <Input
+                            id="secondary-btn-text-en"
+                            value={bannerData.secondaryButton.textEn}
+                            onChange={(e) => setBannerData({ ...bannerData, secondaryButton: { ...bannerData.secondaryButton, textEn: e.target.value } })}
+                            placeholder="e.g., Join Now"
+                            className="mt-1"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="secondary-btn-text-id">{t({ en: 'Button Text (ID)', id: 'Teks Tombol (ID)' })}</Label>
+                          <Input
+                            id="secondary-btn-text-id"
+                            value={bannerData.secondaryButton.textId}
+                            onChange={(e) => setBannerData({ ...bannerData, secondaryButton: { ...bannerData.secondaryButton, textId: e.target.value } })}
+                            placeholder="cth., Bergabung Sekarang"
+                            className="mt-1"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="secondary-btn-link">{t({ en: 'Button Link', id: 'Link Tombol' })}</Label>
+                          <Input
+                            id="secondary-btn-link"
+                            value={bannerData.secondaryButton.link}
+                            onChange={(e) => setBannerData({ ...bannerData, secondaryButton: { ...bannerData.secondaryButton, link: e.target.value } })}
+                            placeholder="e.g., https://forms.example.com"
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <Button onClick={() => handleSave('banner')} disabled={isSaving === 'banner'} className="w-full">
