@@ -15,8 +15,8 @@ export default function Home() {
       <IndustryReportSection />
       <AgendaSection />
       <AboutAdigsiSection />
-      <PartnersSection />
       <PartnerLogosSection />
+      <PartnersSection />
     </>
   )
 }
