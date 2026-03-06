@@ -18,6 +18,7 @@ interface Logo {
 interface Category {
   titleEn: string
   titleId: string
+  homeLimit: number
   logos: Logo[]
 }
 
@@ -80,21 +81,25 @@ export default function CMSAboutPage() {
       {
         titleEn: 'Government Organizations',
         titleId: 'Organisasi Pemerintah',
+        homeLimit: 0,
         logos: []
       },
       {
         titleEn: 'International Institutions',
         titleId: 'Institusi Internasional',
+        homeLimit: 0,
         logos: []
       },
       {
         titleEn: 'Associations',
         titleId: 'Asosiasi',
+        homeLimit: 0,
         logos: []
       },
       {
         titleEn: 'Companies',
         titleId: 'Perusahaan',
+        homeLimit: 0,
         logos: []
       }
     ]
@@ -144,7 +149,12 @@ export default function CMSAboutPage() {
         if (partnersRes.ok) {
           const data = await partnersRes.json()
           if (data.categories && data.categories.length > 0) {
-            setPartnersData({ categories: data.categories })
+            setPartnersData({
+              categories: data.categories.map((cat: Category) => ({
+                ...cat,
+                homeLimit: cat.homeLimit ?? 0,
+              }))
+            })
           }
         }
       } catch (error) {
@@ -800,6 +810,23 @@ export default function CMSAboutPage() {
                             className="text-xs h-8 mt-1"
                           />
                         </div>
+                        <div>
+                          <Label className="text-xs">{t({ en: 'Home Page Limit', id: 'Batas di Halaman Home' })}</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={category.homeLimit}
+                            onChange={(e) => {
+                              const newCategories = [...partnersData.categories]
+                              newCategories[categoryIndex].homeLimit = Math.max(0, parseInt(e.target.value) || 0)
+                              setPartnersData({ ...partnersData, categories: newCategories })
+                            }}
+                            className="text-xs h-8 mt-1"
+                          />
+                          <p className="text-[10px] text-muted-foreground mt-1">
+                            {t({ en: '0 = show all on home page', id: '0 = tampilkan semua di halaman home' })}
+                          </p>
+                        </div>
                       </div>
 
                       <div className="space-y-3">
@@ -909,6 +936,7 @@ export default function CMSAboutPage() {
                           {
                             titleEn: '',
                             titleId: '',
+                            homeLimit: 0,
                             logos: []
                           }
                         ]

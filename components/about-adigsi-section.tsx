@@ -24,6 +24,7 @@ interface Logo {
 interface Category {
   titleEn: string
   titleId: string
+  homeLimit: number
   logos: Logo[]
 }
 
@@ -331,8 +332,13 @@ export function PartnersSection() {
 
               {/* Logos */}
               <div className="flex flex-wrap gap-6 items-center justify-center md:justify-start px-6 md:px-8 pb-6">
-                {category.logos?.length > 0 ? (
-                  category.logos.map((logo, logoIndex) => (
+                {(() => {
+                  const logosToShow =
+                    pathname === '/' && category.homeLimit > 0
+                      ? category.logos.slice(0, category.homeLimit)
+                      : category.logos
+                  return logosToShow?.length > 0 ? (
+                    logosToShow.map((logo, logoIndex) => (
                     <div
                       key={logoIndex}
                       className="relative h-40 w-40 flex items-center justify-center rounded-xl border border-border bg-muted/30 px-4 py-3 hover:border-primary/30 hover:bg-muted/60 transition-all duration-200"
@@ -346,11 +352,12 @@ export function PartnersSection() {
                       />
                     </div>
                   ))
-                ) : (
-                  <p className="text-muted-foreground text-sm">
-                    {t({ en: 'No logos added yet', id: 'Belum ada logo' })}
-                  </p>
-                )}
+                  ) : (
+                    <p className="text-muted-foreground text-sm">
+                      {t({ en: 'No logos added yet', id: 'Belum ada logo' })}
+                    </p>
+                  )
+                })()}
               </div>
 
               {categoryIndex < partnersData.categories.length - 1 && (
