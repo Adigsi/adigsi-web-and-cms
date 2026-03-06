@@ -1,6 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { ArrowRight } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
 
 interface PartnerLogo {
@@ -13,6 +16,7 @@ interface PartnerCategory {
   categoryNameId: string
   width: number
   height: number
+  homeLimit?: number
   logos: PartnerLogo[]
 }
 
@@ -36,6 +40,8 @@ export function PartnerLogosSection() {
   const lastScrollYRef = useRef(0)
   const fadeOutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { t, language } = useLanguage()
+  const pathname = usePathname()
+  const isHomePage = pathname === '/'
 
   useEffect(() => {
     setWindowWidth(window.innerWidth)
@@ -162,8 +168,12 @@ export function PartnerLogosSection() {
         </div>
 
         {/* Partner categories */}
-        {partnerLogosData.categories.map((category, categoryIndex) =>
-          category.logos.length > 0 ? (
+        {partnerLogosData.categories.map((category, categoryIndex) => {
+          const visibleLogos =
+            isHomePage && category.homeLimit && category.homeLimit > 0
+              ? category.logos.slice(0, category.homeLimit)
+              : category.logos
+          return visibleLogos.length > 0 ? (
             <div
               key={categoryIndex}
               className={`mb-10 transition-all duration-700 ${animClass()}`}
@@ -171,7 +181,7 @@ export function PartnerLogosSection() {
             >
               {/* Logos */}
               <div className="flex flex-wrap justify-center items-center gap-4">
-                {category.logos.map((logo, logoIndex) => {
+                {visibleLogos.map((logo, logoIndex) => {
                   const size = getResponsiveSize(category.width)
                   return (
                     <div
@@ -214,6 +224,19 @@ export function PartnerLogosSection() {
               </div>
             </div>
           ) : null
+        })}
+
+        {/* See All button — only on home page */}
+        {isHomePage && (
+          <div className={`flex justify-center mt-8 transition-all duration-700 ${animClass()}`}>
+            <Link
+              href="/members"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-primary text-primary font-semibold text-sm hover:bg-primary hover:text-primary-foreground transition-all duration-200 group"
+            >
+              <span>{t({ en: 'See All Members', id: 'Lihat Semua Anggota' })}</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         )}
       </div>
     </section>

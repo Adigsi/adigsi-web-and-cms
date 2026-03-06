@@ -51,6 +51,7 @@ export async function GET() {
             categoryNameId: 'Platinum',
             width: 220,
             height: 140,
+            homeLimit: 0,
             logos: [],
           },
           {
@@ -58,6 +59,7 @@ export async function GET() {
             categoryNameId: 'Gold',
             width: 190,
             height: 115,
+            homeLimit: 0,
             logos: [],
           },
           {
@@ -65,6 +67,7 @@ export async function GET() {
             categoryNameId: 'Silver',
             width: 160,
             height: 95,
+            homeLimit: 0,
             logos: [],
           },
           {
@@ -72,6 +75,7 @@ export async function GET() {
             categoryNameId: 'Bronze',
             width: 130,
             height: 75,
+            homeLimit: 0,
             logos: [],
           },
         ],

@@ -60,6 +60,7 @@ interface PartnerCategory {
   categoryNameId: string
   width: number
   height: number
+  homeLimit: number
   logos: PartnerLogo[]
 }
 
@@ -217,6 +218,7 @@ export default function CMSMembersPage() {
         categoryNameId: 'Platinum',
         width: 220,
         height: 140,
+        homeLimit: 0,
         logos: [],
       }
     ]
@@ -301,6 +303,7 @@ export default function CMSMembersPage() {
                 categoryNameId: 'Platinum',
                 width: 220,
                 height: 140,
+                homeLimit: 0,
                 logos: [],
               }
             ]
@@ -980,7 +983,7 @@ export default function CMSMembersPage() {
                         </Button>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
                         <div>
                           <Label className="text-xs">{t({ en: 'Category Name (EN)', id: 'Nama Kategori (EN)' })}</Label>
                           <Input
@@ -1037,6 +1040,25 @@ export default function CMSMembersPage() {
                             }}
                             placeholder="140"
                             min="50"
+                            className="h-8 text-xs"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">
+                            {t({ en: 'Home Limit', id: 'Batas Home' })}
+                            <span className="ml-1 text-muted-foreground font-normal">({t({ en: '0 = all', id: '0 = semua' })})</span>
+                          </Label>
+                          <Input
+                            type="number"
+                            value={category.homeLimit ?? 0}
+                            onChange={(e) => {
+                              const newCategories = [...partnerLogosData.categories]
+                              newCategories[catIndex] = { ...category, homeLimit: parseInt(e.target.value) || 0 }
+                              setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                            }}
+                            placeholder="0"
+                            min="0"
                             className="h-8 text-xs"
                           />
                         </div>
@@ -1174,6 +1196,7 @@ export default function CMSMembersPage() {
                             categoryNameId: '',
                             width: 220,
                             height: 140,
+                            homeLimit: 0,
                             logos: [],
                           }
                         ]
