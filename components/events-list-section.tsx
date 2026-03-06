@@ -182,19 +182,32 @@ export function EventsListSection() {
 
   const rawEvents = events.length > 0 ? events : defaultEvents
 
-  // Build category list: prefer API, fall back to deriving from events.
-  // Each entry: { key: nameEn (stable), label: localized }
-  const categories: { key: string; label: string }[] = apiCategories.length > 0
-    ? apiCategories.map((c) => ({
-        key: c.nameEn,
-        label: language === 'en' ? c.nameEn : c.nameId,
-      }))
-    : Array.from(new Set(rawEvents.map((e) => e.categoryEn))).map((nameEn) => ({
-        key: nameEn,
-        label: language === 'en'
-          ? nameEn
-          : (rawEvents.find((e) => e.categoryEn === nameEn)?.categoryId || nameEn),
-      }))
+  // Build category list:
+  // 1. Start with API categories (from event_categories collection — always shown if active)
+  // 2. Then append any unique categories found in real events that aren't already in the API list
+  //    (covers events whose category was not yet added to event_categories)
+  // 3. Never derive from defaultEvents so mock data doesn't pollute the filter bar.
+  const apiCategoryKeys = new Set(apiCategories.map((c) => c.nameEn))
+  const eventDerivedCategories: { key: string; label: string }[] =
+    events.length > 0
+      ? Array.from(new Set(events.map((e) => e.categoryEn)))
+          .filter((nameEn) => nameEn && !apiCategoryKeys.has(nameEn))
+          .map((nameEn) => ({
+            key: nameEn,
+            label:
+              language === 'en'
+                ? nameEn
+                : (events.find((e) => e.categoryEn === nameEn)?.categoryId || nameEn),
+          }))
+      : []
+
+  const categories: { key: string; label: string }[] = [
+    ...apiCategories.map((c) => ({
+      key: c.nameEn,
+      label: language === 'en' ? c.nameEn : c.nameId,
+    })),
+    ...eventDerivedCategories,
+  ]
 
   // selectedCategory stores nameEn so it stays stable when language switches
   const displayEvents = selectedCategory
@@ -226,8 +239,8 @@ export function EventsListSection() {
 
         <div className="relative max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
 
-          {/* Category filter bar */}
-          {!isLoading && (
+          {/* Category filter bar — only shown when there are real categories to display */}
+          {!isLoading && categories.length > 0 && (
             <div className={`mb-8 flex flex-wrap items-center gap-2 ${animClass()}`}>
               <button
                 onClick={() => setSelectedCategory('')}
