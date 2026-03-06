@@ -95,11 +95,24 @@ export function EventsListSection() {
   const [isLoading, setIsLoading] = useState(true)
   const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>('')
+  const [apiCategories, setApiCategories] = useState<{ _id: string; nameEn: string; nameId: string }[]>([])
   const sectionRef = useRef<HTMLElement>(null)
   const scrollDirectionRef = useRef<'up' | 'down'>('down')
   const lastScrollYRef = useRef(0)
   const fadeOutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { t, language } = useLanguage()
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/cms/events/categories?active=true')
+      if (response.ok) {
+        const data = await response.json()
+        setApiCategories(data.categories || [])
+      }
+    } catch {
+      // silently fail — categories will not render
+    }
+  }
 
   const fetchEvents = async (page: number) => {
     setIsLoading(true)
@@ -122,6 +135,7 @@ export function EventsListSection() {
   }
 
   useEffect(() => { fetchEvents(1) }, [])
+  useEffect(() => { fetchCategories() }, [])
 
   const animClass = useCallback(() => {
     if (isFadingOut) return 'animate-fade-out-down'
@@ -168,16 +182,23 @@ export function EventsListSection() {
 
   const rawEvents = events.length > 0 ? events : defaultEvents
 
-  // Derive unique categories from current data
-  const categories = Array.from(
-    new Set(rawEvents.map((e) => language === 'en' ? e.categoryEn : e.categoryId))
-  )
+  // Build category list: prefer API, fall back to deriving from events.
+  // Each entry: { key: nameEn (stable), label: localized }
+  const categories: { key: string; label: string }[] = apiCategories.length > 0
+    ? apiCategories.map((c) => ({
+        key: c.nameEn,
+        label: language === 'en' ? c.nameEn : c.nameId,
+      }))
+    : Array.from(new Set(rawEvents.map((e) => e.categoryEn))).map((nameEn) => ({
+        key: nameEn,
+        label: language === 'en'
+          ? nameEn
+          : (rawEvents.find((e) => e.categoryEn === nameEn)?.categoryId || nameEn),
+      }))
 
-  // Apply category filter
+  // selectedCategory stores nameEn so it stays stable when language switches
   const displayEvents = selectedCategory
-    ? rawEvents.filter((e) =>
-        (language === 'en' ? e.categoryEn : e.categoryId) === selectedCategory
-      )
+    ? rawEvents.filter((e) => e.categoryEn === selectedCategory)
     : rawEvents
 
   return (
@@ -226,21 +247,21 @@ export function EventsListSection() {
               </button>
               {categories.map((cat) => (
                 <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat === selectedCategory ? '' : cat)}
+                  key={cat.key}
+                  onClick={() => setSelectedCategory(cat.key === selectedCategory ? '' : cat.key)}
                   className={`relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest
                     border transition-all duration-200 overflow-hidden
                     ${
-                      selectedCategory === cat
+                      selectedCategory === cat.key
                         ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(58,111,247,0.2)]'
                         : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5'
                     }`}
                 >
-                  {selectedCategory === cat && (
+                  {selectedCategory === cat.key && (
                     <span className="absolute inset-0 bg-linear-to-r from-transparent via-primary/10 to-transparent animate-[shimmer_2s_infinite]" />
                   )}
-                  <span className={`w-1 h-1 rounded-full ${selectedCategory === cat ? 'bg-primary animate-pulse' : 'bg-muted-foreground/40'}`} />
-                  {cat}
+                  <span className={`w-1 h-1 rounded-full ${selectedCategory === cat.key ? 'bg-primary animate-pulse' : 'bg-muted-foreground/40'}`} />
+                  {cat.label}
                 </button>
               ))}
             </div>

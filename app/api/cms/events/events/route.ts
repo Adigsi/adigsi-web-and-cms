@@ -10,6 +10,9 @@ interface EventData {
   image: string
   registerLink: string
   published: boolean
+  date?: string
+  time?: string
+  location?: string
 }
 
 export async function GET(request: NextRequest) {
@@ -76,6 +79,9 @@ export async function GET(request: NextRequest) {
         image: event.image,
         registerLink: event.registerLink,
         published: event.published ?? true,
+        date: event.date || '',
+        time: event.time || '',
+        location: event.location || '',
         createdAt: event.createdAt,
         updatedAt: event.updatedAt,
       })),
@@ -123,6 +129,9 @@ export async function POST(request: NextRequest) {
             image: data.image,
             registerLink: data.registerLink,
             published: data.published,
+            date: data.date || '',
+            time: data.time || '',
+            location: data.location || '',
             updatedAt: new Date(),
           },
         }
@@ -147,6 +156,9 @@ export async function POST(request: NextRequest) {
         image: data.image,
         registerLink: data.registerLink,
         published: data.published ?? true,
+        date: data.date || '',
+        time: data.time || '',
+        location: data.location || '',
         createdAt: new Date(),
         updatedAt: new Date(),
       })
