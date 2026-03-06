@@ -14,7 +14,6 @@ import { useToast } from '@/hooks/use-toast'
 interface BannerData {
   titleEn: string
   titleId: string
-  imageUrl: string
 }
 
 interface NewsData {
@@ -57,7 +56,6 @@ export default function CMSNewsPage() {
   const [bannerData, setBannerData] = useState<BannerData>({
     titleEn: 'Latest News',
     titleId: 'Berita Terbaru',
-    imageUrl: '/images/about-banner.jpg',
   })
 
   const [originalBannerData, setOriginalBannerData] = useState<BannerData>(bannerData)
@@ -83,12 +81,10 @@ export default function CMSNewsPage() {
           setBannerData({
             titleEn: data.titleEn || '',
             titleId: data.titleId || '',
-            imageUrl: data.imageUrl || '',
           })
           setOriginalBannerData({
             titleEn: data.titleEn || '',
             titleId: data.titleId || '',
-            imageUrl: data.imageUrl || '',
           })
         }
       } catch (error) {
@@ -328,43 +324,6 @@ export default function CMSNewsPage() {
             {expandedSections.banner && (
               <>
                 <div className="space-y-4 mt-4">
-                  <div>
-                    <Label htmlFor="banner-image">{t({ en: 'Banner Image', id: 'Gambar Banner' })}</Label>
-                    <div className="mt-2">
-                      <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                        {bannerData.imageUrl && (
-                          <div className="mb-4">
-                            <img src={bannerData.imageUrl} alt="Banner preview" className="h-32 w-auto mx-auto rounded object-cover" />
-                          </div>
-                        )}
-                        <input
-                          id="banner-image"
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            if (file) {
-                              const reader = new FileReader()
-                              reader.onloadend = () => {
-                                setBannerData({ ...bannerData, imageUrl: reader.result as string })
-                              }
-                              reader.readAsDataURL(file)
-                            }
-                          }}
-                          className="hidden"
-                        />
-                        <label htmlFor="banner-image" className="cursor-pointer">
-                          <div className="text-sm text-muted-foreground">
-                            {t({ en: 'Click to upload or drag and drop', id: 'Klik untuk upload atau drag and drop' })}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {t({ en: 'PNG, JPG, GIF up to 10MB', id: 'PNG, JPG, GIF hingga 10MB' })}
-                          </div>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
                   <div>
                     <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
                     <Input

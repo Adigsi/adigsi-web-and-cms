@@ -1,214 +1,312 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useLanguage } from '@/contexts/language-context'
-import { Button } from '@/components/ui/button'
+import { NewsCard, type NewsData } from '@/components/news-card'
 
-interface NewsData {
-  _id: string
-  slug: string
-  titleEn: string
-  titleId: string
-  categoryEn: string
-  categoryId: string
-  contentEn: string
-  contentId: string
-  image: string
-  published: boolean
-  createdAt: string
-}
+const defaultNews: NewsData[] = [
+  {
+    _id: '1',
+    slug: 'adigsi-cyber-resilience-2026',
+    titleEn: 'ADIGSI Strengthens National Cyber Resilience Framework',
+    titleId: 'ADIGSI Perkuat Kerangka Ketahanan Siber Nasional',
+    categoryEn: 'Policy',
+    categoryId: 'Kebijakan',
+    contentEn: '',
+    contentId: '',
+    image: '/placeholder.svg',
+    published: true,
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    _id: '2',
+    slug: 'digital-ecosystem-initiative',
+    titleEn: 'New Digital Ecosystem Initiative Launched by ADIGSI Members',
+    titleId: 'Anggota ADIGSI Luncurkan Inisiatif Ekosistem Digital Baru',
+    categoryEn: 'Industry',
+    categoryId: 'Industri',
+    contentEn: '',
+    contentId: '',
+    image: '/placeholder.svg',
+    published: true,
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    _id: '3',
+    slug: 'zero-trust-adoption',
+    titleEn: 'Zero-Trust Architecture Adoption Grows Among Government Agencies',
+    titleId: 'Adopsi Arsitektur Zero-Trust Meningkat di Instansi Pemerintah',
+    categoryEn: 'Technology',
+    categoryId: 'Teknologi',
+    contentEn: '',
+    contentId: '',
+    image: '/placeholder.svg',
+    published: true,
+    createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    _id: '4',
+    slug: 'threat-intel-collaboration',
+    titleEn: 'ADIGSI and BSSN Sign Threat Intelligence Collaboration MoU',
+    titleId: 'ADIGSI dan BSSN Tandatangani MOU Kolaborasi Intelijen Ancaman',
+    categoryEn: 'Policy',
+    categoryId: 'Kebijakan',
+    contentEn: '',
+    contentId: '',
+    image: '/placeholder.svg',
+    published: true,
+    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    _id: '5',
+    slug: 'ai-security-report-2026',
+    titleEn: 'AI Security Report 2026: Key Findings for Indonesian Enterprises',
+    titleId: 'Laporan Keamanan AI 2026: Temuan Utama untuk Perusahaan Indonesia',
+    categoryEn: 'Research',
+    categoryId: 'Riset',
+    contentEn: '',
+    contentId: '',
+    image: '/placeholder.svg',
+    published: true,
+    createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    _id: '6',
+    slug: 'iot-security-standards',
+    titleEn: 'New IoT Security Standards Released for Critical Infrastructure',
+    titleId: 'Standar Keamanan IoT Baru Diterbitkan untuk Infrastruktur Kritis',
+    categoryEn: 'Technology',
+    categoryId: 'Teknologi',
+    contentEn: '',
+    contentId: '',
+    image: '/placeholder.svg',
+    published: true,
+    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+]
 
 export function NewsListSection() {
   const [isVisible, setIsVisible] = useState(false)
+  const [isFadingOut, setIsFadingOut] = useState(false)
   const [news, setNews] = useState<NewsData[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedCategory, setSelectedCategory] = useState<string>('')
   const sectionRef = useRef<HTMLElement>(null)
-  const { language, t } = useLanguage()
-
-  const getTimeAgo = (dateString: string) => {
-    try {
-      const now = new Date()
-      const past = new Date(dateString)
-      
-      // Check if date is valid
-      if (isNaN(past.getTime())) {
-        return language === 'en' ? 'Recently' : 'Baru-baru ini'
-      }
-      
-      const diffMs = now.getTime() - past.getTime()
-      const diffMins = Math.floor(diffMs / 60000)
-      const diffHours = Math.floor(diffMs / 3600000)
-      const diffDays = Math.floor(diffMs / 86400000)
-      const diffWeeks = Math.floor(diffDays / 7)
-      const diffMonths = Math.floor(diffDays / 30)
-      const diffYears = Math.floor(diffDays / 365)
-
-      if (diffMins < 1) {
-        return language === 'en' ? 'Just now' : 'Baru saja'
-      } else if (diffMins < 60) {
-        return language === 'en' 
-          ? `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`
-          : `${diffMins} menit yang lalu`
-      } else if (diffHours < 24) {
-        return language === 'en'
-          ? `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
-          : `${diffHours} jam yang lalu`
-      } else if (diffDays < 7) {
-        return language === 'en'
-          ? `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
-          : `${diffDays} hari yang lalu`
-      } else if (diffWeeks < 4) {
-        return language === 'en'
-          ? `${diffWeeks} week${diffWeeks > 1 ? 's' : ''} ago`
-          : `${diffWeeks} minggu yang lalu`
-      } else if (diffMonths < 12) {
-        return language === 'en'
-          ? `${diffMonths} month${diffMonths > 1 ? 's' : ''} ago`
-          : `${diffMonths} bulan yang lalu`
-      } else {
-        return language === 'en'
-          ? `${diffYears} year${diffYears > 1 ? 's' : ''} ago`
-          : `${diffYears} tahun yang lalu`
-      }
-    } catch (error) {
-      console.error('Error parsing date:', dateString, error)
-      return language === 'en' ? 'Recently' : 'Baru-baru ini'
-    }
-  }
+  const scrollDirectionRef = useRef<'up' | 'down'>('down')
+  const lastScrollYRef = useRef(0)
+  const fadeOutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { language } = useLanguage()
 
   const fetchNews = async (page: number) => {
     setIsLoading(true)
     try {
       const response = await fetch(`/api/cms/news/news?page=${page}`)
       const data = await response.json()
-
       if (data.success) {
-        // Filter only published news
         const publishedNews = data.data.filter((item: NewsData) => item.published)
-        console.log('News data:', publishedNews) // Debug
         setNews(publishedNews)
         setCurrentPage(data.pagination.page)
         setTotalPages(data.pagination.totalPages)
+      } else {
+        setNews(defaultNews)
       }
-    } catch (error) {
-      console.error('Error fetching news:', error)
+    } catch {
+      setNews(defaultNews)
     } finally {
       setIsLoading(false)
     }
   }
 
+  useEffect(() => { fetchNews(1) }, [])
+
+  const animClass = useCallback(() => {
+    if (isFadingOut) return 'animate-fade-out-down'
+    if (isVisible) return 'animate-fade-in-up'
+    return 'opacity-0 translate-y-[100px]'
+  }, [isVisible, isFadingOut])
+
   useEffect(() => {
-    fetchNews(1)
+    const handleScroll = () => {
+      const currentY = window.scrollY
+      scrollDirectionRef.current = currentY > lastScrollYRef.current ? 'down' : 'up'
+      lastScrollYRef.current = currentY
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
+          if (fadeOutTimeoutRef.current) clearTimeout(fadeOutTimeoutRef.current)
+          setIsFadingOut(false)
           setIsVisible(true)
+        } else {
+          if (scrollDirectionRef.current === 'up') {
+            setIsFadingOut(true)
+            setIsVisible(false)
+            fadeOutTimeoutRef.current = setTimeout(() => setIsFadingOut(false), 1200)
+          } else {
+            setIsVisible(false)
+            setIsFadingOut(false)
+          }
         }
       },
       { threshold: 0.1 }
     )
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-    }
-
+    if (sectionRef.current) observer.observe(sectionRef.current)
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current)
-      }
+      observer.disconnect()
+      if (fadeOutTimeoutRef.current) clearTimeout(fadeOutTimeoutRef.current)
     }
-  }, [])
+  }, [isLoading, news])
+
+  const rawNews = news.length > 0 ? news : defaultNews
+
+  const categories = Array.from(
+    new Set(rawNews.map((n) => language === 'en' ? n.categoryEn : n.categoryId))
+  )
+
+  const displayNews = selectedCategory
+    ? rawNews.filter((n) => (language === 'en' ? n.categoryEn : n.categoryId) === selectedCategory)
+    : rawNews
 
   return (
-    <section ref={sectionRef} className="w-full bg-white py-20">
-      <div className="max-w-310 mx-auto px-5">
-        {isLoading ? (
-          <div className="text-center py-12 text-muted-foreground">
-            {language === 'en' ? 'Loading...' : 'Memuat...'}
+    <section
+      ref={sectionRef}
+      className="relative w-full py-20 overflow-hidden bg-background border-b border-border"
+    >
+      {/* Dot-grid background */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.10] dark:opacity-[0.2]"
+        style={{
+          backgroundImage: `radial-gradient(var(--color-primary) 1px, transparent 1px)`,
+          backgroundSize: '28px 28px',
+        }}
+      />
+
+      {/* Ambient glow */}
+      <div className="pointer-events-none absolute -top-20 right-1/4 w-72 h-72 rounded-full bg-primary/6 dark:bg-primary/12 blur-[90px]" />
+      <div className="pointer-events-none absolute -bottom-20 left-1/4 w-72 h-72 rounded-full bg-accent/5 dark:bg-accent/8 blur-[90px]" />
+
+      {/* Top / bottom accent lines */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/40 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
+
+      <div className="relative max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
+
+        {/* Category filter bar */}
+        {!isLoading && (
+          <div className={`mb-8 flex flex-wrap items-center gap-2 ${animClass()}`}>
+            <button
+              onClick={() => setSelectedCategory('')}
+              className={`relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest
+                border transition-all duration-200 overflow-hidden
+                ${selectedCategory === ''
+                  ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(58,111,247,0.2)]'
+                  : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5'
+                }`}
+            >
+              {selectedCategory === '' && (
+                <span className="absolute inset-0 bg-linear-to-r from-transparent via-primary/10 to-transparent" />
+              )}
+              <span className={`w-1 h-1 rounded-full ${selectedCategory === '' ? 'bg-primary animate-pulse' : 'bg-muted-foreground/40'}`} />
+              {language === 'en' ? 'All' : 'Semua'}
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat === selectedCategory ? '' : cat)}
+                className={`relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest
+                  border transition-all duration-200 overflow-hidden
+                  ${selectedCategory === cat
+                    ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(58,111,247,0.2)]'
+                    : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5'
+                  }`}
+              >
+                {selectedCategory === cat && (
+                  <span className="absolute inset-0 bg-linear-to-r from-transparent via-primary/10 to-transparent" />
+                )}
+                <span className={`w-1 h-1 rounded-full ${selectedCategory === cat ? 'bg-primary animate-pulse' : 'bg-muted-foreground/40'}`} />
+                {cat}
+              </button>
+            ))}
           </div>
-        ) : news.length > 0 ? (
+        )}
+
+        {/* Loading skeleton */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="rounded-xl border border-border bg-card animate-pulse">
+                <div className="h-50 bg-muted rounded-t-xl" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-muted rounded w-3/4" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
+                  <div className="h-9 bg-muted rounded mt-4" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {news.map((article, index) => (
-                <Link
+            {/* Cards grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayNews.map((article, index) => (
+                <NewsCard
                   key={article._id}
-                  href={`/news/${article.slug}`}
-                  className={`group bg-white rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(0,0,0,0.2)] no-underline ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
-                    }`}
-                  style={{
-                    animationDelay: `${index * 100}ms`,
-                    maxWidth: '450px',
-                    margin: '0 auto',
-                    width: '100%'
-                  }}
-                >
-                  <div className="relative">
-                    <Image
-                      src={article.image}
-                      alt="News image"
-                      width={350}
-                      height={200}
-                      className="object-cover"
-                      style={{ width: '100%', height: '200px' }}
-                    />
-                    <div className="absolute bottom-3 left-6 bg-white shadow-md rounded-lg px-2.5 py-1">
-                      <span className="text-xs font-semibold text-[#29294b]">
-                        {language === 'en' ? article.categoryEn : article.categoryId}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col p-4">
-                    <h3 className="text-base font-bold text-black mt-2 leading-tight line-clamp-3">
-                      {language === 'en' ? article.titleEn : article.titleId}
-                    </h3>
-
-                    <div className="text-[12.8px] text-[#888] mt-4">
-                      {article.createdAt ? getTimeAgo(article.createdAt) : 'Recently'}
-                    </div>
-                  </div>
-                </Link>
+                  article={article}
+                  index={index}
+                  animClass={animClass()}
+                />
               ))}
             </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-12 flex items-center justify-center gap-4">
-                <Button
-                  variant="outline"
+              <div className={`mt-12 flex items-center justify-center gap-4 ${animClass()}`}>
+                <button
                   onClick={() => fetchNews(currentPage - 1)}
                   disabled={currentPage === 1}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
+                    border border-border text-foreground
+                    hover:border-primary/40 hover:text-primary hover:bg-primary/5
+                    disabled:opacity-40 disabled:cursor-not-allowed
+                    transition-all duration-200"
                 >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                   {language === 'en' ? 'Previous' : 'Sebelumnya'}
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {language === 'en' 
-                    ? `Page ${currentPage} of ${totalPages}` 
-                    : `Halaman ${currentPage} dari ${totalPages}`}
+                </button>
+
+                <span className="text-xs font-mono text-muted-foreground px-3 py-1.5 rounded-md border border-border bg-card">
+                  {currentPage} / {totalPages}
                 </span>
-                <Button
-                  variant="outline"
+
+                <button
                   onClick={() => fetchNews(currentPage + 1)}
                   disabled={currentPage === totalPages}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
+                    border border-border text-foreground
+                    hover:border-primary/40 hover:text-primary hover:bg-primary/5
+                    disabled:opacity-40 disabled:cursor-not-allowed
+                    transition-all duration-200"
                 >
                   {language === 'en' ? 'Next' : 'Selanjutnya'}
-                </Button>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
               </div>
             )}
           </>
-        ) : (
-          <div className="text-center py-12 text-muted-foreground">
-            {language === 'en' ? 'No news found' : 'Tidak ada berita'}
-          </div>
         )}
       </div>
     </section>
   )
 }
+

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useLanguage } from '@/contexts/language-context'
 import { CyberIcon } from '@/components/ui/cyber-icon'
 
@@ -20,7 +20,9 @@ interface HeadingData {
 
 export function DigitalMemberCategoriesSection() {
   const [isVisible, setIsVisible] = useState(false)
+  const [isFadingOut, setIsFadingOut] = useState(false)
   const [categories, setCategories] = useState<DigitalCategory[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [heading, setHeading] = useState<HeadingData>({
     subtitleEn: 'DIGITAL ECOSYSTEM',
     subtitleId: 'EKOSISTEM DIGITAL',
@@ -28,28 +30,10 @@ export function DigitalMemberCategoriesSection() {
     titleId: 'Anggota Digital ADIGSI',
   })
   const sectionRef = useRef<HTMLElement>(null)
+  const scrollDirectionRef = useRef<'up' | 'down'>('down')
+  const lastScrollYRef = useRef(0)
+  const fadeOutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { language } = useLanguage()
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-    }
-
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current)
-      }
-    }
-  }, [])
 
   useEffect(() => {
     fetch('/api/cms/members/digital-categories')
@@ -68,66 +52,166 @@ export function DigitalMemberCategoriesSection() {
       .catch((error) => {
         console.error('Error fetching digital categories:', error)
       })
+      .finally(() => setIsLoading(false))
   }, [])
 
+  const animClass = useCallback(() => {
+    if (isFadingOut) return 'animate-fade-out-down'
+    if (isVisible) return 'animate-fade-in-up'
+    return 'opacity-0 translate-y-[100px]'
+  }, [isVisible, isFadingOut])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY
+      scrollDirectionRef.current = currentY > lastScrollYRef.current ? 'down' : 'up'
+      lastScrollYRef.current = currentY
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          if (fadeOutTimeoutRef.current) clearTimeout(fadeOutTimeoutRef.current)
+          setIsFadingOut(false)
+          setIsVisible(true)
+        } else {
+          if (scrollDirectionRef.current === 'up') {
+            setIsFadingOut(true)
+            setIsVisible(false)
+            fadeOutTimeoutRef.current = setTimeout(() => setIsFadingOut(false), 1200)
+          } else {
+            setIsVisible(false)
+            setIsFadingOut(false)
+          }
+        }
+      },
+      { threshold: 0.1 }
+    )
+    if (sectionRef.current) observer.observe(sectionRef.current)
+    return () => {
+      observer.disconnect()
+      if (fadeOutTimeoutRef.current) clearTimeout(fadeOutTimeoutRef.current)
+    }
+  }, [isLoading, categories])
+
   return (
-    <section ref={sectionRef} className="w-full bg-[#f5f6f7] py-20 relative overflow-hidden">
-      {/* Background grid pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.05]"
+    <section
+      ref={sectionRef}
+      className="relative w-full py-20 overflow-hidden bg-secondary/40 dark:bg-secondary/20 border-b border-border"
+    >
+      {/* Line-grid background */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.035] dark:opacity-[0.07]"
         style={{
-          backgroundImage: `linear-gradient(rgba(51,80,230,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(51,80,230,0.2) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(var(--color-primary) 1px, transparent 1px),
+                            linear-gradient(90deg, var(--color-primary) 1px, transparent 1px)`,
           backgroundSize: '40px 40px',
         }}
       />
-      {/* Glow effects */}
-      <div className="absolute -top-10 left-1/4 w-80 h-80 bg-[#3350e6] rounded-full opacity-[0.08] blur-[120px]" />
-      <div className="absolute -bottom-10 right-1/4 w-80 h-80 bg-[#00c2ff] rounded-full opacity-[0.06] blur-[120px]" />
-      
-      <div className="max-w-310 mx-auto px-5 relative z-10">
-        <div className={`text-center mb-14 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
-          <h2 className="text-[#3350e6] text-[21px] uppercase mb-2 font-bold tracking-wider">
-            {language === 'en' ? heading.subtitleEn : heading.subtitleId}
-          </h2>
-          <h1 className="text-[#0f172a] text-2xl md:text-[28px] font-bold">
+
+      {/* Ambient glow blobs */}
+      <div className="pointer-events-none absolute -top-20 right-1/4 w-80 h-80 rounded-full bg-accent/10 dark:bg-accent/15 blur-[100px]" />
+      <div className="pointer-events-none absolute -bottom-20 left-1/4 w-80 h-80 rounded-full bg-primary/8 dark:bg-primary/12 blur-[100px]" />
+
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/40 to-transparent" />
+      {/* Bottom accent line */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-accent/50 to-transparent" />
+
+      <div className="relative max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
+
+        {/* Header */}
+        <div
+          className={`flex flex-col items-center text-center mb-14 transition-all duration-700 ${animClass()}`}
+        >
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-accent/30 bg-accent/10">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+            <span className="text-[11px] font-bold uppercase tracking-widest text-accent">
+              {language === 'en' ? heading.subtitleEn : heading.subtitleId}
+            </span>
+          </div>
+
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4 tracking-tight">
             {language === 'en' ? heading.titleEn : heading.titleId}
-          </h1>
+          </h2>
+
+          {/* Gradient underline — reversed direction for visual variety */}
+          <div className="h-px w-16 rounded-full bg-linear-to-r from-accent to-primary" />
         </div>
 
+        {/* Cards grid — 3 cols, different card style from member-categories */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {categories.map((category, index) => (
-            <div
-              key={index}
-              className={`group relative rounded-xl border border-[#d1d5db] bg-white/90 backdrop-blur-sm p-6 shadow-[0_8px_24px_rgba(15,23,42,0.06)] transition-all duration-300 hover:border-[#cbd5e1] hover:bg-white hover:-translate-y-1 ${isVisible ? 'animate-fade-in-up' : 'opacity-0'
-                }`}
-              style={{ animationDelay: `${index * 40}ms` }}
-            >
-              {/* Top glow line on hover */}
-              <div className="absolute top-0 left-4 right-4 h-px bg-linear-to-r from-transparent via-[#3350e6]/0 to-transparent group-hover:via-[#3350e6]/60 transition-all duration-500" />
-              
-              <div className="flex items-center gap-4">
-                {/* Icon */}
-                <div className="shrink-0 w-16 h-16 rounded-lg bg-[#3350e6]/10 border border-[#3350e6]/25 flex items-center justify-center text-[#3350e6] group-hover:bg-[#3350e6]/15 group-hover:border-[#3350e6]/45 group-hover:text-[#1d4ed8] transition-all duration-300">
-                  <CyberIcon type={category.icon} size={28} />
-                </div>
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-24 rounded-2xl bg-muted animate-pulse" />
+            ))
+            : categories.map((category, index) => (
+              <div
+                key={index}
+                className={`group relative rounded-2xl border border-border bg-card overflow-hidden
+                  hover:border-accent/40 hover:shadow-[0_8px_32px_rgba(0,194,255,0.10)]
+                  hover:-translate-y-0.5 transition-all duration-300 ${animClass()}`}
+                style={{ animationDelay: `${index * 60}ms` }}
+              >
+                {/* Line-grid background */}
+                <div
+                  className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-[0.04] dark:group-hover:opacity-[0.08]"
+                  style={{
+                    backgroundImage: `linear-gradient(var(--color-primary) 1px, transparent 1px),
+                                        linear-gradient(90deg, var(--color-primary) 1px, transparent 1px)`,
+                    backgroundSize: '20px 20px',
+                  }}
+                />
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-black font-semibold text-[15px] leading-tight mb-1 transition-colors duration-300">
-                    {language === 'en' ? category.nameEn : category.nameId}
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-black text-xl font-bold transition-colors duration-300">
-                      {category.count}
-                    </span>
-                    <span className="text-black/70 text-sm">
-                      {language === 'en' ? 'Members' : 'Anggota'}
-                    </span>
+                {/* Top scan line on hover */}
+                <div className="absolute top-0 left-6 right-6 h-px bg-linear-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/50 transition-all duration-500" />
+
+                {/* Corner brackets */}
+                <span className="absolute top-2 right-2 w-3 h-3 border-t border-r border-accent/20 group-hover:border-accent/60 transition-colors duration-300 rounded-tr-sm" />
+                <span className="absolute bottom-2 left-2 w-3 h-3 border-b border-l border-primary/20 group-hover:border-primary/50 transition-colors duration-300 rounded-bl-sm" />
+
+                <div className="flex items-center gap-4 p-5 pl-6">
+                  {/* Icon — accent tinted */}
+                  <div className="shrink-0 w-13 h-13 rounded-xl
+                      bg-linear-to-br from-accent/10 to-primary/10
+                      dark:from-accent/15 dark:to-primary/15
+                      border border-accent/20
+                      flex items-center justify-center text-accent
+                      group-hover:from-accent/20 group-hover:to-primary/20
+                      group-hover:border-accent/50
+                      transition-all duration-300">
+                    <CyberIcon type={category.icon} size={26} />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-foreground font-semibold text-sm leading-snug mb-1.5">
+                      {language === 'en' ? category.nameEn : category.nameId}
+                    </h3>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-accent text-xl font-bold tabular-nums">
+                        {category.count}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {language === 'en' ? 'Members' : 'Anggota'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Mini cyber badge */}
+                  <div className="shrink-0 flex flex-col items-end gap-0.5 opacity-20 group-hover:opacity-60 transition-opacity duration-300">
+                    <div className="w-4 h-0.5 rounded-full bg-accent" />
+                    <div className="w-2.5 h-0.5 rounded-full bg-primary" />
+                    <div className="w-3.5 h-0.5 rounded-full bg-accent" />
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
     </section>

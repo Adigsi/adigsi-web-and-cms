@@ -11,8 +11,8 @@ export default function AboutPage() {
   return (
     <>
       <AboutBanner />
-      <OrganizationStructureSection />
       <AboutAdigsiSection />
+      <OrganizationStructureSection />
       <PartnersSection />
     </>
   )

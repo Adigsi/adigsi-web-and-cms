@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -8,13 +8,14 @@ import {
   CalendarDays,
   ChevronsLeft,
   ChevronsRight,
-  Globe,
   House,
   Info,
+  Inbox,
+  Moon,
   Newspaper,
+  Sun,
   UserPlus,
   Users,
-  User,
   Monitor,
   Group,
   ChartLine,
@@ -28,6 +29,24 @@ import { cn } from '@/lib/utils'
 import { useLanguage } from '@/contexts/language-context'
 
 import { Separator } from '@/components/ui/separator'
+
+// Language Flag Components
+const FlagEN = () => (
+  <svg width="20" height="15" viewBox="0 0 28 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="28" height="20" rx="2" fill="#012169" />
+    <path d="M0 0L28 20M28 0L0 20" stroke="white" strokeWidth="4" />
+    <path d="M0 0L28 20M28 0L0 20" stroke="#C8102E" strokeWidth="2.5" />
+    <path d="M14 0V20M0 10H28" stroke="white" strokeWidth="6.67" />
+    <path d="M14 0V20M0 10H28" stroke="#C8102E" strokeWidth="4" />
+  </svg>
+)
+
+const FlagID = () => (
+  <svg width="20" height="15" viewBox="0 0 28 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="28" height="10" fill="#FF0000" />
+    <rect y="10" width="28" height="10" fill="white" />
+  </svg>
+)
 
 type NavigationItem = {
   label: string
@@ -59,6 +78,12 @@ const cmsNavigation: NavigationSection[] = [
         labelTranslation: { en: 'Visitor Analytics', id: 'Analitik Pengunjung' },
         href: '/cms/analytics',
         icon: ChartLine,
+      },
+      {
+        label: 'Inbox',
+        labelTranslation: { en: 'Inbox', id: 'Kotak Masuk' },
+        href: '/cms/inbox',
+        icon: Inbox,
       },
     ],
   },
@@ -117,9 +142,41 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['Community'])
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const pathname = usePathname()
   const { language, setLanguage, t } = useLanguage()
-  const languageSelectRef = React.useRef<HTMLSelectElement>(null)
+
+  useEffect(() => {
+    const fetchUnreadCount = () => {
+      fetch('/api/cms/messages/unread-count')
+        .then((res) => res.ok ? res.json() : null)
+        .then((data) => { if (data?.count != null) setUnreadCount(data.count) })
+        .catch(() => {})
+    }
+    fetchUnreadCount()
+    const interval = setInterval(fetchUnreadCount, 60_000)
+    // Also refresh immediately whenever the inbox marks a message as read/deleted
+    window.addEventListener('cms:unread-changed', fetchUnreadCount)
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('cms:unread-changed', fetchUnreadCount)
+    }
+  }, [pathname])
+
+  useEffect(() => {
+    setIsDarkMode(document.documentElement.classList.contains('dark'))
+  }, [])
+
+  const toggleDarkMode = () => {
+    const newMode = !isDarkMode
+    setIsDarkMode(newMode)
+    if (newMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }
 
   const isActiveMenu = (href?: string) => {
     if (!href) return false
@@ -196,13 +253,16 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
 
     const Icon = item.icon
     const isActive = isActiveMenu(item.href)
+    const isInbox = item.href === '/cms/inbox'
+    const badge = isInbox && unreadCount > 0 ? unreadCount : 0
 
     return (
       <Link
         key={item.label}
         href={item.href}
+        onClick={() => setIsSidebarOpen(false)}
         className={cn(
-          'flex rounded-lg py-2.5 text-sm transition-colors',
+          'flex rounded-lg py-2.5 text-sm transition-colors relative',
           isActive
             ? 'bg-primary/10 text-primary'
             : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
@@ -216,8 +276,24 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
         )}
         title={isSidebarCollapsed ? label : undefined}
       >
-        {Icon && <Icon className="size-4 shrink-0" />}
-        {!isSidebarCollapsed ? <span>{label}</span> : null}
+        <div className="relative shrink-0">
+          {Icon && <Icon className="size-4" />}
+          {badge > 0 && isSidebarCollapsed && (
+            <span className="absolute -top-1.5 -right-1.5 min-w-3.5 h-3.5 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground px-0.5">
+              {badge > 99 ? '99+' : badge}
+            </span>
+          )}
+        </div>
+        {!isSidebarCollapsed ? (
+          <>
+            <span className="flex-1">{label}</span>
+            {badge > 0 && (
+              <span className="ml-auto min-w-4.5 h-4.5 flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground px-1">
+                {badge > 99 ? '99+' : badge}
+              </span>
+            )}
+          </>
+        ) : null}
       </Link>
     )
   }
@@ -243,7 +319,7 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
               width={112}
               height={32}
               priority
-              className="h-6 w-auto"
+              className="h-6 w-auto dark:brightness-0 dark:invert transition-all"
             />
           </div>
         </div>
@@ -251,14 +327,14 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
         {/* Mobile overlay */}
         {isSidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/50 md:hidden z-30"
+            className="fixed inset-0 bg-foreground/50 md:hidden z-30"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
         <aside
           className={cn(
-            'fixed left-0 top-0 h-screen border-r border-border bg-card/70 transition-all duration-300 md:flex md:flex-col md:backdrop-blur z-40',
-            'md:translate-x-0 bg-white',
+            'fixed left-0 top-0 h-screen border-r border-border bg-card transition-all duration-300 md:flex md:flex-col md:backdrop-blur z-40',
+            'md:translate-x-0',
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
             'w-72',
             isSidebarCollapsed && 'md:w-20',
@@ -286,7 +362,7 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
                     width={112}
                     height={32}
                     priority
-                    className="h-8 w-auto"
+                    className="h-8 w-auto dark:brightness-0 dark:invert transition-all"
                   />
                 </Link>
               ) : null}
@@ -336,48 +412,60 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="space-y-2 border-t border-border p-4">
-            {/* <Button
-              variant="ghost"
+            {/* Theme toggle */}
+            <button
+              onClick={toggleDarkMode}
+              aria-label="Toggle dark mode"
               className={cn(
-                'w-full text-muted-foreground hover:text-foreground',
-                isSidebarCollapsed ? 'px-0' : 'justify-start',
+                'gradient-primary text-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 rounded-lg flex items-center gap-2',
+                isSidebarCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'w-full px-3 py-2.5',
               )}
             >
-              <User className="size-4" />
-              {!isSidebarCollapsed ? <span>Profile</span> : null}
-            </Button> */}
+              {isDarkMode ? <Sun className="size-4 shrink-0" /> : <Moon className="size-4 shrink-0" />}
+              {!isSidebarCollapsed && (
+                <span className="text-sm font-semibold">
+                  {isDarkMode
+                    ? t({ en: 'Light Mode', id: 'Mode Terang' })
+                    : t({ en: 'Dark Mode', id: 'Mode Gelap' })}
+                </span>
+              )}
+            </button>
 
-            <div
-              className={cn(
-                'flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer relative z-10',
-                isSidebarCollapsed ? 'justify-center min-h-10 w-10 h-10 mx-auto' : 'justify-start',
-              )}
-              onClick={() => {
-                if (languageSelectRef.current) {
-                  languageSelectRef.current.click()
-                }
-              }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if ((e.key === 'Enter' || e.key === ' ') && isSidebarCollapsed && languageSelectRef.current) {
-                  languageSelectRef.current.click()
-                }
-              }}
-            >
-              <Globe className="size-4 shrink-0" />
-              <select
-                ref={languageSelectRef}
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as 'en' | 'id')}
+            {/* Language selector */}
+            <div className={cn('relative group', isSidebarCollapsed && 'flex justify-center')}>
+              <button
                 className={cn(
-                  'border-0 bg-transparent focus:outline-none cursor-pointer appearance-none',
-                  isSidebarCollapsed ? 'absolute inset-0 opacity-0 cursor-pointer' : 'ml-1 flex-1 text-foreground',
+                  'gradient-primary text-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 rounded-lg flex items-center gap-2',
+                  isSidebarCollapsed ? 'justify-center w-10 h-10' : 'w-full px-3 py-2.5',
                 )}
               >
-                <option value="en">EN</option>
-                <option value="id">ID</option>
-              </select>
+                {language === 'en' ? <FlagEN /> : <FlagID />}
+                {!isSidebarCollapsed && (
+                  <span className="text-sm font-medium">{language.toUpperCase()}</span>
+                )}
+              </button>
+              <div className={cn(
+                'absolute z-50 p-2 bg-popover/95 backdrop-blur-md shadow-lg rounded-xl border border-border',
+                'opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200',
+                isSidebarCollapsed
+                  ? 'bottom-0 left-full ml-2 w-32'
+                  : 'bottom-full mb-2 left-0 w-full',
+              )}>
+                <button
+                  onClick={() => setLanguage('en')}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg"
+                >
+                  <FlagEN />
+                  <span>English</span>
+                </button>
+                <button
+                  onClick={() => setLanguage('id')}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg"
+                >
+                  <FlagID />
+                  <span>Indonesia</span>
+                </button>
+              </div>
             </div>
 
             <div className="flex justify-center">

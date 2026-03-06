@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
+import { Verified } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
 
 interface Testimonial {
@@ -22,32 +23,66 @@ interface WelcomeData {
 }
 
 export function WelcomeSection() {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const [isFadingOut, setIsFadingOut] = useState(false)
   const [welcomeData, setWelcomeData] = useState<WelcomeData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const sectionRef = useRef<HTMLElement>(null)
+  const scrollDirectionRef = useRef('down')
+  const lastScrollYRef = useRef(0)
+  const fadeOutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { t, language } = useLanguage()
 
   useEffect(() => {
+    const handleScroll = () => {
+      scrollDirectionRef.current = window.scrollY > lastScrollYRef.current ? 'down' : 'up'
+      lastScrollYRef.current = window.scrollY
+    }
+
+    window.addEventListener('scroll', handleScroll, true)
+    return () => window.removeEventListener('scroll', handleScroll, true)
+  }, [])
+
+  useEffect(() => {
+    if (isLoading || !welcomeData || !sectionRef.current) {
+      return
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && scrollDirectionRef.current === 'down') {
+          if (fadeOutTimeoutRef.current) {
+            clearTimeout(fadeOutTimeoutRef.current)
+            fadeOutTimeoutRef.current = null
+          }
           setIsVisible(true)
+          setIsFadingOut(false)
+        } else if (!entry.isIntersecting && scrollDirectionRef.current === 'up') {
+          setIsFadingOut(true)
+
+          if (fadeOutTimeoutRef.current) {
+            clearTimeout(fadeOutTimeoutRef.current)
+          }
+
+          fadeOutTimeoutRef.current = setTimeout(() => {
+            setIsVisible(false)
+            setIsFadingOut(false)
+            fadeOutTimeoutRef.current = null
+          }, 1200)
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.15 }
     )
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-    }
+    observer.observe(sectionRef.current)
 
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current)
+      observer.disconnect()
+      if (fadeOutTimeoutRef.current) {
+        clearTimeout(fadeOutTimeoutRef.current)
       }
     }
-  }, [])
+  }, [isLoading, welcomeData])
 
   useEffect(() => {
     const fetchWelcomeData = async () => {
@@ -75,27 +110,39 @@ export function WelcomeSection() {
 
   if (isLoading) {
     return (
-      <section className="max-w-7xl mx-auto px-4 md:px-8 lg:px-32 py-20 w-full">
-        <div className="text-center text-gray-500">Loading...</div>
+      <section className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-20 w-full">
+        <div className="text-center text-muted-foreground">Loading...</div>
       </section>
     )
   }
   
   if (!welcomeData) {
     return (
-      <section className="max-w-7xl mx-auto px-4 md:px-8 lg:px-32 py-20 w-full">
-        <div className="text-center text-gray-500">No data available</div>
+      <section className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-20 w-full">
+        <div className="text-center text-muted-foreground">No data available</div>
       </section>
     )
   }
 
   return (
-    <section ref={sectionRef} className="max-w-7xl mx-auto px-4 md:px-8 lg:px-32 py-20 w-full">
-      <div className="flex flex-col items-center justify-center text-center mb-12">
-        <h2 className="text-primary text-[21px] uppercase mb-2 font-bold">
+    <section ref={sectionRef} className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-20 w-full relative">
+      <div
+        className={`flex flex-col items-center justify-center text-center mb-12 ${
+          isFadingOut
+            ? 'animate-fade-out-down'
+            : isVisible && !isLoading
+              ? 'animate-fade-in-up'
+              : 'opacity-0 translate-y-30'
+        }`}
+        style={{
+          animationDelay: '0ms',
+          animationDuration: isFadingOut || (isVisible && !isLoading) ? '1.2s' : '0s',
+        }}
+      >
+        <h2 className="text-primary text-sm md:text-base font-bold uppercase tracking-widest mb-3">
           {language === 'en' ? welcomeData.titleSmallEn : welcomeData.titleSmallId}
         </h2>
-        <h1 className="text-[#29294b] text-2xl md:text-[28px] font-bold">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
           {language === 'en' ? welcomeData.titleLargeEn : welcomeData.titleLargeId}
         </h1>
       </div>
@@ -105,26 +152,45 @@ export function WelcomeSection() {
           welcomeData.testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-white shadow-sm max-w-xl w-full flex flex-col justify-between border border-gray-200 rounded-2xl p-6 hover:shadow-md"
+              className={`relative bg-card border border-border rounded-xl p-6 md:p-8 max-w-xl w-full flex flex-col justify-between shadow-sm hover:shadow-lg hover:scale-105 transition-all duration-200 overflow-hidden group ${
+                isFadingOut
+                  ? 'animate-fade-out-down'
+                  : isVisible && !isLoading
+                    ? 'animate-fade-in-up'
+                    : 'opacity-0 translate-y-30'
+              }`}
+              style={{
+                animationDelay: isFadingOut ? '0ms' : isVisible && !isLoading ? `${250 + (index + 1) * 150}ms` : '0ms',
+                animationDuration: isFadingOut || (isVisible && !isLoading) ? '1.2s' : '0s',
+              }}
             >
-              <p className="italic text-base leading-[25.6px] text-[#333333] mb-8">
+              {/* Subtle top line accent on hover */}
+              <div className="absolute top-0 left-0 right-0 h-px bg-accent/0 group-hover:bg-accent/40 transition-colors duration-300" />
+              
+              <p className="italic text-base md:text-lg leading-relaxed text-foreground mb-8 relative z-10">
                 &quot;{language === 'en' ? testimonial.quoteEn : testimonial.quoteId}&quot;
               </p>
-              <div className="flex items-center">
+              
+              <div className="flex items-center gap-3 relative z-10">
                 {testimonial.image && (
-                  <Image
-                    alt={testimonial.name}
-                    src={testimonial.image}
-                    width={48}
-                    height={48}
-                    className="rounded-full object-cover mr-3"
-                  />
+                  <div className="relative shrink-0">
+                    <Image
+                      alt={testimonial.name}
+                      src={testimonial.image}
+                      width={56}
+                      height={56}
+                      className="rounded-full object-cover shrink-0"
+                    />
+                  </div>
                 )}
-                <div className="flex flex-col">
-                  <span className="font-bold text-base text-black">
-                    {testimonial.name}
-                  </span>
-                  <span className="text-[13.6px] text-[#555555]">
+                <div className="flex flex-col grow">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-base text-foreground">
+                      {testimonial.name}
+                    </span>
+                    <Verified className="w-4 h-4 text-primary shrink-0" />
+                  </div>
+                  <span className="text-sm text-muted-foreground">
                     {language === 'en' ? testimonial.positionEn : testimonial.positionId}
                   </span>
                 </div>
@@ -132,7 +198,7 @@ export function WelcomeSection() {
             </div>
           ))
         ) : (
-          <div className="col-span-2 text-center text-gray-500 py-8">
+          <div className="col-span-2 text-center text-muted-foreground py-8">
             No testimonials available
           </div>
         )}

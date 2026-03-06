@@ -263,6 +263,37 @@ export function CyberIcon({ type, size = 20 }: { type: string; size?: number }) 
         <line x1="3" y1="21" x2="21" y2="21"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="5 5 12 2 19 5"/>
       </svg>
     ),
+    'shield-check': (
+      <svg width={size} height={size} viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M16 3L6 7v8c0 5.5 4.3 10.6 10 12 5.7-1.4 10-6.5 10-12V7L16 3z" />
+        <path d="M12 16l3 3 5-5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4 16h2M26 16h2M16 4v2M16 26v2" strokeOpacity="0.4" strokeLinecap="round" />
+        <circle cx="4" cy="16" r="1" fill="currentColor" strokeWidth="0" />
+        <circle cx="28" cy="16" r="1" fill="currentColor" strokeWidth="0" />
+      </svg>
+    ),
+    'tri-network': (
+      <svg width={size} height={size} viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <circle cx="16" cy="16" r="3" />
+        <circle cx="16" cy="5" r="2" />
+        <circle cx="27" cy="22" r="2" />
+        <circle cx="5" cy="22" r="2" />
+        <line x1="16" y1="7" x2="16" y2="13" strokeLinecap="round" />
+        <line x1="25.3" y1="21" x2="18.6" y2="17.8" strokeLinecap="round" />
+        <line x1="6.7" y1="21" x2="13.4" y2="17.8" strokeLinecap="round" />
+        <path d="M12 5.5 Q8 8 6.7 19" strokeOpacity="0.25" strokeDasharray="2 2" strokeLinecap="round" />
+        <path d="M20 5.5 Q24 8 25.3 19" strokeOpacity="0.25" strokeDasharray="2 2" strokeLinecap="round" />
+        <path d="M7 24 Q16 30 25 24" strokeOpacity="0.25" strokeDasharray="2 2" strokeLinecap="round" />
+      </svg>
+    ),
+    'hex-core': (
+      <svg width={size} height={size} viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <polygon points="16,3 28,10 28,22 16,29 4,22 4,10" />
+        <circle cx="16" cy="16" r="4" />
+        <line x1="16" y1="12" x2="16" y2="3" strokeOpacity="0.4" />
+        <line x1="16" y1="20" x2="16" y2="29" strokeOpacity="0.4" />
+      </svg>
+    ),
   }
   return <>{icons[type] || icons.mssp}</>
 }

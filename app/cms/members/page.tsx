@@ -18,7 +18,6 @@ import { ChevronDown, Trash2, Check } from 'lucide-react'
 interface BannerData {
   titleEn: string
   titleId: string
-  imageUrl: string
 }
 
 interface MemberCategory {
@@ -60,6 +59,7 @@ interface PartnerCategory {
   categoryNameId: string
   width: number
   height: number
+  homeLimit: number
   logos: PartnerLogo[]
 }
 
@@ -161,7 +161,6 @@ export default function CMSMembersPage() {
   const [bannerData, setBannerData] = useState<BannerData>({
     titleEn: 'ADIGSI MEMBERS',
     titleId: 'ANGGOTA ADIGSI',
-    imageUrl: '',
   })
 
   // Cybersecurity Member Heading section state
@@ -217,6 +216,7 @@ export default function CMSMembersPage() {
         categoryNameId: 'Platinum',
         width: 220,
         height: 140,
+        homeLimit: 0,
         logos: [],
       }
     ]
@@ -239,7 +239,6 @@ export default function CMSMembersPage() {
           setBannerData({
             titleEn: data.titleEn || '',
             titleId: data.titleId || '',
-            imageUrl: data.imageUrl || '',
           })
         }
 
@@ -301,6 +300,7 @@ export default function CMSMembersPage() {
                 categoryNameId: 'Platinum',
                 width: 220,
                 height: 140,
+                homeLimit: 0,
                 logos: [],
               }
             ]
@@ -452,43 +452,6 @@ export default function CMSMembersPage() {
             {expandedSections.banner && (
               <>
                 <div className="space-y-4 mt-4">
-                  <div>
-                    <Label htmlFor="banner-image">{t({ en: 'Banner Image', id: 'Gambar Banner' })}</Label>
-                    <div className="mt-2">
-                      <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                        {bannerData.imageUrl && (
-                          <div className="mb-4">
-                            <img src={bannerData.imageUrl} alt="Banner preview" className="h-32 w-auto mx-auto rounded object-cover" />
-                          </div>
-                        )}
-                        <input
-                          id="banner-image"
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            if (file) {
-                              const reader = new FileReader()
-                              reader.onloadend = () => {
-                                setBannerData({ ...bannerData, imageUrl: reader.result as string })
-                              }
-                              reader.readAsDataURL(file)
-                            }
-                          }}
-                          className="hidden"
-                        />
-                        <label htmlFor="banner-image" className="cursor-pointer">
-                          <div className="text-sm text-muted-foreground">
-                            {t({ en: 'Click to upload or drag and drop', id: 'Klik untuk upload atau drag and drop' })}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {t({ en: 'PNG, JPG, GIF up to 10MB', id: 'PNG, JPG, GIF hingga 10MB' })}
-                          </div>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
                   <div>
                     <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
                     <Input
@@ -980,7 +943,7 @@ export default function CMSMembersPage() {
                         </Button>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
                         <div>
                           <Label className="text-xs">{t({ en: 'Category Name (EN)', id: 'Nama Kategori (EN)' })}</Label>
                           <Input
@@ -1037,6 +1000,25 @@ export default function CMSMembersPage() {
                             }}
                             placeholder="140"
                             min="50"
+                            className="h-8 text-xs"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">
+                            {t({ en: 'Home Limit', id: 'Batas Home' })}
+                            <span className="ml-1 text-muted-foreground font-normal">({t({ en: '0 = all', id: '0 = semua' })})</span>
+                          </Label>
+                          <Input
+                            type="number"
+                            value={category.homeLimit ?? 0}
+                            onChange={(e) => {
+                              const newCategories = [...partnerLogosData.categories]
+                              newCategories[catIndex] = { ...category, homeLimit: parseInt(e.target.value) || 0 }
+                              setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                            }}
+                            placeholder="0"
+                            min="0"
                             className="h-8 text-xs"
                           />
                         </div>
@@ -1174,6 +1156,7 @@ export default function CMSMembersPage() {
                             categoryNameId: '',
                             width: 220,
                             height: 140,
+                            homeLimit: 0,
                             logos: [],
                           }
                         ]

@@ -90,8 +90,8 @@ export function CarousellSection() {
   }
 
   return (
-    <section className="w-full bg-background pt-24">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-32 py-6 md:py-8">
+    <div className="w-full">
+      <div className="w-full">
         <Carousel
           opts={{
             loop: true,
@@ -104,7 +104,7 @@ export function CarousellSection() {
               const link = slide.link?.trim()
               const isExternal = link ? /^https?:\/\//.test(link) : false
               const slideContent = (
-                <div className="relative h-55 md:h-75 lg:h-90 w-full overflow-hidden rounded-2xl">
+                <div className="relative h-64 md:h-96 lg:h-128 w-full overflow-hidden rounded-xl shadow-lg">
                   <Image
                     src={slide.image}
                     alt="Carousel banner"
@@ -134,10 +134,10 @@ export function CarousellSection() {
               )
             })}
           </CarouselContent>
-          <CarouselPrevious className="left-3 md:left-4 text-white border-white/40 bg-black/35 hover:bg-black/55" />
-          <CarouselNext className="right-3 md:right-4 text-white border-white/40 bg-black/35 hover:bg-black/55" />
+          <CarouselPrevious className="left-3 md:left-4 text-foreground border-border bg-card hover:bg-muted" />
+          <CarouselNext className="right-3 md:right-4 text-foreground border-border bg-card hover:bg-muted" />
         </Carousel>
       </div>
-    </section>
+    </div>
   )
 }

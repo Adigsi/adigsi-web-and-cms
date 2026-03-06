@@ -9,7 +9,27 @@ export async function GET() {
     const data = await collection.findOne({ section: 'banner' })
     
     if (data && data.banner) {
-      return NextResponse.json(data.banner)
+      const banner = data.banner
+
+      // Migrate from old schema (aboutButton*/joinButton*) to new schema (primaryButton/secondaryButton)
+      if (!banner.primaryButton && (banner.aboutButtonTextEn || banner.aboutButtonLink)) {
+        banner.primaryButton = {
+          enabled: true,
+          textEn: banner.aboutButtonTextEn ?? '',
+          textId: banner.aboutButtonTextId ?? '',
+          link: banner.aboutButtonLink ?? '',
+        }
+      }
+      if (!banner.secondaryButton && (banner.joinButtonTextEn || banner.joinButtonLink)) {
+        banner.secondaryButton = {
+          enabled: true,
+          textEn: banner.joinButtonTextEn ?? '',
+          textId: banner.joinButtonTextId ?? '',
+          link: banner.joinButtonLink ?? '',
+        }
+      }
+
+      return NextResponse.json(banner)
     }
 
     // Return default data if not found
@@ -20,13 +40,18 @@ export async function GET() {
       titleLargeId: 'Mengamankan Masa Depan Digital Indonesia',
       descriptionEn: 'Becoming a key pillar in building and strengthening a resilient, innovative, and sustainable cybersecurity ecosystem in Indonesia.',
       descriptionId: 'Menjadi pilar utama dalam membangun dan memperkuat ekosistem keamanan siber yang tangguh, inovatif, dan berkelanjutan di Indonesia.',
-      backgroundImage: '/images/image-hero-banner.webp',
-      aboutButtonTextEn: 'About Us',
-      aboutButtonTextId: 'Tentang Kami',
-      aboutButtonLink: '/about',
-      joinButtonTextEn: 'Join Now',
-      joinButtonTextId: 'Bergabung Sekarang',
-      joinButtonLink: 'https://docs.google.com/forms/d/e/1FAIpQLScG1BWquhT9vpcgMfHeJy0ummlZOQXhUAxtYXxSmkNTdUDr6g/viewform'
+      primaryButton: {
+        enabled: true,
+        textEn: 'About Us',
+        textId: 'Tentang Kami',
+        link: '/about',
+      },
+      secondaryButton: {
+        enabled: true,
+        textEn: 'Join Now',
+        textId: 'Bergabung Sekarang',
+        link: 'https://docs.google.com/forms/d/e/1FAIpQLScG1BWquhT9vpcgMfHeJy0ummlZOQXhUAxtYXxSmkNTdUDr6g/viewform',
+      },
     })
   } catch (error) {
     console.error('Error fetching banner:', error)
@@ -42,19 +67,30 @@ export async function POST(request: NextRequest) {
     const bannerData = await request.json()
 
     // Validate required fields
-    const requiredFields = [
+    const requiredStringFields = [
       'titleSmallEn', 'titleSmallId', 'titleLargeEn', 'titleLargeId',
-      'descriptionEn', 'descriptionId', 'backgroundImage',
-      'aboutButtonTextEn', 'aboutButtonTextId', 'aboutButtonLink',
-      'joinButtonTextEn', 'joinButtonTextId', 'joinButtonLink'
+      'descriptionEn', 'descriptionId',
     ]
 
-    for (const field of requiredFields) {
+    for (const field of requiredStringFields) {
       if (!bannerData[field] || typeof bannerData[field] !== 'string' || !bannerData[field].trim()) {
         return NextResponse.json(
           { error: `Field ${field} is required and must not be empty` },
           { status: 400 }
         )
+      }
+    }
+
+    // Validate optional button objects
+    for (const buttonKey of ['primaryButton', 'secondaryButton'] as const) {
+      const btn = bannerData[buttonKey]
+      if (btn !== null && btn !== undefined) {
+        if (typeof btn !== 'object') {
+          return NextResponse.json(
+            { error: `${buttonKey} must be an object` },
+            { status: 400 }
+          )
+        }
       }
     }
 

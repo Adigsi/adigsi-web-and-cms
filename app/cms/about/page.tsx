@@ -18,6 +18,7 @@ interface Logo {
 interface Category {
   titleEn: string
   titleId: string
+  homeLimit: number
   logos: Logo[]
 }
 
@@ -43,7 +44,6 @@ export default function CMSAboutPage() {
   const [bannerData, setBannerData] = useState({
     titleEn: 'About ADIGSI',
     titleId: 'Tentang ADIGSI',
-    imageUrl: '/images/about-banner.jpg',
   })
 
   // Organization Structure section state
@@ -81,21 +81,25 @@ export default function CMSAboutPage() {
       {
         titleEn: 'Government Organizations',
         titleId: 'Organisasi Pemerintah',
+        homeLimit: 0,
         logos: []
       },
       {
         titleEn: 'International Institutions',
         titleId: 'Institusi Internasional',
+        homeLimit: 0,
         logos: []
       },
       {
         titleEn: 'Associations',
         titleId: 'Asosiasi',
+        homeLimit: 0,
         logos: []
       },
       {
         titleEn: 'Companies',
         titleId: 'Perusahaan',
+        homeLimit: 0,
         logos: []
       }
     ]
@@ -117,7 +121,6 @@ export default function CMSAboutPage() {
           setBannerData({
             titleEn: data.titleEn || '',
             titleId: data.titleId || '',
-            imageUrl: data.imageUrl || '',
           })
         }
 
@@ -146,7 +149,12 @@ export default function CMSAboutPage() {
         if (partnersRes.ok) {
           const data = await partnersRes.json()
           if (data.categories && data.categories.length > 0) {
-            setPartnersData({ categories: data.categories })
+            setPartnersData({
+              categories: data.categories.map((cat: Category) => ({
+                ...cat,
+                homeLimit: cat.homeLimit ?? 0,
+              }))
+            })
           }
         }
       } catch (error) {
@@ -287,43 +295,6 @@ export default function CMSAboutPage() {
               <>
                 <div className="space-y-4 mt-4">
                   <div>
-                    <Label htmlFor="banner-image">{t({ en: 'Banner Image', id: 'Gambar Banner' })}</Label>
-                    <div className="mt-2">
-                      <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                        {bannerData.imageUrl && (
-                          <div className="mb-4">
-                            <img src={bannerData.imageUrl} alt="Banner preview" className="h-32 w-auto mx-auto rounded object-cover" />
-                          </div>
-                        )}
-                        <input
-                          id="banner-image"
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            if (file) {
-                              const reader = new FileReader()
-                              reader.onloadend = () => {
-                                setBannerData({ ...bannerData, imageUrl: reader.result as string })
-                              }
-                              reader.readAsDataURL(file)
-                            }
-                          }}
-                          className="hidden"
-                        />
-                        <label htmlFor="banner-image" className="cursor-pointer">
-                          <div className="text-sm text-muted-foreground">
-                            {t({ en: 'Click to upload or drag and drop', id: 'Klik untuk upload atau drag and drop' })}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {t({ en: 'PNG, JPG, GIF up to 10MB', id: 'PNG, JPG, GIF hingga 10MB' })}
-                          </div>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
                     <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
                     <Input
                       id="banner-title-en"
@@ -345,6 +316,180 @@ export default function CMSAboutPage() {
 
                   <Button onClick={() => handleSave('banner')} disabled={isSaving === 'banner'}>
                     {isSaving === 'banner' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                  </Button>
+                </div>
+              </>
+            )}
+          </Card>
+
+          {/* About ADIGSI Section */}
+          <Card className="p-6">
+            <div
+              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
+              onClick={() => setExpandedSections({ ...expandedSections, about: !expandedSections.about })}
+            >
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'About ADIGSI', id: 'Tentang ADIGSI' })}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t({ en: 'Manage the ADIGSI information section', id: 'Kelola section informasi ADIGSI' })}
+                </p>
+              </div>
+              <ChevronDown
+                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.about ? 'rotate-0' : '-rotate-90'
+                  }`}
+              />
+            </div>
+
+            {expandedSections.about && (
+              <>
+                <div className="space-y-6 mt-4">
+                  {/* Title Section */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="about-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
+                      <Input
+                        id="about-title-en"
+                        value={aboutData.titleEn}
+                        onChange={(e) => setAboutData({ ...aboutData, titleEn: e.target.value })}
+                        placeholder="Indonesian Association for Digitalization and Cybersecurity"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="about-title-id">{t({ en: 'Title (Indonesian)', id: 'Judul (Indonesia)' })}</Label>
+                      <Input
+                        id="about-title-id"
+                        value={aboutData.titleId}
+                        onChange={(e) => setAboutData({ ...aboutData, titleId: e.target.value })}
+                        placeholder="Asosiasi Indonesia untuk Digitalisasi dan Keamanan Siber"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Description Section */}
+                  <div className="border-t pt-4">
+                    <h3 className="text-sm font-semibold text-foreground mb-3">{t({ en: 'Description', id: 'Deskripsi' })}</h3>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <Label htmlFor="about-desc-en">{t({ en: 'Description (English)', id: 'Deskripsi (English)' })}</Label>
+                        <Textarea
+                          id="about-desc-en"
+                          value={aboutData.descriptionEn}
+                          onChange={(e) => setAboutData({ ...aboutData, descriptionEn: e.target.value })}
+                          placeholder="Enter description in English"
+                          rows={4}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="about-desc-id">{t({ en: 'Description (Indonesian)', id: 'Deskripsi (Indonesia)' })}</Label>
+                        <Textarea
+                          id="about-desc-id"
+                          value={aboutData.descriptionId}
+                          onChange={(e) => setAboutData({ ...aboutData, descriptionId: e.target.value })}
+                          placeholder="Masukkan deskripsi dalam bahasa Indonesia"
+                          rows={4}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Vision Section */}
+                  <div className="border-t pt-4">
+                    <h3 className="text-sm font-semibold text-foreground mb-3">{t({ en: 'Vision', id: 'Visi' })}</h3>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <Label htmlFor="about-vision-en">{t({ en: 'Vision (English)', id: 'Visi (English)' })}</Label>
+                        <Textarea
+                          id="about-vision-en"
+                          value={aboutData.visionEn}
+                          onChange={(e) => setAboutData({ ...aboutData, visionEn: e.target.value })}
+                          placeholder="Enter vision in English"
+                          rows={3}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="about-vision-id">{t({ en: 'Vision (Indonesian)', id: 'Visi (Indonesia)' })}</Label>
+                        <Textarea
+                          id="about-vision-id"
+                          value={aboutData.visionId}
+                          onChange={(e) => setAboutData({ ...aboutData, visionId: e.target.value })}
+                          placeholder="Masukkan visi dalam bahasa Indonesia"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Missions Section */}
+                  <div className="border-t pt-4">
+                    <h3 className="text-sm font-semibold text-foreground mb-3">{t({ en: 'Missions', id: 'Misi' })}</h3>
+
+                    <div className="space-y-3">
+                      {aboutData.missions.map((mission, index) => (
+                        <div key={index} className="flex gap-3 items-start">
+                          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <Label className="text-xs">{t({ en: 'EN', id: 'EN' })}</Label>
+                              <Input
+                                value={mission.en}
+                                onChange={(e) => {
+                                  const newMissions = [...aboutData.missions]
+                                  newMissions[index].en = e.target.value
+                                  setAboutData({ ...aboutData, missions: newMissions })
+                                }}
+                                placeholder="Enter mission in English"
+                                className="text-xs h-8"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">{t({ en: 'ID', id: 'ID' })}</Label>
+                              <Input
+                                value={mission.id}
+                                onChange={(e) => {
+                                  const newMissions = [...aboutData.missions]
+                                  newMissions[index].id = e.target.value
+                                  setAboutData({ ...aboutData, missions: newMissions })
+                                }}
+                                placeholder="Masukkan misi dalam bahasa Indonesia"
+                                className="text-xs h-8"
+                              />
+                            </div>
+                          </div>
+                          {aboutData.missions.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 mt-6"
+                              onClick={() => {
+                                setAboutData({
+                                  ...aboutData,
+                                  missions: aboutData.missions.filter((_, i) => i !== index)
+                                })
+                              }}
+                            >
+                              ×
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => {
+                        setAboutData({
+                          ...aboutData,
+                          missions: [...aboutData.missions, { en: '', id: '' }]
+                        })
+                      }}
+                    >
+                      {t({ en: '+ Add Mission', id: '+ Tambah Misi' })}
+                    </Button>
+                  </div>
+
+                  <Button onClick={() => handleSave('about')} disabled={isSaving === 'about'}>
+                    {isSaving === 'about' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
                   </Button>
                 </div>
               </>
@@ -599,180 +744,6 @@ export default function CMSAboutPage() {
             )}
           </Card>
 
-          {/* About ADIGSI Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, about: !expandedSections.about })}
-            >
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'About ADIGSI', id: 'Tentang ADIGSI' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage the ADIGSI information section', id: 'Kelola section informasi ADIGSI' })}
-                </p>
-              </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.about ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
-            </div>
-
-            {expandedSections.about && (
-              <>
-                <div className="space-y-6 mt-4">
-                  {/* Title Section */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="about-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
-                      <Input
-                        id="about-title-en"
-                        value={aboutData.titleEn}
-                        onChange={(e) => setAboutData({ ...aboutData, titleEn: e.target.value })}
-                        placeholder="Indonesian Association for Digitalization and Cybersecurity"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="about-title-id">{t({ en: 'Title (Indonesian)', id: 'Judul (Indonesia)' })}</Label>
-                      <Input
-                        id="about-title-id"
-                        value={aboutData.titleId}
-                        onChange={(e) => setAboutData({ ...aboutData, titleId: e.target.value })}
-                        placeholder="Asosiasi Indonesia untuk Digitalisasi dan Keamanan Siber"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Description Section */}
-                  <div className="border-t pt-4">
-                    <h3 className="text-sm font-semibold text-foreground mb-3">{t({ en: 'Description', id: 'Deskripsi' })}</h3>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <Label htmlFor="about-desc-en">{t({ en: 'Description (English)', id: 'Deskripsi (English)' })}</Label>
-                        <Textarea
-                          id="about-desc-en"
-                          value={aboutData.descriptionEn}
-                          onChange={(e) => setAboutData({ ...aboutData, descriptionEn: e.target.value })}
-                          placeholder="Enter description in English"
-                          rows={4}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="about-desc-id">{t({ en: 'Description (Indonesian)', id: 'Deskripsi (Indonesia)' })}</Label>
-                        <Textarea
-                          id="about-desc-id"
-                          value={aboutData.descriptionId}
-                          onChange={(e) => setAboutData({ ...aboutData, descriptionId: e.target.value })}
-                          placeholder="Masukkan deskripsi dalam bahasa Indonesia"
-                          rows={4}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Vision Section */}
-                  <div className="border-t pt-4">
-                    <h3 className="text-sm font-semibold text-foreground mb-3">{t({ en: 'Vision', id: 'Visi' })}</h3>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <Label htmlFor="about-vision-en">{t({ en: 'Vision (English)', id: 'Visi (English)' })}</Label>
-                        <Textarea
-                          id="about-vision-en"
-                          value={aboutData.visionEn}
-                          onChange={(e) => setAboutData({ ...aboutData, visionEn: e.target.value })}
-                          placeholder="Enter vision in English"
-                          rows={3}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="about-vision-id">{t({ en: 'Vision (Indonesian)', id: 'Visi (Indonesia)' })}</Label>
-                        <Textarea
-                          id="about-vision-id"
-                          value={aboutData.visionId}
-                          onChange={(e) => setAboutData({ ...aboutData, visionId: e.target.value })}
-                          placeholder="Masukkan visi dalam bahasa Indonesia"
-                          rows={3}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Missions Section */}
-                  <div className="border-t pt-4">
-                    <h3 className="text-sm font-semibold text-foreground mb-3">{t({ en: 'Missions', id: 'Misi' })}</h3>
-
-                    <div className="space-y-3">
-                      {aboutData.missions.map((mission, index) => (
-                        <div key={index} className="flex gap-3 items-start">
-                          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                              <Label className="text-xs">{t({ en: 'EN', id: 'EN' })}</Label>
-                              <Input
-                                value={mission.en}
-                                onChange={(e) => {
-                                  const newMissions = [...aboutData.missions]
-                                  newMissions[index].en = e.target.value
-                                  setAboutData({ ...aboutData, missions: newMissions })
-                                }}
-                                placeholder="Enter mission in English"
-                                className="text-xs h-8"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-xs">{t({ en: 'ID', id: 'ID' })}</Label>
-                              <Input
-                                value={mission.id}
-                                onChange={(e) => {
-                                  const newMissions = [...aboutData.missions]
-                                  newMissions[index].id = e.target.value
-                                  setAboutData({ ...aboutData, missions: newMissions })
-                                }}
-                                placeholder="Masukkan misi dalam bahasa Indonesia"
-                                className="text-xs h-8"
-                              />
-                            </div>
-                          </div>
-                          {aboutData.missions.length > 1 && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 mt-6"
-                              onClick={() => {
-                                setAboutData({
-                                  ...aboutData,
-                                  missions: aboutData.missions.filter((_, i) => i !== index)
-                                })
-                              }}
-                            >
-                              ×
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-3"
-                      onClick={() => {
-                        setAboutData({
-                          ...aboutData,
-                          missions: [...aboutData.missions, { en: '', id: '' }]
-                        })
-                      }}
-                    >
-                      {t({ en: '+ Add Mission', id: '+ Tambah Misi' })}
-                    </Button>
-                  </div>
-
-                  <Button onClick={() => handleSave('about')} disabled={isSaving === 'about'}>
-                    {isSaving === 'about' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
-                  </Button>
-                </div>
-              </>
-            )}
-          </Card>
-
           {/* Partners Section */}
           <Card className="p-6">
             <div
@@ -838,6 +809,23 @@ export default function CMSAboutPage() {
                             placeholder="misal, Organisasi Pemerintah"
                             className="text-xs h-8 mt-1"
                           />
+                        </div>
+                        <div>
+                          <Label className="text-xs">{t({ en: 'Home Page Limit', id: 'Batas di Halaman Home' })}</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={category.homeLimit}
+                            onChange={(e) => {
+                              const newCategories = [...partnersData.categories]
+                              newCategories[categoryIndex].homeLimit = Math.max(0, parseInt(e.target.value) || 0)
+                              setPartnersData({ ...partnersData, categories: newCategories })
+                            }}
+                            className="text-xs h-8 mt-1"
+                          />
+                          <p className="text-[10px] text-muted-foreground mt-1">
+                            {t({ en: '0 = show all on home page', id: '0 = tampilkan semua di halaman home' })}
+                          </p>
                         </div>
                       </div>
 
@@ -948,6 +936,7 @@ export default function CMSAboutPage() {
                           {
                             titleEn: '',
                             titleId: '',
+                            homeLimit: 0,
                             logos: []
                           }
                         ]
