@@ -36,13 +36,13 @@ export function PageBannerSection({
       {/* <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-accent/50 to-transparent" /> */}
 
       {/* Decorative corner brackets */}
-      <span className="absolute top-6 left-6 w-6 h-6 border-t-2 border-l-2 border-accent/40 rounded-tl-lg" />
+      {/* <span className="absolute top-6 left-6 w-6 h-6 border-t-2 border-l-2 border-accent/40 rounded-tl-lg" />
       <span className="absolute top-6 right-6 w-6 h-6 border-t-2 border-r-2 border-accent/40 rounded-tr-lg" />
       <span className="absolute bottom-6 left-6 w-6 h-6 border-b-2 border-l-2 border-primary/30 rounded-bl-lg" />
-      <span className="absolute bottom-6 right-6 w-6 h-6 border-b-2 border-r-2 border-primary/30 rounded-br-lg" />
+      <span className="absolute bottom-6 right-6 w-6 h-6 border-b-2 border-r-2 border-primary/30 rounded-br-lg" /> */}
 
       {/* Floating hex circuit nodes — right */}
-      <svg
+      {/* <svg
         className="pointer-events-none absolute right-10 top-8 opacity-[0.06] dark:opacity-[0.10] text-primary"
         width="220" height="160" viewBox="0 0 220 160" fill="none"
       >
@@ -64,7 +64,7 @@ export function PageBannerSection({
         <line x1="60" y1="80" x2="110" y2="140" stroke="currentColor" strokeWidth="1" />
         <line x1="160" y1="80" x2="110" y2="140" stroke="currentColor" strokeWidth="1" />
         <line x1="160" y1="80" x2="200" y2="140" stroke="currentColor" strokeWidth="1" />
-      </svg>
+      </svg> */}
 
       {/* Floating hex circuit nodes — left */}
       <svg

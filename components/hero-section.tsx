@@ -57,7 +57,7 @@ export function HeroSection() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Top left - Primary security accent */}
         <div className="absolute -top-20 -left-20 w-96 h-96 bg-primary/8 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -top-40 -left-40 w-80 h-80 border-2 border-primary/15 rounded-full" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 border-2 border-primary/15 rounded-full" />
         
         {/* Top right - Accent cyan tech accent (cybersecurity color) */}
         <div className="absolute -top-32 -right-32 w-96 h-96 bg-accent/6 rounded-full blur-3xl" />
