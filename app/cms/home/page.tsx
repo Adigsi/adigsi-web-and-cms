@@ -580,8 +580,19 @@ export default function CMSHomePage() {
 
             {expandedSections.carousell && (
               <>
-                <div className="space-y-6 mt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4 mt-4">
+                  {/* Ratio notice */}
+                  <div className="flex items-start gap-2 px-3 py-2.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                    <p className="text-xs font-medium leading-snug">
+                      {t({
+                        en: 'All slide images must use a 1:1 (square) ratio. Images with different ratios will be cropped automatically.',
+                        id: 'Semua gambar slide harus menggunakan rasio 1:1 (persegi). Gambar dengan rasio berbeda akan dipotong secara otomatis.'
+                      })}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {carousellData.slides.length > 0 ? (
                       carousellData.slides.map((slide, index) => (
                         <div
@@ -591,15 +602,15 @@ export default function CMSHomePage() {
                           onDragEnd={handleCarousellDragEnd}
                           onDragOver={handleCarousellDragOver}
                           onDrop={() => handleCarousellDrop(index)}
-                          className={`border border-border rounded-lg p-4 space-y-4 cursor-move transition-all ${
+                          className={`border border-border rounded-lg p-3 space-y-3 cursor-move transition-all ${
                             draggedCarousellSlide === index ? 'opacity-50 scale-[0.98]' : 'opacity-100 scale-100'
                           } hover:shadow-md`}
                         >
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-sm">
+                          <div className="flex items-center justify-between gap-2">
+                            <h4 className="font-semibold text-xs shrink-0">
                               {t({ en: 'Slide', id: 'Slide' })} {index + 1}
                             </h4>
-                            <label className="inline-flex items-center gap-2 text-xs">
+                            <label className="inline-flex items-center gap-1.5 text-xs min-w-0">
                               <input
                                 type="checkbox"
                                 checked={slide.published ?? false}
@@ -608,16 +619,17 @@ export default function CMSHomePage() {
                                   newSlides[index].published = e.target.checked
                                   setCarousellData({ ...carousellData, slides: newSlides })
                                 }}
-                                className="h-3.5 w-3.5"
+                                className="h-3 w-3 shrink-0"
                               />
-                              <span>
-                                {slide.published ? t({ en: 'Published', id: 'Terpublish' }) : t({ en: 'Unpublished', id: 'Tidak Terpublish' })}
+                              <span className="truncate">
+                                {slide.published ? t({ en: 'Published', id: 'Publish' }) : t({ en: 'Draft', id: 'Draft' })}
                               </span>
                             </label>
                             <Button
                               variant="destructive"
                               size="sm"
                               disabled={carousellData.slides.length === 1}
+                              className="h-6 px-2 text-xs shrink-0"
                               onClick={() => {
                                 const newSlides = carousellData.slides.filter((_, i) => i !== index)
                                 setCarousellData({ ...carousellData, slides: newSlides })
@@ -628,10 +640,9 @@ export default function CMSHomePage() {
                           </div>
 
                           <div>
-                            <Label>{t({ en: 'Image', id: 'Gambar' })}</Label>
-                            <div className="mt-2 space-y-3">
+                            <div className="mt-1 space-y-2">
                               {slide.image && (
-                                <div className="relative w-full h-40 rounded-lg overflow-hidden bg-muted">
+                                <div className="relative w-full aspect-square rounded-md overflow-hidden bg-muted">
                                   <img
                                     src={slide.image}
                                     alt="Carousell preview"
@@ -643,17 +654,17 @@ export default function CMSHomePage() {
                                       newSlides[index].image = ''
                                       setCarousellData({ ...carousellData, slides: newSlides })
                                     }}
-                                    className="absolute top-2 right-2 p-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
+                                    className="absolute top-1.5 right-1.5 p-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
                                   >
-                                    <X className="h-4 w-4" />
+                                    <X className="h-3 w-3" />
                                   </button>
                                 </div>
                               )}
-                              <label className="flex items-center justify-center px-4 py-2 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
-                                <div className="flex items-center gap-2">
-                                  <Upload className="h-4 w-4" />
-                                  <span className="text-sm text-muted-foreground">
-                                    {t({ en: 'Upload Image', id: 'Unggah Gambar' })}
+                              <label className="flex items-center justify-center px-3 py-1.5 border-2 border-dashed border-border rounded-md cursor-pointer hover:border-primary/50 transition-colors">
+                                <div className="flex items-center gap-1.5">
+                                  <Upload className="h-3.5 w-3.5" />
+                                  <span className="text-xs text-muted-foreground">
+                                    {t({ en: 'Upload (1:1)', id: 'Unggah (1:1)' })}
                                   </span>
                                 </div>
                                 <input
@@ -667,9 +678,6 @@ export default function CMSHomePage() {
                           </div>
 
                           <div>
-                            <Label htmlFor={`carousell-link-${index}`}>
-                              {t({ en: 'Optional Link', id: 'Link Opsional' })}
-                            </Label>
                             <Input
                               id={`carousell-link-${index}`}
                               value={slide.link || ''}
@@ -678,14 +686,14 @@ export default function CMSHomePage() {
                                 newSlides[index].link = e.target.value
                                 setCarousellData({ ...carousellData, slides: newSlides })
                               }}
-                              placeholder="https://..."
-                              className="mt-1"
+                              placeholder="https://... (optional)"
+                              className="h-7 text-xs"
                             />
                           </div>
                         </div>
                       ))
                     ) : (
-                      <div className="col-span-2 text-center text-muted-foreground py-6">
+                      <div className="col-span-3 text-center text-muted-foreground py-6">
                         {t({ en: 'No slides added yet', id: 'Belum ada slide' })}
                       </div>
                     )}

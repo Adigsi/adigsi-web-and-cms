@@ -63,9 +63,9 @@ export function FloatingContactButton() {
               <button
                 type="button"
                 onClick={handleMessageUs}
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary rounded-lg transition-all duration-200 hover:translate-x-1"
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-secondary hover:text-primary rounded-lg transition-all duration-200 hover:translate-x-1 cursor-pointer"
               >
-                <Send className="w-5 h-5 text-primary" />
+                <Send className="w-5 h-5" />
                 <span>{t({ en: 'Message Us', id: 'Kirim Pesan' })}</span>
               </button>
             </div>
