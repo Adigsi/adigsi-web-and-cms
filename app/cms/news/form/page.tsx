@@ -364,6 +364,7 @@ function NewsFormContent() {
   const { toast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [newsCategories, setNewsCategories] = useState<{ _id: string; nameEn: string; nameId: string; active: boolean }[]>([])
 
   const [formData, setFormData] = useState<NewsData>({
     titleEn: '',
@@ -455,6 +456,21 @@ function NewsFormContent() {
   }, [formData.contentId, editorId])
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/cms/news/categories?active=true')
+        if (response.ok) {
+          const data = await response.json()
+          setNewsCategories(data.categories || [])
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      }
+    }
+    fetchCategories()
+  }, [])
+
+  useEffect(() => {
     const id = searchParams.get('id')
     
     if (id) {
@@ -543,7 +559,7 @@ function NewsFormContent() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-5 py-12">
+    <div className="mx-auto px-5 ">
       {/* Header */}
       <div className="mb-6">
         <Button
@@ -618,25 +634,38 @@ function NewsFormContent() {
             <h3 className="text-lg font-semibold text-foreground border-b pb-2">
               {t({ en: 'Category', id: 'Kategori' })}
             </h3>
-            
-            <div>
-              <Label htmlFor="category-en">{t({ en: 'Category (English)', id: 'Kategori (English)' })} *</Label>
-              <Input
-                id="category-en"
-                value={formData.categoryEn}
-                onChange={(e) => setFormData({ ...formData, categoryEn: e.target.value })}
-                placeholder={t({ en: 'Enter category in English', id: 'Masukkan kategori dalam English' })}
-              />
-            </div>
 
             <div>
-              <Label htmlFor="category-id">{t({ en: 'Category (Bahasa Indonesia)', id: 'Kategori (Bahasa Indonesia)' })} *</Label>
-              <Input
-                id="category-id"
-                value={formData.categoryId}
-                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                placeholder={t({ en: 'Enter category in Indonesian', id: 'Masukkan kategori dalam Indonesia' })}
-              />
+              <Label htmlFor="category">{t({ en: 'Category', id: 'Kategori' })} *</Label>
+              {newsCategories.length > 0 ? (
+                <select
+                  id="category"
+                  value={formData.categoryEn}
+                  onChange={(e) => {
+                    const selected = newsCategories.find((c) => c.nameEn === e.target.value)
+                    if (selected) {
+                      setFormData({ ...formData, categoryEn: selected.nameEn, categoryId: selected.nameId })
+                    } else {
+                      setFormData({ ...formData, categoryEn: '', categoryId: '' })
+                    }
+                  }}
+                  className="w-full mt-1 px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="">{t({ en: '-- Select Category --', id: '-- Pilih Kategori --' })}</option>
+                  {newsCategories.map((cat) => (
+                    <option key={cat._id} value={cat.nameEn}>{cat.nameEn} / {cat.nameId}</option>
+                  ))}
+                </select>
+              ) : (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t({ en: 'No categories available. Add categories in the CMS News Categories section first.', id: 'Belum ada kategori. Tambahkan kategori di section Kategori Berita CMS terlebih dahulu.' })}
+                </p>
+              )}
+              {formData.categoryEn && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  EN: {formData.categoryEn} · ID: {formData.categoryId}
+                </p>
+              )}
             </div>
           </div>
 

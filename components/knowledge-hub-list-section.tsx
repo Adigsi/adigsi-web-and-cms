@@ -2,138 +2,60 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useLanguage } from '@/contexts/language-context'
-import { NewsCard, type NewsData } from '@/components/news-card'
+import { ReportCard, type ReportData } from '@/components/report-card'
+import { DownloadReportModal, type DownloadFormData } from '@/components/download-report-modal'
 
-const defaultNews: NewsData[] = [
-  {
-    _id: '1',
-    slug: 'adigsi-cyber-resilience-2026',
-    titleEn: 'ADIGSI Strengthens National Cyber Resilience Framework',
-    titleId: 'ADIGSI Perkuat Kerangka Ketahanan Siber Nasional',
-    categoryEn: 'Policy',
-    categoryId: 'Kebijakan',
-    contentEn: '',
-    contentId: '',
-    image: '/placeholder.svg',
-    published: true,
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    _id: '2',
-    slug: 'digital-ecosystem-initiative',
-    titleEn: 'New Digital Ecosystem Initiative Launched by ADIGSI Members',
-    titleId: 'Anggota ADIGSI Luncurkan Inisiatif Ekosistem Digital Baru',
-    categoryEn: 'Industry',
-    categoryId: 'Industri',
-    contentEn: '',
-    contentId: '',
-    image: '/placeholder.svg',
-    published: true,
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    _id: '3',
-    slug: 'zero-trust-adoption',
-    titleEn: 'Zero-Trust Architecture Adoption Grows Among Government Agencies',
-    titleId: 'Adopsi Arsitektur Zero-Trust Meningkat di Instansi Pemerintah',
-    categoryEn: 'Technology',
-    categoryId: 'Teknologi',
-    contentEn: '',
-    contentId: '',
-    image: '/placeholder.svg',
-    published: true,
-    createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    _id: '4',
-    slug: 'threat-intel-collaboration',
-    titleEn: 'ADIGSI and BSSN Sign Threat Intelligence Collaboration MoU',
-    titleId: 'ADIGSI dan BSSN Tandatangani MOU Kolaborasi Intelijen Ancaman',
-    categoryEn: 'Policy',
-    categoryId: 'Kebijakan',
-    contentEn: '',
-    contentId: '',
-    image: '/placeholder.svg',
-    published: true,
-    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    _id: '5',
-    slug: 'ai-security-report-2026',
-    titleEn: 'AI Security Report 2026: Key Findings for Indonesian Enterprises',
-    titleId: 'Laporan Keamanan AI 2026: Temuan Utama untuk Perusahaan Indonesia',
-    categoryEn: 'Research',
-    categoryId: 'Riset',
-    contentEn: '',
-    contentId: '',
-    image: '/placeholder.svg',
-    published: true,
-    createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    _id: '6',
-    slug: 'iot-security-standards',
-    titleEn: 'New IoT Security Standards Released for Critical Infrastructure',
-    titleId: 'Standar Keamanan IoT Baru Diterbitkan untuk Infrastruktur Kritis',
-    categoryEn: 'Technology',
-    categoryId: 'Teknologi',
-    contentEn: '',
-    contentId: '',
-    image: '/placeholder.svg',
-    published: true,
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-]
-
-export function NewsListSection() {
+export function KnowledgeHubListSection() {
   const [isVisible, setIsVisible] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
-  const [news, setNews] = useState<NewsData[]>([])
+  const [reports, setReports] = useState<ReportData[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
-  const [selectedCategory, setSelectedCategory] = useState<string>('')
-  const [apiCategories, setApiCategories] = useState<{ _id: string; nameEn: string; nameId: string }[]>([])
+  const [selectedTag, setSelectedTag] = useState<string>('')
+  const [activeReport, setActiveReport] = useState<ReportData | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [apiTags, setApiTags] = useState<{ nameEn: string; nameId: string }[]>([])
   const sectionRef = useRef<HTMLElement>(null)
   const scrollDirectionRef = useRef<'up' | 'down'>('down')
   const lastScrollYRef = useRef(0)
   const fadeOutTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { language } = useLanguage()
 
-  const fetchNews = async (page: number) => {
+  const fetchReports = async (page: number, tag = '') => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/cms/news/news?page=${page}`)
-      const data = await response.json()
-      if (data.success) {
-        const publishedNews = data.data.filter((item: NewsData) => item.published)
-        setNews(publishedNews)
-        setCurrentPage(data.pagination.page)
-        setTotalPages(data.pagination.totalPages)
-      } else {
-        setNews(defaultNews)
+      const params = new URLSearchParams({ published: 'true', page: page.toString(), limit: '9' })
+      if (tag) params.set('tag', tag)
+      const response = await fetch(`/api/cms/reports?${params}`)
+      if (response.ok) {
+        const data = await response.json()
+        setReports(data.data || [])
+        setCurrentPage(data.pagination?.page || 1)
+        setTotalPages(data.pagination?.totalPages || 1)
       }
-    } catch {
-      setNews(defaultNews)
+    } catch (error) {
+      console.error('Error fetching reports:', error)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const fetchApiCategories = async () => {
+  const fetchApiTags = async () => {
     try {
-      const response = await fetch('/api/cms/news/categories?active=true')
+      const response = await fetch('/api/cms/reports/tags?active=true')
       if (response.ok) {
         const data = await response.json()
-        setApiCategories(data.categories || [])
+        setApiTags(data.tags || [])
       }
     } catch {
-      // silently fail — categories will not render
+      // silently fail
     }
   }
 
-  useEffect(() => { fetchNews(1) }, [])
-  useEffect(() => { fetchApiCategories() }, [])
+  useEffect(() => { fetchReports(1) }, [])
+  useEffect(() => { fetchApiTags() }, [])
 
   const animClass = useCallback(() => {
     if (isFadingOut) return 'animate-fade-out-down'
@@ -176,41 +98,50 @@ export function NewsListSection() {
       observer.disconnect()
       if (fadeOutTimeoutRef.current) clearTimeout(fadeOutTimeoutRef.current)
     }
-  }, [isLoading, news])
+  }, [isLoading, reports])
 
-  const rawNews = news.length > 0 ? news : defaultNews
-
-  // Build category list:
-  // 1. Start with API categories (from news_categories collection — always shown if active)
-  // 2. Then append any unique categories found in real news that aren't already in the API list
-  //    (covers news whose category was not yet added to news_categories)
-  // 3. Never derive from defaultNews so mock data doesn't pollute the filter bar.
-  const apiCategoryKeys = new Set(apiCategories.map((c) => c.nameEn))
-  const newsDerivedCategories: { key: string; label: string }[] =
-    news.length > 0
-      ? Array.from(new Set(news.map((n) => n.categoryEn)))
-          .filter((nameEn) => nameEn && !apiCategoryKeys.has(nameEn))
-          .map((nameEn) => ({
-            key: nameEn,
-            label:
-              language === 'en'
-                ? nameEn
-                : (news.find((n) => n.categoryEn === nameEn)?.categoryId || nameEn),
-          }))
-      : []
-
-  const categories: { key: string; label: string }[] = [
-    ...apiCategories.map((c) => ({
-      key: c.nameEn,
-      label: language === 'en' ? c.nameEn : c.nameId,
-    })),
-    ...newsDerivedCategories,
+  const allTags = [
+    ...apiTags,
+    ...Array.from(new Set(reports.flatMap((r) => r.tags || [])))
+      .filter((nameEn) => !apiTags.some((t) => t.nameEn === nameEn))
+      .map((nameEn) => ({ nameEn, nameId: nameEn })),
   ]
 
-  // selectedCategory stores nameEn so it stays stable when language switches
-  const displayNews = selectedCategory
-    ? rawNews.filter((n) => n.categoryEn === selectedCategory)
-    : rawNews
+  const handleDownloadClick = (report: ReportData) => {
+    setActiveReport(report)
+    setIsModalOpen(true)
+  }
+
+  const handleDownloadSubmit = async (userData: DownloadFormData) => {
+    if (!activeReport) return
+    setIsDownloading(true)
+    try {
+      const response = await fetch('/api/cms/report-downloads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...userData,
+          reportId: activeReport._id,
+        }),
+      })
+      if (response.ok) {
+        const data = await response.json()
+        if (data.pdfFile) {
+          const link = document.createElement('a')
+          link.href = data.pdfFile
+          link.download = `${activeReport.titleEn || 'report'}.pdf`
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          setIsModalOpen(false)
+        }
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
   return (
     <section
@@ -235,41 +166,43 @@ export function NewsListSection() {
       <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
 
       <div className="relative max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
-
-        {/* Category filter bar — only shown when there are real categories to display */}
-        {!isLoading && categories.length > 0 && (
+        {!isLoading && allTags.length > 0 && (
           <div className={`mb-8 flex flex-wrap items-center gap-2 ${animClass()}`}>
             <button
-              onClick={() => setSelectedCategory('')}
+              onClick={() => { setSelectedTag(''); fetchReports(1, '') }}
               className={`relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest
                 border transition-all duration-200 overflow-hidden
-                ${selectedCategory === ''
+                ${selectedTag === ''
                   ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(58,111,247,0.2)]'
                   : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5'
                 }`}
             >
-              {selectedCategory === '' && (
+              {selectedTag === '' && (
                 <span className="absolute inset-0 bg-linear-to-r from-transparent via-primary/10 to-transparent" />
               )}
-              <span className={`w-1 h-1 rounded-full ${selectedCategory === '' ? 'bg-primary animate-pulse' : 'bg-muted-foreground/40'}`} />
+              <span className={`w-1 h-1 rounded-full ${selectedTag === '' ? 'bg-primary animate-pulse' : 'bg-muted-foreground/40'}`} />
               {language === 'en' ? 'All' : 'Semua'}
             </button>
-            {categories.map((cat) => (
+            {allTags.map((tag) => (
               <button
-                key={cat.key}
-                onClick={() => setSelectedCategory(cat.key === selectedCategory ? '' : cat.key)}
+                key={tag.nameEn}
+                onClick={() => {
+                  const next = tag.nameEn === selectedTag ? '' : tag.nameEn
+                  setSelectedTag(next)
+                  fetchReports(1, next)
+                }}
                 className={`relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest
                   border transition-all duration-200 overflow-hidden
-                  ${selectedCategory === cat.key
+                  ${selectedTag === tag.nameEn
                     ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(58,111,247,0.2)]'
                     : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5'
                   }`}
               >
-                {selectedCategory === cat.key && (
+                {selectedTag === tag.nameEn && (
                   <span className="absolute inset-0 bg-linear-to-r from-transparent via-primary/10 to-transparent" />
                 )}
-                <span className={`w-1 h-1 rounded-full ${selectedCategory === cat.key ? 'bg-primary animate-pulse' : 'bg-muted-foreground/40'}`} />
-                {cat.label}
+                <span className={`w-1 h-1 rounded-full ${selectedTag === tag.nameEn ? 'bg-primary animate-pulse' : 'bg-muted-foreground/40'}`} />
+                {language === 'en' ? tag.nameEn : tag.nameId}
               </button>
             ))}
           </div>
@@ -280,7 +213,7 @@ export function NewsListSection() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="rounded-xl border border-border bg-card animate-pulse">
-                <div className="h-50 bg-muted rounded-t-xl" />
+                <div className="h-50 bg-muted rounded-t-xl" style={{ height: '200px' }} />
                 <div className="p-4 space-y-3">
                   <div className="h-4 bg-muted rounded w-3/4" />
                   <div className="h-3 bg-muted rounded w-1/2" />
@@ -289,16 +222,21 @@ export function NewsListSection() {
               </div>
             ))}
           </div>
+        ) : reports.length === 0 ? (
+          <div className={`text-center py-16 text-muted-foreground ${animClass()}`}>
+            {language === 'en' ? 'No reports found.' : 'Tidak ada laporan ditemukan.'}
+          </div>
         ) : (
           <>
             {/* Cards grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayNews.map((article, index) => (
-                <NewsCard
-                  key={article._id}
-                  article={article}
+              {reports.map((report, index) => (
+                <ReportCard
+                  key={report._id}
+                  report={report}
                   index={index}
                   animClass={animClass()}
+                  onDownload={handleDownloadClick}
                 />
               ))}
             </div>
@@ -307,7 +245,7 @@ export function NewsListSection() {
             {totalPages > 1 && (
               <div className={`mt-12 flex items-center justify-center gap-4 ${animClass()}`}>
                 <button
-                  onClick={() => fetchNews(currentPage - 1)}
+                  onClick={() => fetchReports(currentPage - 1, selectedTag)}
                   disabled={currentPage === 1}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
                     border border-border text-foreground
@@ -326,7 +264,7 @@ export function NewsListSection() {
                 </span>
 
                 <button
-                  onClick={() => fetchNews(currentPage + 1)}
+                  onClick={() => fetchReports(currentPage + 1, selectedTag)}
                   disabled={currentPage === totalPages}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
                     border border-border text-foreground
@@ -344,7 +282,17 @@ export function NewsListSection() {
           </>
         )}
       </div>
+
+      {/* Download modal */}
+      {activeReport && (
+        <DownloadReportModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onDownload={handleDownloadSubmit}
+          reportTitle={language === 'en' ? activeReport.titleEn : activeReport.titleId}
+          isDownloading={isDownloading}
+        />
+      )}
     </section>
   )
 }
-

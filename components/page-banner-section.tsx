@@ -14,7 +14,7 @@ export function PageBannerSection({
   isLoading = false,
 }: PageBannerSectionProps) {
   return (
-    <section className="relative w-full pt-12 sm:pt-28 pb-14 overflow-hidden bg-secondary/40 dark:bg-secondary/20">
+    <section className="relative w-full pt-12 sm:pt-24 pb-14 overflow-hidden bg-secondary/40 dark:bg-secondary/20">
 
       {/* Grid background */}
       <div
@@ -36,13 +36,13 @@ export function PageBannerSection({
       {/* <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-accent/50 to-transparent" /> */}
 
       {/* Decorative corner brackets */}
-      <span className="absolute top-6 left-6 w-6 h-6 border-t-2 border-l-2 border-accent/40 rounded-tl-lg" />
+      {/* <span className="absolute top-6 left-6 w-6 h-6 border-t-2 border-l-2 border-accent/40 rounded-tl-lg" />
       <span className="absolute top-6 right-6 w-6 h-6 border-t-2 border-r-2 border-accent/40 rounded-tr-lg" />
       <span className="absolute bottom-6 left-6 w-6 h-6 border-b-2 border-l-2 border-primary/30 rounded-bl-lg" />
-      <span className="absolute bottom-6 right-6 w-6 h-6 border-b-2 border-r-2 border-primary/30 rounded-br-lg" />
+      <span className="absolute bottom-6 right-6 w-6 h-6 border-b-2 border-r-2 border-primary/30 rounded-br-lg" /> */}
 
       {/* Floating hex circuit nodes — right */}
-      <svg
+      {/* <svg
         className="pointer-events-none absolute right-10 top-8 opacity-[0.06] dark:opacity-[0.10] text-primary"
         width="220" height="160" viewBox="0 0 220 160" fill="none"
       >
@@ -64,7 +64,7 @@ export function PageBannerSection({
         <line x1="60" y1="80" x2="110" y2="140" stroke="currentColor" strokeWidth="1" />
         <line x1="160" y1="80" x2="110" y2="140" stroke="currentColor" strokeWidth="1" />
         <line x1="160" y1="80" x2="200" y2="140" stroke="currentColor" strokeWidth="1" />
-      </svg>
+      </svg> */}
 
       {/* Floating hex circuit nodes — left */}
       <svg
@@ -92,7 +92,7 @@ export function PageBannerSection({
       </svg>
 
       {/* Logo — faded watermark, right side */}
-      <div className="pointer-events-none absolute right-8 md:right-16 top-1/2 -translate-y-1/2 opacity-[0.08] dark:opacity-[0.09] select-none">
+      <div className="pointer-events-none absolute right-0 md:right-16 top-3/5 -translate-y-1/2 opacity-[0.08] dark:opacity-[0.09] select-none">
         <Image
           src="/images/logo-bottom.png"
           alt="ADIGSI Logo"
@@ -106,11 +106,19 @@ export function PageBannerSection({
       <div className="relative max-w-7xl mx-auto px-4 md:px-8 lg:px-12 flex flex-col items-center text-center">
 
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-accent/30 bg-accent/10">
-          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-          <span className="text-[11px] font-bold uppercase tracking-widest text-accent">
+        <div className="relative inline-flex items-center gap-2 mb-2 px-4 py-1.5 bg-accent/5 overflow-hidden">
+          {/* Corner brackets — reticle / targeting aesthetic */}
+          <span className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-accent/70" />
+          <span className="absolute top-0 right-0 w-2.5 h-2.5 border-t border-r border-accent/70" />
+          <span className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b border-l border-accent/70" />
+          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-accent/70" />
+          {/* Code comment prefix */}
+          <span className="w-px h-3 bg-accent/70 animate-pulse" />
+          <span className="text-[11px] font-bold uppercase tracking-widest text-accent font-mono leading-none">
             {badge}
           </span>
+          {/* Blinking cursor */}
+          <span className="w-px h-3 bg-accent/70 animate-pulse" />
         </div>
 
         {/* Title */}

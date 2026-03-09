@@ -1,19 +1,21 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/contexts/language-context'
 import { DownloadReportModal, DownloadFormData } from './download-report-modal'
 
 interface ReportData {
+  _id: string
   titleEn: string
   titleId: string
   descriptionEn: string
   descriptionId: string
-  buttonTextEn: string
-  buttonTextId: string
   hasPdf: boolean
-  image: string
+  cover: string
+  tags: string[]
+  pinned: boolean
 }
 
 export function IndustryReportSection() {
@@ -33,10 +35,14 @@ export function IndustryReportSection() {
     const fetchReportData = async () => {
       setIsLoading(true)
       try {
-        const response = await fetch('/api/cms/home/report')
+        const response = await fetch('/api/cms/reports/pinned')
         if (response.ok) {
           const data = await response.json()
-          setReportData(data)
+          if (data.pinned) {
+            setReportData(data)
+          } else {
+            setReportData(null)
+          }
         }
       } catch (error) {
         console.error('Error fetching report data:', error)
@@ -96,7 +102,10 @@ export function IndustryReportSection() {
       const response = await fetch('/api/cms/report-downloads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
+        body: JSON.stringify({
+          ...userData,
+          reportId: reportData?._id,
+        }),
       })
       if (response.ok) {
         const data = await response.json()
@@ -147,7 +156,6 @@ export function IndustryReportSection() {
 
   const title = language === 'en' ? reportData.titleEn : reportData.titleId
   const description = language === 'en' ? reportData.descriptionEn : reportData.descriptionId
-  const buttonText = language === 'en' ? reportData.buttonTextEn : reportData.buttonTextId
 
   return (
     <section
@@ -214,7 +222,7 @@ export function IndustryReportSection() {
               <div className="absolute inset-0 bg-linear-to-tr from-primary/10 via-transparent to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
 
               <Image
-                src={reportData.image}
+                src={reportData.cover}
                 alt={title}
                 width={522}
                 height={600}
@@ -262,46 +270,64 @@ export function IndustryReportSection() {
                 ))}
             </div>
 
-            {/* Feature pills */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {[
-                t({ en: 'Industry Analysis', id: 'Analisis Industri' }),
-                t({ en: 'Market Data', id: 'Data Pasar' }),
-                t({ en: 'Cybersecurity Trends', id: 'Tren Keamanan Siber' }),
-              ].map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground bg-muted/50 hover:border-accent/50 hover:text-accent transition-colors duration-200"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+            {/* Feature pills — from report tags */}
+            {reportData.tags && reportData.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-8">
+                {reportData.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground bg-muted/50 hover:border-accent/50 hover:text-accent transition-colors duration-200"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
-            {/* CTA Button */}
-            {reportData.hasPdf && (
-              <button
-                onClick={() => setIsModalOpen(true)}
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap gap-3">
+              {reportData.hasPdf && (
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="group relative inline-flex items-center gap-3 w-fit px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 overflow-hidden
+                    bg-primary text-primary-foreground border border-primary
+                    hover:bg-primary/90 hover:shadow-[0_0_24px_rgba(58,111,247,0.35)]"
+                >
+                  {/* Button shimmer */}
+                  <span className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                  {/* Download icon */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-4 h-4 transition-transform duration-300 group-hover:translate-y-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  <span className="relative">{t({ en: 'Download Report', id: 'Unduh Laporan' })}</span>
+                </button>
+              )}
+              <Link
+                href="/knowledge-hub"
                 className="group relative inline-flex items-center gap-3 w-fit px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 overflow-hidden
-                  bg-primary text-primary-foreground border border-primary
-                  hover:bg-primary/90 hover:shadow-[0_0_24px_rgba(58,111,247,0.35)]"
+                  bg-transparent text-foreground border border-border
+                  hover:border-primary/60 hover:text-primary hover:bg-primary/5"
               >
-                {/* Button shimmer */}
-                <span className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                {/* Download icon */}
+                <span className="relative">{t({ en: 'Other Reports', id: 'Laporan Lainnya' })}</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-4 h-4 transition-transform duration-300 group-hover:translate-y-0.5"
+                  className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                   strokeWidth={2}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
-                <span className="relative">{buttonText}</span>
-              </button>
-            )}
+              </Link>
+            </div>
           </div>
         </div>
       </div>

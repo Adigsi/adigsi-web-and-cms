@@ -30,6 +30,13 @@ interface NewsData {
   createdAt?: string
 }
 
+interface NewsCategory {
+  _id: string
+  nameEn: string
+  nameId: string
+  active: boolean
+}
+
 interface NewsResponse {
   success: boolean
   data: NewsData[]
@@ -49,6 +56,7 @@ export default function CMSNewsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [expandedSections, setExpandedSections] = useState({
     banner: false,
+    categories: false,
     news: false,
   })
 
@@ -68,7 +76,12 @@ export default function CMSNewsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [publishedFilter, setPublishedFilter] = useState('')
-  const [availableCategories, setAvailableCategories] = useState<string[]>([])
+  const [availableCategories, setAvailableCategories] = useState<NewsCategory[]>([])
+  const [newsCategories, setNewsCategories] = useState<NewsCategory[]>([])
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<NewsCategory | null>(null)
+  const [catFormData, setCatFormData] = useState({ nameEn: '', nameId: '' })
+  const [isSavingCat, setIsSavingCat] = useState(false)
 
   // Fetch banner data on mount
   useEffect(() => {
@@ -197,9 +210,128 @@ export default function CMSNewsPage() {
       if (response.ok) {
         const data = await response.json()
         setAvailableCategories(data.categories || [])
+        setNewsCategories(data.categories || [])
       }
     } catch (error) {
       console.error('Error fetching categories:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (expandedSections.categories) {
+      fetchCategories()
+    }
+  }, [expandedSections.categories])
+
+  const handleOpenCatModal = (category?: NewsCategory) => {
+    if (category) {
+      setEditingCategory(category)
+      setCatFormData({ nameEn: category.nameEn, nameId: category.nameId })
+    } else {
+      setEditingCategory(null)
+      setCatFormData({ nameEn: '', nameId: '' })
+    }
+    setIsCatModalOpen(true)
+  }
+
+  const handleCloseCatModal = () => {
+    setIsCatModalOpen(false)
+    setEditingCategory(null)
+    setCatFormData({ nameEn: '', nameId: '' })
+  }
+
+  const handleSaveCategory = async () => {
+    if (!catFormData.nameEn.trim() || !catFormData.nameId.trim()) {
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: t({ en: 'Both English and Indonesian names are required', id: 'Nama dalam Inggris dan Indonesia wajib diisi' }),
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setIsSavingCat(true)
+    try {
+      let response: Response
+      if (editingCategory) {
+        response = await fetch(`/api/cms/news/categories?id=${editingCategory._id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(catFormData),
+        })
+      } else {
+        response = await fetch('/api/cms/news/categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(catFormData),
+        })
+      }
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to save category')
+      }
+
+      toast({
+        title: t({ en: 'Success', id: 'Sukses' }),
+        description: editingCategory
+          ? t({ en: 'Category updated successfully', id: 'Kategori berhasil diperbarui' })
+          : t({ en: 'Category created successfully', id: 'Kategori berhasil dibuat' }),
+      })
+      handleCloseCatModal()
+      fetchCategories()
+    } catch (error) {
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: error instanceof Error ? error.message : t({ en: 'Failed to save category', id: 'Gagal menyimpan kategori' }),
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSavingCat(false)
+    }
+  }
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm(t({ en: 'Are you sure you want to delete this category?', id: 'Apakah Anda yakin ingin menghapus kategori ini?' }))) return
+
+    try {
+      const response = await fetch(`/api/cms/news/categories?id=${id}`, { method: 'DELETE' })
+      if (!response.ok) throw new Error('Failed to delete category')
+      toast({
+        title: t({ en: 'Success', id: 'Sukses' }),
+        description: t({ en: 'Category deleted successfully', id: 'Kategori berhasil dihapus' }),
+      })
+      fetchCategories()
+    } catch (error) {
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: t({ en: 'Failed to delete category', id: 'Gagal menghapus kategori' }),
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleToggleCategoryStatus = async (id: string, currentActive: boolean) => {
+    try {
+      const response = await fetch(`/api/cms/news/categories?id=${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: !currentActive }),
+      })
+      if (!response.ok) throw new Error('Failed to update category status')
+      toast({
+        title: t({ en: 'Success', id: 'Sukses' }),
+        description: !currentActive
+          ? t({ en: 'Category activated', id: 'Kategori diaktifkan' })
+          : t({ en: 'Category deactivated', id: 'Kategori dinonaktifkan' }),
+      })
+      fetchCategories()
+    } catch (error) {
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: t({ en: 'Failed to update category status', id: 'Gagal memperbarui status kategori' }),
+        variant: 'destructive',
+      })
     }
   }
 
@@ -362,6 +494,95 @@ export default function CMSNewsPage() {
             )}
           </Card>
 
+          {/* News Categories Section */}
+          <Card className="p-6">
+            <div
+              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
+              onClick={() => setExpandedSections({ ...expandedSections, categories: !expandedSections.categories })}
+            >
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'News Categories', id: 'Kategori Berita' })}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t({ en: 'Manage bilingual news categories used across all news articles', id: 'Kelola kategori berita bilingual yang digunakan di semua artikel berita' })}
+                </p>
+              </div>
+              <ChevronDown
+                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.categories ? 'rotate-0' : '-rotate-90'}`}
+              />
+            </div>
+
+            {expandedSections.categories && (
+              <div className="mt-4 space-y-4">
+                <Button onClick={() => handleOpenCatModal()} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  {t({ en: 'Add Category', id: 'Tambah Kategori' })}
+                </Button>
+
+                {newsCategories.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-lg">
+                    {t({ en: 'No categories yet. Add one to get started.', id: 'Belum ada kategori. Tambahkan untuk memulai.' })}
+                  </div>
+                ) : (
+                  <div className="border border-border rounded-lg overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted">
+                        <tr>
+                          <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Name (English)', id: 'Nama (English)' })}</th>
+                          <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Name (Bahasa Indonesia)', id: 'Nama (Bahasa Indonesia)' })}</th>
+                          <th className="text-center py-3 px-4 font-semibold">{t({ en: 'Status', id: 'Status' })}</th>
+                          <th className="text-center py-3 px-4 font-semibold">{t({ en: 'Actions', id: 'Aksi' })}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {newsCategories.map((cat) => (
+                          <tr key={cat._id} className="hover:bg-muted/50">
+                            <td className="py-3 px-4">{cat.nameEn}</td>
+                            <td className="py-3 px-4">{cat.nameId}</td>
+                            <td className="py-3 px-4 text-center">
+                              <div className="flex items-center justify-center gap-3">
+                                <Switch
+                                  checked={cat.active ?? true}
+                                  onCheckedChange={() => handleToggleCategoryStatus(cat._id, cat.active ?? true)}
+                                />
+                                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                  (cat.active ?? true)
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                  {(cat.active ?? true)
+                                    ? t({ en: 'Active', id: 'Aktif' })
+                                    : t({ en: 'Inactive', id: 'Nonaktif' })}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => handleOpenCatModal(cat)}
+                                  className="p-1 hover:bg-muted rounded transition-colors"
+                                  title="Edit"
+                                >
+                                  <Edit2 className="h-4 w-4 text-blue-600" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteCategory(cat._id)}
+                                  className="p-1 hover:bg-muted rounded transition-colors"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-600" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+
           {/* News Section */}
           <Card className="p-6">
             <div
@@ -410,7 +631,7 @@ export default function CMSNewsPage() {
                       >
                         <option value="">{t({ en: 'All Categories', id: 'Semua Kategori' })}</option>
                         {availableCategories.map((cat) => (
-                          <option key={cat} value={cat}>{cat}</option>
+                          <option key={cat._id} value={cat.nameEn}>{cat.nameEn} / {cat.nameId}</option>
                         ))}
                       </select>
                       <select
@@ -565,6 +786,49 @@ export default function CMSNewsPage() {
             )}
           </Card>
         </>
+      )}
+
+      {/* Category Modal */}
+      {isCatModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-sm">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-4 text-foreground">
+                {editingCategory
+                  ? t({ en: 'Edit Category', id: 'Edit Kategori' })
+                  : t({ en: 'Add Category', id: 'Tambah Kategori' })}
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="cat-name-en">{t({ en: 'Name (English)', id: 'Nama (English)' })}</Label>
+                  <Input
+                    id="cat-name-en"
+                    value={catFormData.nameEn}
+                    onChange={(e) => setCatFormData({ ...catFormData, nameEn: e.target.value })}
+                    placeholder={t({ en: 'e.g. Technology', id: 'mis. Teknologi' })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="cat-name-id">{t({ en: 'Name (Bahasa Indonesia)', id: 'Nama (Bahasa Indonesia)' })}</Label>
+                  <Input
+                    id="cat-name-id"
+                    value={catFormData.nameId}
+                    onChange={(e) => setCatFormData({ ...catFormData, nameId: e.target.value })}
+                    placeholder={t({ en: 'e.g. Teknologi', id: 'mis. Teknologi' })}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 mt-6">
+                <Button onClick={handleSaveCategory} disabled={isSavingCat} className="flex-1">
+                  {isSavingCat ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save', id: 'Simpan' })}
+                </Button>
+                <Button variant="outline" onClick={handleCloseCatModal} disabled={isSavingCat} className="flex-1">
+                  {t({ en: 'Cancel', id: 'Batalkan' })}
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
       )}
 
       {/* Image Preview Modal */}

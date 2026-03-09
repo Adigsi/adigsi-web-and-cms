@@ -1,28 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Input } from '@/components/ui/input'
+import Link from 'next/link'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Search, ChevronLeft, ChevronRight, FileText, Calendar, Users, Building2, Award, Download } from 'lucide-react'
+import { FileText, Calendar, Users, Building2, Award, Download, ArrowRight } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
-
-interface DownloadRecord {
-  _id: string
-  fullname: string
-  company: string
-  position: string
-  email: string
-  member: string
-  downloadedAt: string
-}
-
-interface PaginationData {
-  total: number
-  page: number
-  limit: number
-  totalPages: number
-}
 
 interface Statistics {
   news: number
@@ -87,7 +69,8 @@ const translations = {
     next: 'Next',
     loading: 'Loading...',
     noRecords: 'No download records found',
-    category: 'Category'
+    category: 'Category',
+    viewDownloadHistory: 'View Download Records →'
   },
   id: {
     dashboard: 'Dashboard',
@@ -125,23 +108,14 @@ const translations = {
     next: 'Selanjutnya',
     loading: 'Memuat...',
     noRecords: 'Tidak ada catatan unduhan ditemukan',
-    category: 'Kategori'
+    category: 'Kategori',
+    viewDownloadHistory: 'Lihat Riwayat Unduhan →'
   }
 }
 
 export default function CMSDashboard() {
   const { language } = useLanguage()
   const t = translations[language as keyof typeof translations] || translations.en
-  const [downloads, setDownloads] = useState<DownloadRecord[]>([])
-  const [pagination, setPagination] = useState<PaginationData>({
-    total: 0,
-    page: 1,
-    limit: 10,
-    totalPages: 0
-  })
-  const [search, setSearch] = useState('')
-  const [memberFilter, setMemberFilter] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
   const [isStatsLoading, setIsStatsLoading] = useState(true)
   const [statistics, setStatistics] = useState<Statistics>({
     news: 0,
@@ -169,29 +143,6 @@ export default function CMSDashboard() {
     registrations: 0
   })
 
-  const fetchDownloads = async () => {
-    setIsLoading(true)
-    try {
-      const params = new URLSearchParams({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
-        ...(search && { search }),
-        ...(memberFilter && { member: memberFilter })
-      })
-
-      const response = await fetch(`/api/cms/report-downloads?${params}`)
-      if (response.ok) {
-        const data = await response.json()
-        setDownloads(data.downloads)
-        setPagination(data.pagination)
-      }
-    } catch (error) {
-      console.error('Error fetching downloads:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const fetchStatistics = async () => {
     setIsStatsLoading(true)
     try {
@@ -208,34 +159,8 @@ export default function CMSDashboard() {
   }
 
   useEffect(() => {
-    fetchDownloads()
-  }, [pagination.page, memberFilter])
-
-  useEffect(() => {
     fetchStatistics()
   }, [])
-
-  const handleSearch = () => {
-    setPagination({ ...pagination, page: 1 })
-    fetchDownloads()
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch()
-    }
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
 
   return (
     <div className="space-y-8">
@@ -408,135 +333,15 @@ export default function CMSDashboard() {
             </div>
           </Card>
         </div>
-      </div>
-
-      {/* Downloads Table Section */}
-      <div>
-        <h2 className="text-xl font-semibold text-foreground mb-4">{t.downloadRecordsHistory}</h2>
-        <Card className="bg-card rounded-lg shadow-sm border border-border p-0">
-          <div className="p-6 border-b border-border">
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 flex gap-2">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder={t.searchPlaceholder}
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="pl-10"
-                  />
-                </div>
-                <Button onClick={handleSearch}>{t.search}</Button>
-              </div>
-
-              <select
-                value={memberFilter}
-                onChange={(e) => setMemberFilter(e.target.value)}
-                className="px-4 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="">{t.allMembers}</option>
-                <option value="Yes">{t.adigsiMembers}</option>
-                <option value="No">{t.nonMembers}</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            {isLoading ? (
-              <div className="p-8 text-center text-muted-foreground">{t.loading}</div>
-            ) : downloads.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">{t.noRecords}</div>
-            ) : (
-              <table className="w-full">
-                <thead className="bg-muted/50 border-b border-border">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      {t.fullName}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      {t.company}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      {t.position}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      {t.email}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      {t.member}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      {t.downloadedAt}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-card divide-y divide-border">
-                  {downloads.map((record) => (
-                    <tr key={record._id} className="hover:bg-muted/40 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                        {record.fullname}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                        {record.company}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                        {record.position}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                        {record.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          record.member === 'Yes'
-                            ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400'
-                            : 'bg-primary/10 text-primary'
-                        }`}>
-                          {record.member}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                        {formatDate(record.downloadedAt)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-
-          {/* Pagination */}
-          {!isLoading && downloads.length > 0 && (
-            <div className="px-6 py-4 border-t border-border flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                {t.showing} {((pagination.page - 1) * pagination.limit) + 1} {t.to}{' '}
-                {Math.min(pagination.page * pagination.limit, pagination.total)} {t.of}{' '}
-                {pagination.total} {t.results}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
-                  disabled={pagination.page === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  {t.previous}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
-                  disabled={pagination.page === pagination.totalPages}
-                >
-                  {t.next}
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </Card>
+        <div className="mt-4">
+          <Link
+            href="/cms/knowledge-hub"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:underline font-medium"
+          >
+            {t.viewDownloadHistory}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
     </div>
   )

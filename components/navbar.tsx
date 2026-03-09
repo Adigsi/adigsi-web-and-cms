@@ -35,6 +35,10 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    href: '/knowledge-hub',
+    label: { en: 'Knowledge Hub', id: 'Pusat Pengetahuan' },
+  },
+  {
     href: '/events',
     label: { en: 'Events', id: 'Agenda' },
   },
@@ -98,7 +102,7 @@ export function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 w-full z-99 transition-all duration-300 ${
         isScrolled
-          ? 'bg-card/95 dark:bg-card/90 shadow-md border-b border-border backdrop-blur-md'
+          ? 'bg-card dark:bg-card shadow-md border-b border-border'
           : 'bg-card/95 sm:bg-card/0 border-b border-transparent'
       }`}
     >
