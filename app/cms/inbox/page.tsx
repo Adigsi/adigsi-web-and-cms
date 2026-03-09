@@ -206,7 +206,7 @@ export default function CMSInboxPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mt-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Inbox className="w-6 h-6" />
