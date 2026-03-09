@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, Upload, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -23,7 +23,7 @@ interface ReportFormData {
   published: boolean
 }
 
-export default function CMSKnowledgeHubFormPage() {
+function CMSKnowledgeHubFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const editId = searchParams.get('id')
@@ -417,5 +417,13 @@ export default function CMSKnowledgeHubFormPage() {
         </div>
       </Card>
     </div>
+  )
+}
+
+export default function CMSKnowledgeHubFormPage() {
+  return (
+    <Suspense>
+      <CMSKnowledgeHubFormContent />
+    </Suspense>
   )
 }
