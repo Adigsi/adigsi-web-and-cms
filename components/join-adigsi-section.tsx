@@ -17,11 +17,11 @@ export function JoinAdigsiSection() {
   const [isVisible, setIsVisible] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [joinData, setJoinData] = useState<JoinSectionData>({
-    titleEn: "Join ADIGSI and be part of Indonesia's leading cybersecurity and digital transformation network!",
-    titleId: 'Bergabunglah dengan ADIGSI dan jadilah bagian dari jaringan keamanan siber dan transformasi digital terkemuka di Indonesia!',
-    buttonTextEn: 'Join Now',
-    buttonTextId: 'Bergabung Sekarang',
-    buttonUrl: 'https://docs.google.com/forms/d/e/1FAIpQLScG1BWquhT9vpcgMfHeJy0ummlZOQXhUAxtYXxSmkNTdUDr6g/viewform?pli=1',
+    titleEn: "",
+    titleId: '',
+    buttonTextEn: '',
+    buttonTextId: '',
+    buttonUrl: '/registration-form',
   })
   const sectionRef = useRef<HTMLElement>(null)
   const scrollDirectionRef = useRef<'up' | 'down'>('down')
@@ -153,7 +153,8 @@ export function JoinAdigsiSection() {
         <div className={`transition-all duration-700 ${animClass()}`} style={{ animationDelay: '160ms' }}>
           <Link
             href={joinData.buttonUrl}
-            target="_blank"
+            // target="_blank"
+            target={joinData.buttonUrl.startsWith('http') ? '_blank' : undefined}
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-3 relative overflow-hidden
               bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useLanguage } from '@/contexts/language-context'
 import { CyberIcon } from '@/components/ui/cyber-icon'
 
@@ -21,6 +22,7 @@ const DEFAULT_CONFIG: JoinButtonConfig = {
 
 export function FloatingJoinButton() {
   const { t, language } = useLanguage()
+  const pathname = usePathname()
   const [config, setConfig] = useState<JoinButtonConfig>(DEFAULT_CONFIG)
 
   useEffect(() => {
@@ -33,6 +35,9 @@ export function FloatingJoinButton() {
   }, [])
 
   const label = language === 'en' ? config.textEn : config.textId
+
+  const targetPath = config.link?.startsWith('http') ? null : config.link || '/register'
+  if (targetPath && pathname === targetPath) return null
 
   function FloatingIcon() {
     if (config.icon === 'join') {
