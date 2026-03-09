@@ -48,39 +48,24 @@ export function FloatingJoinButton() {
   return (
     <>
       <style>{`
-        @keyframes fjb-nudge {
-          0%, 70%, 100% { transform: translateY(-50%) translateX(0); }
-          74%            { transform: translateY(-50%) translateX(-10px); }
-          78%            { transform: translateY(-50%) translateX(-5px); }
-          82%            { transform: translateY(-50%) translateX(-8px); }
-          86%            { transform: translateY(-50%) translateX(-3px); }
-        }
         @keyframes fjb-glow {
           0%, 100% { box-shadow: 0 4px 20px rgba(58,111,247,0.4); }
           50%       { box-shadow: 0 4px 36px rgba(58,111,247,0.85), 0 0 0 6px rgba(58,111,247,0.15); }
         }
-        .fjb-wrapper {
-          animation: fjb-nudge 4s ease-in-out infinite;
-        }
         .fjb-link {
           animation: fjb-glow 2s ease-in-out infinite;
         }
-        .fjb-wrapper:hover {
-          animation: none;
-          transform: translateY(-50%) translateX(-4px);
-        }
       `}</style>
 
-      <div className="fjb-wrapper fixed right-0 top-1/2 z-40 group">
+      <div className="fixed right-0 top-1/2 -translate-y-1/2 z-40 group">
         <Link
           href={config.link || '/register'}
           target={config.link?.startsWith('http') ? '_blank' : undefined}
           rel={config.link?.startsWith('http') ? 'noopener noreferrer' : undefined}
-          className="fjb-link relative flex flex-col items-center justify-center gap-2 px-3 pt-5 pb-7 w-11
-            bg-primary text-primary-foreground
+          className="fjb-link relative flex flex-col items-center justify-center gap-2 px-3 py-2 sm:py-5 w-8 sm:w-11
+            bg-linear-to-b from-primary to-accent text-primary-foreground rounded-l-md sm:rounded-l-2xl
             transition-all duration-300
             group-hover:w-14 group-hover:brightness-110"
-          style={{ clipPath: 'polygon(0 0, 100% 0, 100% 88%, 50% 100%, 0 88%)' }}
           aria-label={label}
         >
           {/* Shimmer sweep on hover */}
@@ -90,13 +75,13 @@ export function FloatingJoinButton() {
           />
 
           {/* Icon */}
-          <div className="shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110 text-primary-foreground [&_svg]:w-4 [&_svg]:h-4 [&_svg]:stroke-current">
+          <div className="shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110 text-primary-foreground [&_svg]:w-3 sm:[&_svg]:w-4 [&_svg]:h-3 sm:[&_svg]:h-4 [&_svg]:stroke-0.5 sm:[&_svg]:stroke-current">
             <FloatingIcon />
           </div>
 
           {/* Vertical text */}
           <span
-            className="relative z-10 text-[10px] font-black uppercase tracking-widest leading-none"
+            className="relative z-10 text-[8px] sm:text-[10px] font-black uppercase tracking-widest leading-none"
             style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)' }}
           >
             {label}
