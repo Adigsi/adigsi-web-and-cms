@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
+import { ObjectId } from 'mongodb'
 
 export async function POST(request: NextRequest) {
   try {
-    const { fullname, company, position, email, member } = await request.json()
+    const { fullname, company, position, email, member, reportId } = await request.json()
 
     // Validate required fields
     if (!fullname || !company || !position || !email || !member) {
@@ -22,35 +23,45 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (!reportId || !ObjectId.isValid(reportId)) {
+      return NextResponse.json(
+        { error: 'Valid report ID is required' },
+        { status: 400 }
+      )
+    }
+
     const db = await getMongoDatabase()
     const downloadsCollection = db.collection('report_downloads')
-    const reportCollection = db.collection('home_content')
+    const reportsCollection = db.collection('reports')
 
-    // Save download data
+    // Fetch the report to get PDF and title
+    const reportDoc = await reportsCollection.findOne({ _id: new ObjectId(reportId) })
+
+    if (!reportDoc || !reportDoc.pdfFile) {
+      return NextResponse.json(
+        { error: 'PDF file not found' },
+        { status: 404 }
+      )
+    }
+
+    // Save download record
     await downloadsCollection.insertOne({
       fullname,
       company,
       position,
       email,
       member,
+      reportId,
+      reportTitleEn: reportDoc.titleEn || '',
+      reportTitleId: reportDoc.titleId || '',
       downloadedAt: new Date(),
-      createdAt: new Date()
+      createdAt: new Date(),
     })
 
-    // Get PDF file
-    const reportData = await reportCollection.findOne({ section: 'report' })
-    
-    if (reportData && reportData.report && reportData.report.pdfFile) {
-      return NextResponse.json({ 
-        success: true,
-        pdfFile: reportData.report.pdfFile 
-      })
-    }
-
-    return NextResponse.json(
-      { error: 'PDF file not found' },
-      { status: 404 }
-    )
+    return NextResponse.json({
+      success: true,
+      pdfFile: reportDoc.pdfFile,
+    })
   } catch (error) {
     console.error('Error saving download data:', error)
     return NextResponse.json(
@@ -73,14 +84,14 @@ export async function GET(request: NextRequest) {
     const collection = db.collection('report_downloads')
 
     // Build query
-    const query: any = {}
-    
+    const query: Record<string, unknown> = {}
+
     if (search) {
       query.$or = [
         { fullname: { $regex: search, $options: 'i' } },
         { company: { $regex: search, $options: 'i' } },
         { position: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
+        { email: { $regex: search, $options: 'i' } },
       ]
     }
 

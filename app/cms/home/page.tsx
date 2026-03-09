@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
-import { ChevronDown, Upload, X, Check } from 'lucide-react'
+import { ChevronDown, Upload, X, Check, Pin, ExternalLink } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { Checkbox } from '@/components/ui/checkbox'
 import { CyberIcon } from '@/components/ui/cyber-icon'
@@ -193,6 +195,16 @@ export default function CMSHomePage() {
     image: '',
   })
 
+  const [pinnedReport, setPinnedReport] = useState<{
+    pinned: boolean
+    _id?: string
+    titleEn?: string
+    titleId?: string
+    cover?: string
+    tags?: string[]
+    hasPdf?: boolean
+  } | null>(null)
+
   const [footerData, setFooterData] = useState<FooterData>({
     aboutTitleEn: '',
     aboutTitleId: '',
@@ -217,13 +229,13 @@ export default function CMSHomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [carousellRes, bannerRes, welcomeRes, reportRes, footerRes, floatingRes] = await Promise.all([
+        const [carousellRes, bannerRes, welcomeRes, footerRes, floatingRes, pinnedRes] = await Promise.all([
           fetch('/api/cms/home/carousell'),
           fetch('/api/cms/home/banner'),
           fetch('/api/cms/home/welcome'),
-          fetch('/api/cms/home/report'),
           fetch('/api/cms/home/footer'),
           fetch('/api/cms/home/floating-buttons'),
+          fetch('/api/cms/reports/pinned'),
         ])
 
         if (carousellRes.ok) {
@@ -231,37 +243,31 @@ export default function CMSHomePage() {
           setCarousellData({
             slides: Array.isArray(data.slides) ? data.slides : [],
           })
-          console.log('Fetched carousell data:', data)
         }
 
         if (bannerRes.ok) {
           const data = await bannerRes.json()
           setBannerData(data)
-          console.log('Fetched banner data:', data)
         }
 
         if (welcomeRes.ok) {
           const data = await welcomeRes.json()
           setWelcomeData(data)
-          console.log('Fetched welcome data:', data)
-        }
-
-        if (reportRes.ok) {
-          const data = await reportRes.json()
-          setReportData(data)
-          console.log('Fetched report data:', data)
         }
 
         if (footerRes.ok) {
           const data = await footerRes.json()
           setFooterData(data)
-          console.log('Fetched footer data:', data)
         }
 
         if (floatingRes.ok) {
           const data = await floatingRes.json()
           setFloatingData(data)
-          console.log('Fetched floating buttons data:', data)
+        }
+
+        if (pinnedRes.ok) {
+          const data = await pinnedRes.json()
+          setPinnedReport(data)
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -1187,16 +1193,16 @@ export default function CMSHomePage() {
             )}
           </Card>
 
-          {/* Report Section */}
+          {/* Report Section (read-only — managed from Knowledge Hub) */}
           <Card className="p-6">
             <div
               className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
               onClick={() => setExpandedSections({ ...expandedSections, report: !expandedSections.report })}
             >
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Report Section', id: 'Section Report' })}</h2>
+                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Report Section (Our Latest Publication)', id: 'Section Laporan (Publikasi Terbaru Kami)' })}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage the industry report section with title, description, image and download button', id: 'Kelola section laporan industri dengan judul, deskripsi, gambar dan tombol unduh' })}
+                  {t({ en: 'Shows the pinned report from Knowledge Hub. Manage reports in the Knowledge Hub menu.', id: 'Menampilkan laporan yang di-pin dari Knowledge Hub. Kelola laporan di menu Knowledge Hub.' })}
                 </p>
               </div>
               <ChevronDown
@@ -1205,175 +1211,53 @@ export default function CMSHomePage() {
             </div>
 
             {expandedSections.report && (
-              <>
-                <div className="space-y-6 mt-4">
-                  {/* Report Image Section */}
-                  <div>
-                    <Label>{t({ en: 'Report Image', id: 'Gambar Laporan' })}</Label>
-                    <div className="mt-2 space-y-3">
-                      {reportData.image && (
-                        <div className="relative w-full h-64 rounded-lg overflow-hidden bg-muted">
-                          <img
-                            src={reportData.image}
-                            alt="Report preview"
-                            className="w-full h-full object-contain"
-                          />
-                          <button
-                            onClick={() => setReportData({ ...reportData, image: '' })}
-                            className="absolute top-2 right-2 p-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
+              <div className="mt-4">
+                {pinnedReport && pinnedReport.pinned ? (
+                  <div className="flex items-start gap-4 p-4 rounded-xl border border-primary/20 bg-primary/5">
+                    {pinnedReport.cover && (
+                      <div className="relative w-20 h-28 rounded-lg overflow-hidden border border-border shrink-0">
+                        <Image src={pinnedReport.cover} alt={pinnedReport.titleEn || ''} fill className="object-cover" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Pin className="h-3.5 w-3.5 text-primary fill-current" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                          {t({ en: 'Pinned to Homepage', id: 'Di-pin ke Beranda' })}
+                        </span>
+                      </div>
+                      <h3 className="font-semibold text-foreground line-clamp-2">{pinnedReport.titleEn}</h3>
+                      {pinnedReport.titleId && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{pinnedReport.titleId}</p>
+                      )}
+                      {pinnedReport.tags && pinnedReport.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {pinnedReport.tags.map((tag) => (
+                            <span key={tag} className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs border border-border">{tag}</span>
+                          ))}
                         </div>
                       )}
-                      <div className="flex items-center gap-2">
-                        <label className="flex-1 flex items-center justify-center px-4 py-2 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
-                          <div className="flex items-center gap-2">
-                            <Upload className="h-4 w-4" />
-                            <span className="text-sm text-muted-foreground">
-                              {t({ en: 'Upload Image (max 5MB)', id: 'Unggah Gambar (maks 5MB)' })}
-                            </span>
-                          </div>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleReportImageUpload}
-                            className="hidden"
-                          />
-                        </label>
+                      <div className="flex items-center gap-2 mt-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${pinnedReport.hasPdf ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>
+                          {pinnedReport.hasPdf ? t({ en: '✓ PDF Available', id: '✓ PDF Tersedia' }) : t({ en: 'No PDF', id: 'Tidak Ada PDF' })}
+                        </span>
                       </div>
                     </div>
                   </div>
-
-                  {/* Title Section */}
-                  <div className="border-t pt-4">
-                    <h3 className="font-semibold mb-4">{t({ en: 'Title', id: 'Judul' })}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="report-title-en">{t({ en: 'Title (EN)', id: 'Judul (EN)' })}</Label>
-                        <Input
-                          id="report-title-en"
-                          value={reportData.titleEn}
-                          onChange={(e) => setReportData({ ...reportData, titleEn: e.target.value })}
-                          placeholder="e.g., Indonesia Cybersecurity Industry Report"
-                          className="mt-1"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="report-title-id">{t({ en: 'Title (ID)', id: 'Judul (ID)' })}</Label>
-                        <Input
-                          id="report-title-id"
-                          value={reportData.titleId}
-                          onChange={(e) => setReportData({ ...reportData, titleId: e.target.value })}
-                          placeholder="cth., Laporan Industri Keamanan Siber Indonesia"
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
+                ) : (
+                  <div className="p-4 rounded-xl border border-border bg-muted/30 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      {t({ en: 'No report is pinned. The homepage section will be hidden.', id: 'Belum ada laporan yang di-pin. Section beranda akan disembunyikan.' })}
+                    </p>
                   </div>
-
-                  {/* Description Section */}
-                  <div className="border-t pt-4">
-                    <h3 className="font-semibold mb-4">{t({ en: 'Description', id: 'Deskripsi' })}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="desc-en">{t({ en: 'Description (EN)', id: 'Deskripsi (EN)' })}</Label>
-                        <textarea
-                          id="desc-en"
-                          value={reportData.descriptionEn}
-                          onChange={(e) => setReportData({ ...reportData, descriptionEn: e.target.value })}
-                          placeholder={t({ en: 'Enter description in English. Use line breaks to separate paragraphs.', id: 'Masukkan deskripsi dalam bahasa Inggris. Gunakan enter untuk memisahkan paragraf.' })}
-                          className="mt-1 w-full px-3 py-2 border border-border rounded-md text-sm resize-none"
-                          rows={8}
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="desc-id">{t({ en: 'Description (ID)', id: 'Deskripsi (ID)' })}</Label>
-                        <textarea
-                          id="desc-id"
-                          value={reportData.descriptionId}
-                          onChange={(e) => setReportData({ ...reportData, descriptionId: e.target.value })}
-                          placeholder={t({ en: 'Enter description in Indonesian. Use line breaks to separate paragraphs.', id: 'Masukkan deskripsi dalam bahasa Indonesia. Gunakan enter untuk memisahkan paragraf.' })}
-                          className="mt-1 w-full px-3 py-2 border border-border rounded-md text-sm resize-none"
-                          rows={8}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Download Button Section */}
-                  <div className="border-t pt-4">
-                    <h3 className="font-semibold mb-4">{t({ en: 'Download Button', id: 'Tombol Unduh' })}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <Label htmlFor="btn-text-en">{t({ en: 'Button Text (EN)', id: 'Teks Tombol (EN)' })}</Label>
-                        <Input
-                          id="btn-text-en"
-                          value={reportData.buttonTextEn}
-                          onChange={(e) => setReportData({ ...reportData, buttonTextEn: e.target.value })}
-                          placeholder="e.g., Download Here"
-                          className="mt-1"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="btn-text-id">{t({ en: 'Button Text (ID)', id: 'Teks Tombol (ID)' })}</Label>
-                        <Input
-                          id="btn-text-id"
-                          value={reportData.buttonTextId}
-                          onChange={(e) => setReportData({ ...reportData, buttonTextId: e.target.value })}
-                          placeholder="cth., Unduh Di Sini"
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label>{t({ en: 'PDF File (max 10MB)', id: 'File PDF (maks 10MB)' })}</Label>
-                      <div className="mt-2 space-y-3">
-                        {reportData.pdfFile && (
-                          <div className="flex items-center gap-3 p-3 border border-border rounded-lg bg-muted/50">
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-foreground">
-                                {t({ en: 'PDF file uploaded', id: 'File PDF terupload' })}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {t({ en: 'Click upload to replace', id: 'Klik upload untuk mengganti' })}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => setReportData({ ...reportData, pdfFile: '' })}
-                              className="p-2 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          </div>
-                        )}
-                        <label className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
-                          <div className="flex items-center gap-2">
-                            <Upload className="h-4 w-4" />
-                            <span className="text-sm text-muted-foreground">
-                              {t({ en: 'Upload PDF File', id: 'Unggah File PDF' })}
-                            </span>
-                          </div>
-                          <input
-                            type="file"
-                            accept=".pdf,application/pdf"
-                            onChange={handleReportPdfUpload}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button onClick={() => handleSave('report')} disabled={isSaving === 'report'} className="w-full">
-                    {isSaving === 'report' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
-                  </Button>
+                )}
+                <div className="mt-4">
+                  <Link href="/cms/knowledge-hub" className="inline-flex items-center gap-2 text-sm text-primary hover:underline font-medium">
+                    <ExternalLink className="h-4 w-4" />
+                    {t({ en: 'Manage Reports in Knowledge Hub →', id: 'Kelola Laporan di Knowledge Hub →' })}
+                  </Link>
                 </div>
-              </>
+              </div>
             )}
           </Card>
 

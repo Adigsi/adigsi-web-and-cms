@@ -543,7 +543,7 @@ function NewsFormContent() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-5 py-12">
+    <div className="mx-auto px-5 ">
       {/* Header */}
       <div className="mb-6">
         <Button

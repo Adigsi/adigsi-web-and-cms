@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
+  BookOpen,
   CalendarDays,
   ChevronsLeft,
   ChevronsRight,
@@ -121,6 +122,12 @@ const cmsNavigation: NavigationSection[] = [
             icon: UserPlus,
           },
         ],
+      },
+      {
+        label: 'Knowledge Hub',
+        labelTranslation: { en: 'Knowledge Hub', id: 'Pusat Pengetahuan' },
+        href: '/cms/knowledge-hub',
+        icon: BookOpen,
       },
       {
         label: 'Events',
