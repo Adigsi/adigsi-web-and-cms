@@ -9,6 +9,7 @@ import {
   CalendarDays,
   ChevronsLeft,
   ChevronsRight,
+  ClipboardList,
   House,
   Info,
   Inbox,
@@ -86,6 +87,12 @@ const cmsNavigation: NavigationSection[] = [
         href: '/cms/inbox',
         icon: Inbox,
       },
+      {
+        label: 'Registration Forms',
+        labelTranslation: { en: 'Registration Forms', id: 'Formulir Pendaftaran' },
+        href: '/cms/registration-forms',
+        icon: ClipboardList,
+      },
     ],
   },
   {
@@ -151,6 +158,7 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['Community'])
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [unreadRegFormsCount, setUnreadRegFormsCount] = useState(0)
   const pathname = usePathname()
   const { language, setLanguage, t } = useLanguage()
 
@@ -161,13 +169,22 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
         .then((data) => { if (data?.count != null) setUnreadCount(data.count) })
         .catch(() => {})
     }
+    const fetchUnreadRegForms = () => {
+      fetch('/api/cms/registration-forms/unread-count')
+        .then((res) => res.ok ? res.json() : null)
+        .then((data) => { if (data?.count != null) setUnreadRegFormsCount(data.count) })
+        .catch(() => {})
+    }
     fetchUnreadCount()
-    const interval = setInterval(fetchUnreadCount, 60_000)
-    // Also refresh immediately whenever the inbox marks a message as read/deleted
+    fetchUnreadRegForms()
+    const interval = setInterval(() => { fetchUnreadCount(); fetchUnreadRegForms() }, 60_000)
+    // Also refresh immediately whenever a message is read/deleted
     window.addEventListener('cms:unread-changed', fetchUnreadCount)
+    window.addEventListener('cms:reg-forms-unread-changed', fetchUnreadRegForms)
     return () => {
       clearInterval(interval)
       window.removeEventListener('cms:unread-changed', fetchUnreadCount)
+      window.removeEventListener('cms:reg-forms-unread-changed', fetchUnreadRegForms)
     }
   }, [pathname])
 
@@ -261,7 +278,12 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
     const Icon = item.icon
     const isActive = isActiveMenu(item.href)
     const isInbox = item.href === '/cms/inbox'
-    const badge = isInbox && unreadCount > 0 ? unreadCount : 0
+    const isRegForms = item.href === '/cms/registration-forms'
+    const badge = isInbox && unreadCount > 0
+      ? unreadCount
+      : isRegForms && unreadRegFormsCount > 0
+        ? unreadRegFormsCount
+        : 0
 
     return (
       <Link

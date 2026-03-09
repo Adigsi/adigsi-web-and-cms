@@ -164,7 +164,7 @@ export default function CMSDashboard() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-foreground">{t.dashboard}</h1>
+      <h1 className="text-3xl font-bold text-foreground mt-6">{t.dashboard}</h1>
 
       {/* Website Statistics Section */}
       <div>
