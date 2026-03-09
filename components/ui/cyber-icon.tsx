@@ -294,6 +294,124 @@ export function CyberIcon({ type, size = 20 }: { type: string; size?: number }) 
         <line x1="16" y1="20" x2="16" y2="29" strokeOpacity="0.4" />
       </svg>
     ),
+    'medal-bronze': (
+      <svg width={size} height={size} viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <line x1="15" y1="4" x2="25" y2="4" strokeLinecap="round" />
+        <line x1="15" y1="4" x2="17" y2="12" strokeLinecap="round" />
+        <line x1="25" y1="4" x2="23" y2="12" strokeLinecap="round" />
+        <circle cx="20" cy="24" r="12" />
+        <circle cx="20" cy="24" r="8" strokeOpacity="0.22" strokeDasharray="2.5 2" />
+        <line x1="13" y1="24.5" x2="27" y2="24.5" strokeLinecap="round" strokeWidth="1.8" />
+      </svg>
+    ),
+    'medal-silver': (
+      <svg width={size} height={size} viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <line x1="15" y1="4" x2="25" y2="4" strokeLinecap="round" />
+        <line x1="15" y1="4" x2="17" y2="12" strokeLinecap="round" />
+        <line x1="25" y1="4" x2="23" y2="12" strokeLinecap="round" />
+        <circle cx="20" cy="24" r="12" />
+        <circle cx="20" cy="24" r="8" strokeOpacity="0.22" strokeDasharray="2.5 2" />
+        <line x1="13.5" y1="22.5" x2="26.5" y2="22.5" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="13.5" y1="26.5" x2="26.5" y2="26.5" strokeLinecap="round" strokeWidth="1.8" />
+      </svg>
+    ),
+    'medal-gold': (
+      <svg width={size} height={size} viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <line x1="15" y1="4" x2="25" y2="4" strokeLinecap="round" />
+        <line x1="15" y1="4" x2="17" y2="12" strokeLinecap="round" />
+        <line x1="25" y1="4" x2="23" y2="12" strokeLinecap="round" />
+        <circle cx="20" cy="24" r="12" />
+        <circle cx="20" cy="24" r="8" strokeOpacity="0.22" strokeDasharray="2.5 2" />
+        <line x1="14" y1="21" x2="26" y2="21" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="13" y1="24.5" x2="27" y2="24.5" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="14" y1="28" x2="26" y2="28" strokeLinecap="round" strokeWidth="1.8" />
+      </svg>
+    ),
+    'medal-platinum': (
+      <svg width={size} height={size} viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <line x1="15" y1="4" x2="25" y2="4" strokeLinecap="round" />
+        <line x1="15" y1="4" x2="17" y2="12" strokeLinecap="round" />
+        <line x1="25" y1="4" x2="23" y2="12" strokeLinecap="round" />
+        <circle cx="20" cy="24" r="12" />
+        <circle cx="20" cy="24" r="8" strokeOpacity="0.22" strokeDasharray="2.5 2" />
+        <line x1="14.5" y1="20" x2="25.5" y2="20" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="13" y1="23" x2="27" y2="23" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="13" y1="26" x2="27" y2="26" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="14.5" y1="29" x2="25.5" y2="29" strokeLinecap="round" strokeWidth="1.8" />
+      </svg>
+    ),
+    'medal-5': (
+      <svg width={size} height={size} viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <line x1="15" y1="4" x2="25" y2="4" strokeLinecap="round" />
+        <line x1="15" y1="4" x2="17" y2="12" strokeLinecap="round" />
+        <line x1="25" y1="4" x2="23" y2="12" strokeLinecap="round" />
+        <circle cx="20" cy="24" r="12" />
+        <circle cx="20" cy="24" r="8" strokeOpacity="0.22" strokeDasharray="2.5 2" />
+        <line x1="14.5" y1="19" x2="25.5" y2="19" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="13" y1="21.75" x2="27" y2="21.75" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="13" y1="24.5" x2="27" y2="24.5" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="13" y1="27.25" x2="27" y2="27.25" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="14.5" y1="30" x2="25.5" y2="30" strokeLinecap="round" strokeWidth="1.8" />
+      </svg>
+    ),
+    'medal-6': (
+      <svg width={size} height={size} viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <line x1="15" y1="4" x2="25" y2="4" strokeLinecap="round" />
+        <line x1="15" y1="4" x2="17" y2="12" strokeLinecap="round" />
+        <line x1="25" y1="4" x2="23" y2="12" strokeLinecap="round" />
+        <circle cx="20" cy="24" r="12" />
+        <circle cx="20" cy="24" r="8" strokeOpacity="0.22" strokeDasharray="2.5 2" />
+        <line x1="15" y1="18.5" x2="25" y2="18.5" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="13.5" y1="21" x2="26.5" y2="21" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="13" y1="23.5" x2="27" y2="23.5" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="13" y1="26" x2="27" y2="26" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="13.5" y1="28.5" x2="26.5" y2="28.5" strokeLinecap="round" strokeWidth="1.8" />
+        <line x1="15" y1="31" x2="25" y2="31" strokeLinecap="round" strokeWidth="1.8" />
+      </svg>
+    ),
+    'medal-star': (
+      <svg width={size} height={size} viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <line x1="15" y1="4" x2="25" y2="4" strokeLinecap="round" />
+        <line x1="15" y1="4" x2="17" y2="12" strokeLinecap="round" />
+        <line x1="25" y1="4" x2="23" y2="12" strokeLinecap="round" />
+        <circle cx="20" cy="24" r="12" />
+        <circle cx="20" cy="24" r="8" strokeOpacity="0.22" strokeDasharray="2.5 2" />
+        <polygon points="20,18 21.4,22.1 25.7,22.1 22.3,24.7 23.5,28.9 20,26.4 16.5,28.9 17.7,24.7 14.3,22.1 18.6,22.1" strokeLinejoin="round" strokeWidth="1.4" />
+      </svg>
+    ),
+    'medal-crown': (
+      <svg width={size} height={size} viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <line x1="15" y1="4" x2="25" y2="4" strokeLinecap="round" />
+        <line x1="15" y1="4" x2="17" y2="12" strokeLinecap="round" />
+        <line x1="25" y1="4" x2="23" y2="12" strokeLinecap="round" />
+        <circle cx="20" cy="24" r="12" />
+        <circle cx="20" cy="24" r="8" strokeOpacity="0.22" strokeDasharray="2.5 2" />
+        <polyline points="13,30 13,22 16.5,27 20,19 23.5,27 27,22 27,30" strokeLinejoin="round" strokeLinecap="round" strokeWidth="1.4" />
+        <line x1="13" y1="30" x2="27" y2="30" strokeLinecap="round" strokeWidth="1.4" />
+      </svg>
+    ),
+    'medal-shield': (
+      <svg width={size} height={size} viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <line x1="15" y1="4" x2="25" y2="4" strokeLinecap="round" />
+        <line x1="15" y1="4" x2="17" y2="12" strokeLinecap="round" />
+        <line x1="25" y1="4" x2="23" y2="12" strokeLinecap="round" />
+        <circle cx="20" cy="24" r="12" />
+        <circle cx="20" cy="24" r="8" strokeOpacity="0.22" strokeDasharray="2.5 2" />
+        <path d="M20 17 L26 20 L26 25 C26 28.5 20 31.5 20 31.5 C20 31.5 14 28.5 14 25 L14 20 Z" strokeLinejoin="round" strokeWidth="1.4" />
+      </svg>
+    ),
+    'medal-diamond': (
+      <svg width={size} height={size} viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <line x1="15" y1="4" x2="25" y2="4" strokeLinecap="round" />
+        <line x1="15" y1="4" x2="17" y2="12" strokeLinecap="round" />
+        <line x1="25" y1="4" x2="23" y2="12" strokeLinecap="round" />
+        <circle cx="20" cy="24" r="12" />
+        <circle cx="20" cy="24" r="8" strokeOpacity="0.22" strokeDasharray="2.5 2" />
+        <polygon points="20,18 26,24 20,31 14,24" strokeLinejoin="round" strokeWidth="1.4" />
+        <line x1="14" y1="24" x2="26" y2="24" strokeOpacity="0.4" strokeWidth="1" />
+        <line x1="17" y1="20.5" x2="23" y2="20.5" strokeOpacity="0.4" strokeWidth="1" />
+      </svg>
+    ),
   }
   return <>{icons[type] || icons.mssp}</>
 }

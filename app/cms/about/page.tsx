@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useLanguage } from '@/contexts/language-context'
 import { useToast } from '@/hooks/use-toast'
-import { ChevronDown } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
 interface Logo {
   alt: string
@@ -33,12 +33,6 @@ export default function CMSAboutPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [draggedItem, setDraggedItem] = useState<{ groupIndex: number; memberIndex: number } | null>(null)
   const [draggedLogo, setDraggedLogo] = useState<{ categoryIndex: number; logoIndex: number } | null>(null)
-  const [expandedSections, setExpandedSections] = useState({
-    banner: false,
-    organization: false,
-    about: false,
-    partners: false,
-  })
 
   // Banner section state
   const [bannerData, setBannerData] = useState({
@@ -257,92 +251,77 @@ export default function CMSAboutPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{t({ en: 'About Page Management', id: 'Manajemen Halaman About' })}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t({ en: 'Manage content sections for the About page', id: 'Kelola konten section untuk halaman About' })}
-        </p>
-      </div>
-
+    <>
       {isLoading ? (
-        <Card className="p-6">
-          <div className="text-center py-8 text-muted-foreground">
-            {t({ en: 'Loading...', id: 'Memuat...' })}
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{t({ en: 'About Page Management', id: 'Manajemen Halaman About' })}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t({ en: 'Manage content sections for the About page', id: 'Kelola konten section untuk halaman About' })}
+            </p>
           </div>
-        </Card>
-      ) : (
-        <>
-          {/* Banner Section */}
           <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, banner: !expandedSections.banner })}
-            >
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Banner', id: 'Banner' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage the banner section with title and image', id: 'Kelola section banner dengan judul dan gambar' })}
-                </p>
-              </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.banner ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
+            <div className="text-center py-8 text-muted-foreground">
+              {t({ en: 'Loading...', id: 'Memuat...' })}
             </div>
-
-            {expandedSections.banner && (
-              <>
-                <div className="space-y-4 mt-4">
-                  <div>
-                    <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
-                    <Input
-                      id="banner-title-en"
-                      value={bannerData.titleEn}
-                      onChange={(e) => setBannerData({ ...bannerData, titleEn: e.target.value })}
-                      placeholder={t({ en: 'Enter banner title in English', id: 'Masukkan judul banner dalam English' })}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="banner-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
-                    <Input
-                      id="banner-title-id"
-                      value={bannerData.titleId}
-                      onChange={(e) => setBannerData({ ...bannerData, titleId: e.target.value })}
-                      placeholder={t({ en: 'Enter banner title in Indonesian', id: 'Masukkan judul banner dalam Indonesia' })}
-                    />
-                  </div>
-
-                  <Button onClick={() => handleSave('banner')} disabled={isSaving === 'banner'}>
-                    {isSaving === 'banner' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
-                  </Button>
-                </div>
-              </>
-            )}
           </Card>
+        </div>
+      ) : (
+        <Tabs defaultValue="banner" className="h-full">
+          {/* Sticky header */}
+          <div className="sticky top-16 md:top-0 z-20 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 pt-4 pb-3 bg-background/95 backdrop-blur-sm border-b border-border mb-6">
+            <h1 className="text-2xl font-bold text-foreground">{t({ en: 'About Page Management', id: 'Manajemen Halaman About' })}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t({ en: 'Manage content sections for the About page', id: 'Kelola konten section untuk halaman About' })}
+            </p>
+            <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-primary/10 p-1 rounded-md mt-3">
+              <TabsTrigger value="banner">{t({ en: 'Page Title', id: 'Judul Halaman' })}</TabsTrigger>
+              <TabsTrigger value="about">{t({ en: 'About ADIGSI', id: 'Tentang ADIGSI' })}</TabsTrigger>
+              <TabsTrigger value="organization">{t({ en: 'Organization Structure', id: 'Struktur Organisasi' })}</TabsTrigger>
+              <TabsTrigger value="partners">{t({ en: 'Partners', id: 'Mitra' })}</TabsTrigger>
+            </TabsList>
+          </div>
 
-          {/* About ADIGSI Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, about: !expandedSections.about })}
-            >
+          {/* Banner Tab */}
+          <TabsContent value="banner">
+            <div className="flex flex-col h-full">
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'About ADIGSI', id: 'Tentang ADIGSI' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage the ADIGSI information section', id: 'Kelola section informasi ADIGSI' })}
-                </p>
+                <Card className="p-6 flex-1">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
+                      <Input
+                        id="banner-title-en"
+                        value={bannerData.titleEn}
+                        onChange={(e) => setBannerData({ ...bannerData, titleEn: e.target.value })}
+                        placeholder={t({ en: 'Enter banner title in English', id: 'Masukkan judul banner dalam English' })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="banner-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
+                      <Input
+                        id="banner-title-id"
+                        value={bannerData.titleId}
+                        onChange={(e) => setBannerData({ ...bannerData, titleId: e.target.value })}
+                        placeholder={t({ en: 'Enter banner title in Indonesian', id: 'Masukkan judul banner dalam Indonesia' })}
+                      />
+                    </div>
+                  </div>
+                </Card>
               </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.about ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
+                <Button onClick={() => handleSave('banner')} disabled={isSaving === 'banner'}>
+                  {isSaving === 'banner' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                </Button>
+              </div>
             </div>
+          </TabsContent>
 
-            {expandedSections.about && (
-              <>
-                <div className="space-y-6 mt-4">
+          {/* About ADIGSI Tab */}
+          <TabsContent value="about">
+            <div className="flex flex-col h-full">
+              <Card className="p-6 flex-1">
+                <div className="space-y-6">
                   {/* Title Section */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -422,7 +401,6 @@ export default function CMSAboutPage() {
                   {/* Missions Section */}
                   <div className="border-t pt-4">
                     <h3 className="text-sm font-semibold text-foreground mb-3">{t({ en: 'Missions', id: 'Misi' })}</h3>
-
                     <div className="space-y-3">
                       {aboutData.missions.map((mission, index) => (
                         <div key={index} className="flex gap-3 items-start">
@@ -472,51 +450,34 @@ export default function CMSAboutPage() {
                         </div>
                       ))}
                     </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-3"
-                      onClick={() => {
-                        setAboutData({
-                          ...aboutData,
-                          missions: [...aboutData.missions, { en: '', id: '' }]
-                        })
-                      }}
-                    >
-                      {t({ en: '+ Add Mission', id: '+ Tambah Misi' })}
-                    </Button>
                   </div>
-
-                  <Button onClick={() => handleSave('about')} disabled={isSaving === 'about'}>
-                    {isSaving === 'about' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
-                  </Button>
                 </div>
-              </>
-            )}
-          </Card>
-
-          {/* Organization Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, organization: !expandedSections.organization })}
-            >
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Organization Structure', id: 'Struktur Organisasi' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage the organization structure with groups and members', id: 'Kelola struktur organisasi dengan grup dan anggota' })}
-                </p>
+              </Card>
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setAboutData({
+                      ...aboutData,
+                      missions: [...aboutData.missions, { en: '', id: '' }]
+                    })
+                  }}
+                >
+                  {t({ en: '+ Add Mission', id: '+ Tambah Misi' })}
+                </Button>
+                <Button onClick={() => handleSave('about')} disabled={isSaving === 'about'}>
+                  {isSaving === 'about' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                </Button>
               </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.organization ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
             </div>
+          </TabsContent>
 
-            {expandedSections.organization && (
-              <>
-                <div className="space-y-6 mt-4">
+          {/* Organization Structure Tab */}
+          <TabsContent value="organization">
+            <div className="flex flex-col h-full">
+              <Card className="p-6 flex-1">
+                <div className="space-y-6">
                   {orgData.groups.map((group, groupIndex) => (
                     <div key={groupIndex} className="border border-border rounded-lg p-4 space-y-4">
                       <div className="flex items-center justify-between">
@@ -583,11 +544,10 @@ export default function CMSAboutPage() {
                                   setDraggedItem(null)
                                 }
                               }}
-                              className={`border rounded-lg p-4 space-y-3 cursor-grab active:cursor-grabbing transition-opacity ${
-                                draggedItem?.groupIndex === groupIndex && draggedItem?.memberIndex === memberIndex
+                              className={`border rounded-lg p-4 space-y-3 cursor-grab active:cursor-grabbing transition-opacity ${draggedItem?.groupIndex === groupIndex && draggedItem?.memberIndex === memberIndex
                                   ? 'border-dashed border-primary bg-primary/5 opacity-50'
                                   : 'border-dashed border-border'
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center justify-between">
                                 <span className="text-xs font-medium text-muted-foreground">
@@ -708,63 +668,46 @@ export default function CMSAboutPage() {
                       </div>
                     </div>
                   ))}
-
-                  <Button
-                    variant="outline"
-                    className='mr-4'
-                    onClick={() => {
-                      setOrgData({
-                        ...orgData,
-                        groups: [
-                          ...orgData.groups,
-                          {
-                            titleEn: '',
-                            titleId: '',
-                            members: [
-                              {
-                                name: '',
-                                positionEn: '',
-                                positionId: '',
-                                imageUrl: ''
-                              }
-                            ]
-                          }
-                        ]
-                      })
-                    }}
-                  >
-                    {t({ en: '+ Add New Group', id: '+ Tambah Grup Baru' })}
-                  </Button>
-
-                  <Button onClick={() => handleSave('organization')} disabled={isSaving === 'organization'}>
-                    {isSaving === 'organization' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
-                  </Button>
                 </div>
-              </>
-            )}
-          </Card>
-
-          {/* Partners Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, partners: !expandedSections.partners })}
-            >
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Partners', id: 'Mitra' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage partner categories and logos', id: 'Kelola kategori mitra dan logo' })}
-                </p>
+              </Card>
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setOrgData({
+                      ...orgData,
+                      groups: [
+                        ...orgData.groups,
+                        {
+                          titleEn: '',
+                          titleId: '',
+                          members: [
+                            {
+                              name: '',
+                              positionEn: '',
+                              positionId: '',
+                              imageUrl: ''
+                            }
+                          ]
+                        }
+                      ]
+                    })
+                  }}
+                >
+                  {t({ en: '+ Add New Group', id: '+ Tambah Grup Baru' })}
+                </Button>
+                <Button onClick={() => handleSave('organization')} disabled={isSaving === 'organization'}>
+                  {isSaving === 'organization' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                </Button>
               </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.partners ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
             </div>
+          </TabsContent>
 
-            {expandedSections.partners && (
-              <>
-                <div className="space-y-6 mt-4">
+          {/* Partners Tab */}
+          <TabsContent value="partners">
+            <div className="flex flex-col h-full">
+              <Card className="p-6 flex-1">
+                <div className="space-y-6">
                   {partnersData.categories.map((category, categoryIndex) => (
                     <div key={categoryIndex} className="border border-border rounded-lg p-4 space-y-4">
                       <div className="border-b pb-4 flex items-center justify-between">
@@ -849,11 +792,10 @@ export default function CMSAboutPage() {
                                     setDraggedLogo(null)
                                   }
                                 }}
-                                className={`border rounded-lg p-3 space-y-2 flex flex-col cursor-grab active:cursor-grabbing transition-opacity ${
-                                  draggedLogo?.categoryIndex === categoryIndex && draggedLogo?.logoIndex === logoIndex
+                                className={`border rounded-lg p-3 space-y-2 flex flex-col cursor-grab active:cursor-grabbing transition-opacity ${draggedLogo?.categoryIndex === categoryIndex && draggedLogo?.logoIndex === logoIndex
                                     ? 'border-dashed border-primary bg-primary/5 opacity-50'
                                     : 'border-dashed border-border'
-                                }`}
+                                  }`}
                               >
                                 {logo.imageUrl && (
                                   <div className="flex-1 flex items-center justify-center bg-gray-50 rounded h-20">
@@ -924,37 +866,36 @@ export default function CMSAboutPage() {
                       </div>
                     </div>
                   ))}
-
-                  <Button
-                    variant="outline"
-                    className='mr-4'
-                    onClick={() => {
-                      setPartnersData({
-                        ...partnersData,
-                        categories: [
-                          ...partnersData.categories,
-                          {
-                            titleEn: '',
-                            titleId: '',
-                            homeLimit: 0,
-                            logos: []
-                          }
-                        ]
-                      })
-                    }}
-                  >
-                    {t({ en: '+ Add New Category', id: '+ Tambah Kategori Baru' })}
-                  </Button>
-
-                  <Button onClick={() => handleSave('partners')} disabled={isSaving === 'partners'}>
-                    {isSaving === 'partners' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
-                  </Button>
                 </div>
-              </>
-            )}
-          </Card>
-        </>
+              </Card>
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setPartnersData({
+                      ...partnersData,
+                      categories: [
+                        ...partnersData.categories,
+                        {
+                          titleEn: '',
+                          titleId: '',
+                          homeLimit: 0,
+                          logos: []
+                        }
+                      ]
+                    })
+                  }}
+                >
+                  {t({ en: '+ Add New Category', id: '+ Tambah Kategori Baru' })}
+                </Button>
+                <Button onClick={() => handleSave('partners')} disabled={isSaving === 'partners'}>
+                  {isSaving === 'partners' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       )}
-    </div>
+    </>
   )
 }

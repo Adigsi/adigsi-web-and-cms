@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronDown, Edit2, Trash2, Plus, Search, X } from 'lucide-react'
+import { Edit2, Trash2, Plus, Search, X } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -52,11 +53,7 @@ export default function CMSEventsPage() {
   const { toast } = useToast()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [expandedSections, setExpandedSections] = useState({
-    banner: false,
-    categories: false,
-    events: false,
-  })
+  const [activeTab, setActiveTab] = useState('banner')
 
   // Banner section state
   const [bannerData, setBannerData] = useState<BannerData>({
@@ -133,7 +130,7 @@ export default function CMSEventsPage() {
         ...(categoryFilter && { category: categoryFilter }),
         ...(publishedFilter && { published: publishedFilter }),
       })
-      
+
       const response = await fetch(`/api/cms/events/events?${params}`)
       if (response.ok) {
         const data: EventsResponse = await response.json()
@@ -147,21 +144,17 @@ export default function CMSEventsPage() {
   }
 
   useEffect(() => {
-    if (expandedSections.events) {
+    if (activeTab === 'events') {
       fetchEvents(1)
       fetchCategories()
-    }
-  }, [expandedSections.events])
-
-  useEffect(() => {
-    if (expandedSections.categories) {
+    } else if (activeTab === 'categories') {
       fetchCategories()
     }
-  }, [expandedSections.categories])
+  }, [activeTab])
 
   // Auto-fetch when filters change
   useEffect(() => {
-    if (expandedSections.events && (categoryFilter || publishedFilter)) {
+    if (activeTab === 'events' && (categoryFilter || publishedFilter)) {
       setCurrentPage(1)
       fetchEvents(1)
     }
@@ -169,7 +162,7 @@ export default function CMSEventsPage() {
 
   // Debounced search
   useEffect(() => {
-    if (!expandedSections.events) return
+    if (activeTab !== 'events') return
 
     const timeoutId = setTimeout(() => {
       if (searchQuery) {
@@ -311,7 +304,7 @@ export default function CMSEventsPage() {
     setCategoryFilter('')
     setPublishedFilter('')
     setCurrentPage(1)
-    
+
     // Fetch immediately with no filters
     try {
       const response = await fetch(`/api/cms/events/events?page=1`)
@@ -518,100 +511,80 @@ export default function CMSEventsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Events Page Management', id: 'Manajemen Halaman Events' })}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t({ en: 'Manage content sections for the Events page', id: 'Kelola konten section untuk halaman Events' })}
-        </p>
-      </div>
-
+    <>
       {isLoading ? (
-        <Card className="p-6">
-          <div className="text-center py-8 text-muted-foreground">
-            {t({ en: 'Loading...', id: 'Memuat...' })}
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Events Page Management', id: 'Manajemen Halaman Events' })}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t({ en: 'Manage content sections for the Events page', id: 'Kelola konten section untuk halaman Events' })}
+            </p>
           </div>
-        </Card>
-      ) : (
-        <>
-          {/* Banner Section */}
           <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, banner: !expandedSections.banner })}
-            >
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Banner', id: 'Banner' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage the banner section with title and image', id: 'Kelola section banner dengan judul dan gambar' })}
-                </p>
-              </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.banner ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
+            <div className="text-center py-8 text-muted-foreground">
+              {t({ en: 'Loading...', id: 'Memuat...' })}
             </div>
-
-            {expandedSections.banner && (
-              <>
-                <div className="space-y-4 mt-4">
-                  <div>
-                    <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
-                    <Input
-                      id="banner-title-en"
-                      value={bannerData.titleEn}
-                      onChange={(e) => setBannerData({ ...bannerData, titleEn: e.target.value })}
-                      placeholder={t({ en: 'Enter banner title in English', id: 'Masukkan judul banner dalam English' })}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="banner-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
-                    <Input
-                      id="banner-title-id"
-                      value={bannerData.titleId}
-                      onChange={(e) => setBannerData({ ...bannerData, titleId: e.target.value })}
-                      placeholder={t({ en: 'Enter banner title in Indonesian', id: 'Masukkan judul banner dalam Indonesia' })}
-                    />
-                  </div>
-
-                  <Button onClick={handleSaveBanner} disabled={isSaving === 'banner' || !hasChanges(bannerData, originalBannerData)}>
-                    {isSaving === 'banner' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
-                  </Button>
-                  {hasChanges(bannerData, originalBannerData) && (
-                    <Button
-                      variant="outline"
-                      onClick={handleCancelBanner}
-                      disabled={isSaving === 'banner'}
-                      className='ml-4'
-                    >
-                      {t({ en: 'Cancel Changes', id: 'Batalkan Perubahan' })}
-                    </Button>
-                  )}
-                </div>
-              </>
-            )}
           </Card>
+        </div>
+      ) : (
+        <Tabs defaultValue="banner" className="h-full" onValueChange={setActiveTab}>
+          {/* Sticky header */}
+          <div className="sticky top-16 md:top-0 z-20 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 pt-4 pb-3 bg-background/95 backdrop-blur-sm border-b border-border mb-6">
+            <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Events Page Management', id: 'Manajemen Halaman Events' })}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t({ en: 'Manage content sections for the Events page', id: 'Kelola konten section untuk halaman Events' })}
+            </p>
+            <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-primary/10 p-1 rounded-md mt-3">
+              <TabsTrigger value="banner">{t({ en: 'Page Title', id: 'Judul Halaman' })}</TabsTrigger>
+              <TabsTrigger value="categories">{t({ en: 'Event Categories', id: 'Kategori Event' })}</TabsTrigger>
+              <TabsTrigger value="events">{t({ en: 'Events', id: 'Event' })}</TabsTrigger>
+            </TabsList>
+          </div>
 
-          {/* Event Categories Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, categories: !expandedSections.categories })}
-            >
+          {/* Banner Tab */}
+          <TabsContent value="banner">
+            <div className="flex flex-col h-full">
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Event Categories', id: 'Kategori Event' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage bilingual event categories used across all events', id: 'Kelola kategori event bilingual yang digunakan di semua event' })}
-                </p>
+                <Card className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
+                      <Input
+                        id="banner-title-en"
+                        value={bannerData.titleEn}
+                        onChange={(e) => setBannerData({ ...bannerData, titleEn: e.target.value })}
+                        placeholder={t({ en: 'Enter banner title in English', id: 'Masukkan judul banner dalam English' })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="banner-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
+                      <Input
+                        id="banner-title-id"
+                        value={bannerData.titleId}
+                        onChange={(e) => setBannerData({ ...bannerData, titleId: e.target.value })}
+                        placeholder={t({ en: 'Enter banner title in Indonesian', id: 'Masukkan judul banner dalam Indonesia' })}
+                      />
+                    </div>
+                  </div>
+                </Card>
               </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.categories ? 'rotate-0' : '-rotate-90'}`}
-              />
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
+                <Button onClick={handleSaveBanner} disabled={isSaving === 'banner' || !hasChanges(bannerData, originalBannerData)}>
+                  {isSaving === 'banner' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                </Button>
+                {hasChanges(bannerData, originalBannerData) && (
+                  <Button variant="outline" onClick={handleCancelBanner} disabled={isSaving === 'banner'}>
+                    {t({ en: 'Cancel Changes', id: 'Batalkan Perubahan' })}
+                  </Button>
+                )}
+              </div>
             </div>
+          </TabsContent>
 
-            {expandedSections.categories && (
-              <div className="mt-4 space-y-4">
+          {/* Event Categories Tab */}
+          <TabsContent value="categories">
+            <Card className="p-6">
+              <div className="space-y-4">
                 <Button onClick={() => handleOpenCatModal()} className="gap-2">
                   <Plus className="h-4 w-4" />
                   {t({ en: 'Add Category', id: 'Tambah Kategori' })}
@@ -643,11 +616,10 @@ export default function CMSEventsPage() {
                                   checked={cat.active ?? true}
                                   onCheckedChange={() => handleToggleCategoryStatus(cat._id, cat.active ?? true)}
                                 />
-                                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                  (cat.active ?? true)
+                                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${(cat.active ?? true)
                                     ? 'bg-green-100 text-green-800'
                                     : 'bg-gray-100 text-gray-600'
-                                }`}>
+                                  }`}>
                                   {(cat.active ?? true)
                                     ? t({ en: 'Active', id: 'Aktif' })
                                     : t({ en: 'Inactive', id: 'Nonaktif' })}
@@ -679,197 +651,177 @@ export default function CMSEventsPage() {
                   </div>
                 )}
               </div>
-            )}
-          </Card>
+            </Card>
+          </TabsContent>
 
-          {/* Events Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, events: !expandedSections.events })}
-            >
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Events', id: 'Event' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage event listings with publish/unpublish controls', id: 'Kelola daftar event dengan kontrol publish/unpublish' })}
-                </p>
-              </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.events ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
-            </div>
+          {/* Events Tab */}
+          <TabsContent value="events">
+            <Card className="p-6">
+              <div className="space-y-4">
+                <Button onClick={() => handleOpenModal()} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  {t({ en: 'Add New Event', id: 'Tambah Kegiatan Baru' })}
+                </Button>
 
-            {expandedSections.events && (
-              <>
-
-                <div className="space-y-4 mt-4">
-                  <Button onClick={() => handleOpenModal()} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    {t({ en: 'Add New Event', id: 'Tambah Kegiatan Baru' })}
-                  </Button>
-
-                  {/* Search and Filters */}
-                  <div className="space-y-3">
-                    <div className="flex flex-col md:flex-row gap-3">
-                      <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="text"
-                          placeholder={t({ en: 'Search events by title...', id: 'Cari event berdasarkan judul...' })}
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-10"
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <select
-                          value={categoryFilter}
-                          onChange={(e) => setCategoryFilter(e.target.value)}
-                          className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        >
-                          <option value="">{t({ en: 'All Categories', id: 'Semua Kategori' })}</option>
-                          {availableCategories.map((cat) => (
-                            <option key={cat._id} value={cat.nameEn}>{cat.nameEn} / {cat.nameId}</option>
-                          ))}
-                        </select>
-                        <select
-                          value={publishedFilter}
-                          onChange={(e) => setPublishedFilter(e.target.value)}
-                          className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        >
-                          <option value="">{t({ en: 'All Status', id: 'Semua Status' })}</option>
-                          <option value="true">{t({ en: 'Published', id: 'Dipublikasikan' })}</option>
-                          <option value="false">{t({ en: 'Unpublished', id: 'Tidak Dipublikasikan' })}</option>
-                        </select>
-                        {(searchQuery || categoryFilter || publishedFilter) && (
-                          <Button onClick={handleResetFilters} variant="outline" size="sm">
-                            <X className="h-4 w-4 mr-1" />
-                            {t({ en: 'Reset', id: 'Reset' })}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Events Table */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border">
-                          <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Title', id: 'Judul' })}</th>
-                          <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Category', id: 'Kategori' })}</th>
-                          <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Date / Time / Location', id: 'Tanggal / Waktu / Tempat' })}</th>
-                          <th className="text-center py-3 px-4 font-semibold">{t({ en: 'Status', id: 'Status' })}</th>
-                          <th className="text-center py-3 px-4 font-semibold">{t({ en: 'Actions', id: 'Aksi' })}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {events.map((event) => (
-                          <tr key={event._id} className="border-b border-border hover:bg-muted/50">
-                            <td className="py-3 px-4">
-                              <div className="flex gap-3 items-center">
-                                {event.image && (
-                                  <div className="shrink-0">
-                                    <img 
-                                      src={event.image} 
-                                      alt="Event thumbnail" 
-                                      onClick={() => setPreviewImage(event.image)}
-                                      className="h-16 w-16 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity" 
-                                      title={t({ en: 'Click to preview', id: 'Klik untuk preview' })}
-                                    />
-                                  </div>
-                                )}
-                                <div className="flex-1">
-                                  <div className="text-sm space-y-1">
-                                    <div><span className="font-bold">EN:</span> {event.titleEn}</div>
-                                    <div><span className="font-bold">ID:</span> {event.titleId}</div>
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="py-3 px-4">
-                              <div className="text-sm space-y-1">
-                                <div><span className="font-bold">EN:</span> {event.categoryEn}</div>
-                                <div><span className="font-bold">ID:</span> {event.categoryId}</div>
-                              </div>
-                            </td>
-                            <td className="py-3 px-4">
-                              <div className="text-sm space-y-1 text-muted-foreground">
-                                {event.date && <div className="flex items-center gap-1"><span className="font-semibold text-foreground">📅</span> {event.date}</div>}
-                                {event.time && <div className="flex items-center gap-1"><span className="font-semibold text-foreground">🕐</span> {event.time}</div>}
-                                {event.location && <div className="flex items-center gap-1"><span className="font-semibold text-foreground">📍</span> {event.location}</div>}
-                                {!event.date && !event.time && !event.location && <span className="text-xs italic">{t({ en: 'Not set', id: 'Belum diset' })}</span>}
-                              </div>
-                            </td>
-                            <td className="py-3 px-4 text-center">
-                              <div className="flex items-center justify-center gap-3">
-                                <Switch
-                                  checked={event.published}
-                                  onCheckedChange={() => handleTogglePublish(event._id!, event.published)}
-                                />
-                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                                  event.published
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {event.published ? t({ en: 'Published', id: 'Dipublikasikan' }) : t({ en: 'Unpublished', id: 'Tidak Dipublikasikan' })}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-3 px-4 text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  onClick={() => handleOpenModal(event)}
-                                  className="p-1 hover:bg-muted rounded transition-colors"
-                                  title="Edit"
-                                >
-                                  <Edit2 className="h-4 w-4 text-blue-600" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteEvent(event._id!)}
-                                  className="p-1 hover:bg-muted rounded transition-colors"
-                                  title="Delete"
-                                >
-                                  <Trash2 className="h-4 w-4 text-red-600" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Pagination */}
-                  <div className="flex items-center justify-between mt-6">
-                    <div className="text-sm text-muted-foreground">
-                      {t({ en: `Page ${currentPage} of ${totalPages}`, id: `Halaman ${currentPage} dari ${totalPages}` })}
+                {/* Search and Filters */}
+                <div className="space-y-3">
+                  <div className="flex flex-col md:flex-row gap-3">
+                    <div className="flex-1 relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="text"
+                        placeholder={t({ en: 'Search events by title...', id: 'Cari event berdasarkan judul...' })}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10"
+                      />
                     </div>
                     <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fetchEvents(currentPage - 1)}
-                        disabled={currentPage === 1}
+                      <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                       >
-                        {t({ en: 'Previous', id: 'Sebelumnya' })}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fetchEvents(currentPage + 1)}
-                        disabled={currentPage === totalPages}
+                        <option value="">{t({ en: 'All Categories', id: 'Semua Kategori' })}</option>
+                        {availableCategories.map((cat) => (
+                          <option key={cat._id} value={cat.nameEn}>{cat.nameEn} / {cat.nameId}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={publishedFilter}
+                        onChange={(e) => setPublishedFilter(e.target.value)}
+                        className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                       >
-                        {t({ en: 'Next', id: 'Selanjutnya' })}
-                      </Button>
+                        <option value="">{t({ en: 'All Status', id: 'Semua Status' })}</option>
+                        <option value="true">{t({ en: 'Published', id: 'Dipublikasikan' })}</option>
+                        <option value="false">{t({ en: 'Unpublished', id: 'Tidak Dipublikasikan' })}</option>
+                      </select>
+                      {(searchQuery || categoryFilter || publishedFilter) && (
+                        <Button onClick={handleResetFilters} variant="outline" size="sm">
+                          <X className="h-4 w-4 mr-1" />
+                          {t({ en: 'Reset', id: 'Reset' })}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
-              </>
-            )}
-          </Card>
-        </>
+
+                {/* Events Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Title', id: 'Judul' })}</th>
+                        <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Category', id: 'Kategori' })}</th>
+                        <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Date / Time / Location', id: 'Tanggal / Waktu / Tempat' })}</th>
+                        <th className="text-center py-3 px-4 font-semibold">{t({ en: 'Status', id: 'Status' })}</th>
+                        <th className="text-center py-3 px-4 font-semibold">{t({ en: 'Actions', id: 'Aksi' })}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {events.map((event) => (
+                        <tr key={event._id} className="border-b border-border hover:bg-muted/50">
+                          <td className="py-3 px-4">
+                            <div className="flex gap-3 items-center">
+                              {event.image && (
+                                <div className="shrink-0">
+                                  <img
+                                    src={event.image}
+                                    alt="Event thumbnail"
+                                    onClick={() => setPreviewImage(event.image)}
+                                    className="h-16 w-16 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                                    title={t({ en: 'Click to preview', id: 'Klik untuk preview' })}
+                                  />
+                                </div>
+                              )}
+                              <div className="flex-1">
+                                <div className="text-sm space-y-1">
+                                  <div><span className="font-bold">EN:</span> {event.titleEn}</div>
+                                  <div><span className="font-bold">ID:</span> {event.titleId}</div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="text-sm space-y-1">
+                              <div><span className="font-bold">EN:</span> {event.categoryEn}</div>
+                              <div><span className="font-bold">ID:</span> {event.categoryId}</div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="text-sm space-y-1 text-muted-foreground">
+                              {event.date && <div className="flex items-center gap-1"><span className="font-semibold text-foreground">📅</span> {event.date}</div>}
+                              {event.time && <div className="flex items-center gap-1"><span className="font-semibold text-foreground">🕐</span> {event.time}</div>}
+                              {event.location && <div className="flex items-center gap-1"><span className="font-semibold text-foreground">📍</span> {event.location}</div>}
+                              {!event.date && !event.time && !event.location && <span className="text-xs italic">{t({ en: 'Not set', id: 'Belum diset' })}</span>}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-3">
+                              <Switch
+                                checked={event.published}
+                                onCheckedChange={() => handleTogglePublish(event._id!, event.published)}
+                              />
+                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${event.published
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                {event.published ? t({ en: 'Published', id: 'Dipublikasikan' }) : t({ en: 'Unpublished', id: 'Tidak Dipublikasikan' })}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => handleOpenModal(event)}
+                                className="p-1 hover:bg-muted rounded transition-colors"
+                                title="Edit"
+                              >
+                                <Edit2 className="h-4 w-4 text-blue-600" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteEvent(event._id!)}
+                                className="p-1 hover:bg-muted rounded transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                <div className="flex items-center justify-between mt-6">
+                  <div className="text-sm text-muted-foreground">
+                    {t({ en: `Page ${currentPage} of ${totalPages}`, id: `Halaman ${currentPage} dari ${totalPages}` })}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fetchEvents(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      {t({ en: 'Previous', id: 'Sebelumnya' })}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fetchEvents(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      {t({ en: 'Next', id: 'Selanjutnya' })}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </TabsContent>
+        </Tabs>
       )}
 
       {/* Image Preview Modal */}
@@ -1108,6 +1060,6 @@ export default function CMSEventsPage() {
           </Card>
         </div>
       )}
-    </div>
+    </>
   )
 }
