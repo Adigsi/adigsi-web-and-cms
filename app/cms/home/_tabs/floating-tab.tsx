@@ -122,57 +122,59 @@ export function FloatingTab() {
   return (
     <>
       <div className="flex flex-col h-full">
-        <Card className="p-6 flex-1">
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Floating Buttons', id: 'Tombol Melayang' })}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t({ en: 'Configure the join and contact floating buttons', id: 'Konfigurasi tombol join dan kontak' })}
-            </p>
-          </div>
+        <div className="flex-1">
+          <Card className="p-6">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Floating Buttons', id: 'Tombol Melayang' })}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t({ en: 'Configure the join and contact floating buttons', id: 'Konfigurasi tombol join dan kontak' })}
+              </p>
+            </div>
 
-          <div className="space-y-6">
-            {/* Join Button */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-sm">{t({ en: 'Join Button (side tab)', id: 'Tombol Join (tab samping)' })}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>{t({ en: 'Text (EN)', id: 'Teks (EN)' })}</Label>
-                  <Input value={data.joinButton.textEn} onChange={(e) => setData((prev) => ({ ...prev, joinButton: { ...prev.joinButton, textEn: e.target.value } }))} placeholder="Join Now" className="mt-1" />
+            <div className="space-y-6">
+              {/* Join Button */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-sm">{t({ en: 'Join Button (side tab)', id: 'Tombol Join (tab samping)' })}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>{t({ en: 'Text (EN)', id: 'Teks (EN)' })}</Label>
+                    <Input value={data.joinButton.textEn} onChange={(e) => setData((prev) => ({ ...prev, joinButton: { ...prev.joinButton, textEn: e.target.value } }))} placeholder="Join Now" className="mt-1" />
+                  </div>
+                  <div>
+                    <Label>{t({ en: 'Text (ID)', id: 'Teks (ID)' })}</Label>
+                    <Input value={data.joinButton.textId} onChange={(e) => setData((prev) => ({ ...prev, joinButton: { ...prev.joinButton, textId: e.target.value } }))} placeholder="Daftar" className="mt-1" />
+                  </div>
                 </div>
                 <div>
-                  <Label>{t({ en: 'Text (ID)', id: 'Teks (ID)' })}</Label>
-                  <Input value={data.joinButton.textId} onChange={(e) => setData((prev) => ({ ...prev, joinButton: { ...prev.joinButton, textId: e.target.value } }))} placeholder="Daftar" className="mt-1" />
+                  <Label>{t({ en: 'Link / URL', id: 'Tautan / URL' })}</Label>
+                  <Input value={data.joinButton.link} onChange={(e) => setData((prev) => ({ ...prev, joinButton: { ...prev.joinButton, link: e.target.value } }))} placeholder="https://... or /register" className="mt-1" />
+                </div>
+                <div>
+                  <Label className="mb-1 block">{t({ en: 'Icon', id: 'Ikon' })}</Label>
+                  <IconPicker value={data.joinButton.icon} onChange={(icon) => setData((prev) => ({ ...prev, joinButton: { ...prev.joinButton, icon } }))} />
                 </div>
               </div>
-              <div>
-                <Label>{t({ en: 'Link / URL', id: 'Tautan / URL' })}</Label>
-                <Input value={data.joinButton.link} onChange={(e) => setData((prev) => ({ ...prev, joinButton: { ...prev.joinButton, link: e.target.value } }))} placeholder="https://... or /register" className="mt-1" />
-              </div>
-              <div>
-                <Label className="mb-1 block">{t({ en: 'Icon', id: 'Ikon' })}</Label>
-                <IconPicker value={data.joinButton.icon} onChange={(icon) => setData((prev) => ({ ...prev, joinButton: { ...prev.joinButton, icon } }))} />
+
+              <div className="border-t border-border" />
+
+              {/* Contact Button */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-sm">{t({ en: 'Contact Button (bottom right)', id: 'Tombol Kontak (kanan bawah)' })}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>{t({ en: 'Email Address', id: 'Alamat Email' })}</Label>
+                    <Input type="email" value={data.contactButton.email} onChange={(e) => setData((prev) => ({ ...prev, contactButton: { ...prev.contactButton, email: e.target.value } }))} placeholder="info@adigsi.id" className="mt-1" />
+                  </div>
+                  <div>
+                    <Label>{t({ en: 'WhatsApp URL', id: 'URL WhatsApp' })}</Label>
+                    <Input value={data.contactButton.whatsapp} onChange={(e) => setData((prev) => ({ ...prev, contactButton: { ...prev.contactButton, whatsapp: e.target.value } }))} placeholder="https://wa.me/628..." className="mt-1" />
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="border-t border-border" />
-
-            {/* Contact Button */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-sm">{t({ en: 'Contact Button (bottom right)', id: 'Tombol Kontak (kanan bawah)' })}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>{t({ en: 'Email Address', id: 'Alamat Email' })}</Label>
-                  <Input type="email" value={data.contactButton.email} onChange={(e) => setData((prev) => ({ ...prev, contactButton: { ...prev.contactButton, email: e.target.value } }))} placeholder="info@adigsi.id" className="mt-1" />
-                </div>
-                <div>
-                  <Label>{t({ en: 'WhatsApp URL', id: 'URL WhatsApp' })}</Label>
-                  <Input value={data.contactButton.whatsapp} onChange={(e) => setData((prev) => ({ ...prev, contactButton: { ...prev.contactButton, whatsapp: e.target.value } }))} placeholder="https://wa.me/628..." className="mt-1" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </Card>
+          </Card>
+        </div>
         <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
           <Button onClick={handleSave} disabled={isSaving}>
             {isSaving ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}

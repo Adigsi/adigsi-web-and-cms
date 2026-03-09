@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, Edit2, Trash2, Plus, Search, X, Pin, PinOff } from 'lucide-react'
+import { Edit2, Trash2, Plus, Search, X, Pin, PinOff } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -64,12 +65,7 @@ export default function CMSKnowledgeHubPage() {
   const { toast } = useToast()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [expandedSections, setExpandedSections] = useState({
-    banner: false,
-    tags: false,
-    reports: false,
-    downloads: false,
-  })
+  const [activeTab, setActiveTab] = useState('banner')
 
   // Banner
   const [bannerData, setBannerData] = useState<BannerData>({ titleEn: 'Knowledge Hub', titleId: 'Pusat Pengetahuan' })
@@ -151,8 +147,10 @@ export default function CMSKnowledgeHubPage() {
   }
 
   useEffect(() => {
-    if (expandedSections.tags) fetchTags()
-  }, [expandedSections.tags])
+    if (activeTab === 'tags') fetchTags()
+    else if (activeTab === 'reports') fetchReports(1, reportSearch, reportPublishedFilter)
+    else if (activeTab === 'downloads') fetchDownloads(1, dlSearch, dlMemberFilter)
+  }, [activeTab])
 
   const handleOpenTagModal = (tag?: ReportTag) => {
     if (tag) {
@@ -281,13 +279,7 @@ export default function CMSKnowledgeHubPage() {
   }, [])
 
   useEffect(() => {
-    if (expandedSections.reports) {
-      fetchReports(1, reportSearch, reportPublishedFilter)
-    }
-  }, [expandedSections.reports])
-
-  useEffect(() => {
-    if (!expandedSections.reports) return
+    if (activeTab !== 'reports') return
     const timeout = setTimeout(() => fetchReports(1, reportSearch, reportPublishedFilter), 400)
     return () => clearTimeout(timeout)
   }, [reportSearch, reportPublishedFilter])
@@ -371,13 +363,7 @@ export default function CMSKnowledgeHubPage() {
   }, [])
 
   useEffect(() => {
-    if (expandedSections.downloads) {
-      fetchDownloads(1, dlSearch, dlMemberFilter)
-    }
-  }, [expandedSections.downloads])
-
-  useEffect(() => {
-    if (!expandedSections.downloads) return
+    if (activeTab !== 'downloads') return
     const timeout = setTimeout(() => fetchDownloads(1, dlSearch, dlMemberFilter), 400)
     return () => clearTimeout(timeout)
   }, [dlSearch, dlMemberFilter])
@@ -393,6 +379,12 @@ export default function CMSKnowledgeHubPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Knowledge Hub Management', id: 'Manajemen Knowledge Hub' })}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t({ en: 'Manage reports, banner, and download records', id: 'Kelola laporan, banner, dan riwayat unduhan' })}
+          </p>
+        </div>
         <Card className="p-6">
           <div className="text-center py-8 text-muted-foreground">{t({ en: 'Loading...', id: 'Memuat...' })}</div>
         </Card>
@@ -401,37 +393,40 @@ export default function CMSKnowledgeHubPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Knowledge Hub Management', id: 'Manajemen Knowledge Hub' })}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t({ en: 'Manage reports, banner, and download records', id: 'Kelola laporan, banner, dan riwayat unduhan' })}
-        </p>
-      </div>
-
-      {/* Banner Section */}
-      <Card className="p-6">
-        <div
-          className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-          onClick={() => setExpandedSections((s) => ({ ...s, banner: !s.banner }))}
-        >
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Banner', id: 'Banner' })}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{t({ en: 'Page banner title', id: 'Judul banner halaman' })}</p>
-          </div>
-          <ChevronDown className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.banner ? 'rotate-0' : '-rotate-90'}`} />
+    <>
+      <Tabs defaultValue="banner" className="h-full" onValueChange={setActiveTab}>
+        {/* Sticky header */}
+        <div className="sticky top-16 md:top-0 z-20 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 pt-4 pb-3 bg-background/95 backdrop-blur-sm border-b border-border mb-6">
+          <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Knowledge Hub Management', id: 'Manajemen Knowledge Hub' })}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t({ en: 'Manage reports, banner, and download records', id: 'Kelola laporan, banner, dan riwayat unduhan' })}
+          </p>
+          <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-primary/10 p-1 rounded-md mt-3">
+            <TabsTrigger value="banner">{t({ en: 'Page Title', id: 'Judul Halaman' })}</TabsTrigger>
+            <TabsTrigger value="tags">{t({ en: 'Report Tags', id: 'Tag Laporan' })}</TabsTrigger>
+            <TabsTrigger value="reports">{t({ en: 'Reports', id: 'Laporan' })}</TabsTrigger>
+            <TabsTrigger value="downloads">{t({ en: 'Download Records', id: 'Riwayat Unduhan' })}</TabsTrigger>
+          </TabsList>
         </div>
-        {expandedSections.banner && (
-          <div className="space-y-4 mt-4">
-            <div>
-              <Label>{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
-              <Input value={bannerData.titleEn} onChange={(e) => setBannerData({ ...bannerData, titleEn: e.target.value })} />
+
+        {/* Banner Tab */}
+        <TabsContent value="banner">
+          <div className="flex flex-col h-full">
+            <div className="flex-1">
+              <Card className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label>{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
+                    <Input value={bannerData.titleEn} onChange={(e) => setBannerData({ ...bannerData, titleEn: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
+                    <Input value={bannerData.titleId} onChange={(e) => setBannerData({ ...bannerData, titleId: e.target.value })} />
+                  </div>
+                </div>
+              </Card>
             </div>
-            <div>
-              <Label>{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
-              <Input value={bannerData.titleId} onChange={(e) => setBannerData({ ...bannerData, titleId: e.target.value })} />
-            </div>
-            <div className="flex gap-3">
+            <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
               <Button onClick={handleSaveBanner} disabled={isSaving === 'banner' || !hasChanges(bannerData, originalBannerData)}>
                 {isSaving === 'banner' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
               </Button>
@@ -442,440 +437,359 @@ export default function CMSKnowledgeHubPage() {
               )}
             </div>
           </div>
-        )}
-      </Card>
+        </TabsContent>
 
-      {/* Tags Section */}
-      <Card className="p-6">
-        <div
-          className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-          onClick={() => setExpandedSections((s) => ({ ...s, tags: !s.tags }))}
-        >
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Report Tags', id: 'Tag Laporan' })}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t({ en: 'Manage bilingual tags used to filter reports', id: 'Kelola tag bilingual yang digunakan untuk filter laporan' })}
-            </p>
-          </div>
-          <ChevronDown className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.tags ? 'rotate-0' : '-rotate-90'}`} />
-        </div>
+        {/* Tags Tab */}
+        <TabsContent value="tags">
+          <Card className="p-6">
+            <div className="space-y-4">
+              <Button onClick={() => handleOpenTagModal()} className="gap-2">
+                <Plus className="h-4 w-4" />
+                {t({ en: 'Add Tag', id: 'Tambah Tag' })}
+              </Button>
 
-        {expandedSections.tags && (
-          <div className="mt-4 space-y-4">
-            <Button onClick={() => handleOpenTagModal()} className="gap-2">
-              <Plus className="h-4 w-4" />
-              {t({ en: 'Add Tag', id: 'Tambah Tag' })}
-            </Button>
+              {reportTags.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-lg">
+                  {t({ en: 'No tags yet. Add one to get started.', id: 'Belum ada tag. Tambahkan untuk memulai.' })}
+                </div>
+              ) : (
+                <div className="border border-border rounded-lg overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Name (English)', id: 'Nama (English)' })}</th>
+                        <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Name (Bahasa Indonesia)', id: 'Nama (Bahasa Indonesia)' })}</th>
+                        <th className="text-center py-3 px-4 font-semibold">{t({ en: 'Status', id: 'Status' })}</th>
+                        <th className="text-center py-3 px-4 font-semibold">{t({ en: 'Actions', id: 'Aksi' })}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {reportTags.map((tag) => (
+                        <tr key={tag._id} className="hover:bg-muted/50">
+                          <td className="py-3 px-4">{tag.nameEn}</td>
+                          <td className="py-3 px-4">{tag.nameId}</td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-3">
+                              <Switch
+                                checked={tag.active ?? true}
+                                onCheckedChange={() => handleToggleTagStatus(tag._id, tag.active ?? true)}
+                              />
+                              <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${(tag.active ?? true)
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                {(tag.active ?? true)
+                                  ? t({ en: 'Active', id: 'Aktif' })
+                                  : t({ en: 'Inactive', id: 'Nonaktif' })}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => handleOpenTagModal(tag)}
+                                className="p-1 hover:bg-muted rounded transition-colors"
+                                title="Edit"
+                              >
+                                <Edit2 className="h-4 w-4 text-blue-600" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTag(tag._id)}
+                                className="p-1 hover:bg-muted rounded transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </Card>
+        </TabsContent>
 
-            {reportTags.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-lg">
-                {t({ en: 'No tags yet. Add one to get started.', id: 'Belum ada tag. Tambahkan untuk memulai.' })}
+        {/* Reports Tab */}
+        <TabsContent value="reports">
+          <Card className="p-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Button onClick={() => router.push('/cms/knowledge-hub/form')}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t({ en: 'Add Report', id: 'Tambah Laporan' })}
+                </Button>
               </div>
-            ) : (
-              <div className="border border-border rounded-lg overflow-hidden">
+
+              {/* Filters */}
+              <div className="flex flex-col md:flex-row gap-3">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    className="pl-9"
+                    placeholder={t({ en: 'Search reports...', id: 'Cari laporan...' })}
+                    value={reportSearch}
+                    onChange={(e) => setReportSearch(e.target.value)}
+                  />
+                </div>
+                <select
+                  className="h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  value={reportPublishedFilter}
+                  onChange={(e) => setReportPublishedFilter(e.target.value)}
+                >
+                  <option value="">{t({ en: 'All Status', id: 'Semua Status' })}</option>
+                  <option value="true">{t({ en: 'Published', id: 'Dipublikasikan' })}</option>
+                  <option value="false">{t({ en: 'Unpublished', id: 'Belum Dipublikasikan' })}</option>
+                </select>
+                {(reportSearch || reportPublishedFilter) && (
+                  <Button variant="ghost" size="sm" onClick={() => { setReportSearch(''); setReportPublishedFilter('') }}>
+                    <X className="h-4 w-4 mr-1" />{t({ en: 'Reset', id: 'Reset' })}
+                  </Button>
+                )}
+              </div>
+
+              {/* Note about pin */}
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                <Pin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                <p className="text-xs text-muted-foreground">
+                  {t({
+                    en: 'Only one report can be pinned at a time. The pinned report is shown on the homepage "Our Latest Publication" section.',
+                    id: 'Hanya satu laporan yang dapat di-pin sekaligus. Laporan yang di-pin ditampilkan di bagian "Publikasi Terbaru Kami" di beranda.',
+                  })}
+                </p>
+              </div>
+
+              {/* Reports Table */}
+              <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Name (English)', id: 'Nama (English)' })}</th>
-                      <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Name (Bahasa Indonesia)', id: 'Nama (Bahasa Indonesia)' })}</th>
-                      <th className="text-center py-3 px-4 font-semibold">{t({ en: 'Status', id: 'Status' })}</th>
-                      <th className="text-center py-3 px-4 font-semibold">{t({ en: 'Actions', id: 'Aksi' })}</th>
+                  <thead>
+                    <tr className="border-b border-border text-left">
+                      <th className="py-3 px-2 font-semibold text-muted-foreground w-16">{t({ en: 'Cover', id: 'Cover' })}</th>
+                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Title', id: 'Judul' })}</th>
+                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Tags', id: 'Tag' })}</th>
+                      <th className="py-3 px-2 font-semibold text-muted-foreground text-center">{t({ en: 'PDF', id: 'PDF' })}</th>
+                      <th className="py-3 px-2 font-semibold text-muted-foreground text-center">{t({ en: 'Published', id: 'Publikasi' })}</th>
+                      <th className="py-3 px-2 font-semibold text-muted-foreground text-center">{t({ en: 'Pin', id: 'Pin' })}</th>
+                      <th className="py-3 px-2 font-semibold text-muted-foreground text-center">{t({ en: 'Actions', id: 'Aksi' })}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
-                    {reportTags.map((tag) => (
-                      <tr key={tag._id} className="hover:bg-muted/50">
-                        <td className="py-3 px-4">{tag.nameEn}</td>
-                        <td className="py-3 px-4">{tag.nameId}</td>
-                        <td className="py-3 px-4 text-center">
-                          <div className="flex items-center justify-center gap-3">
-                            <Switch
-                              checked={tag.active ?? true}
-                              onCheckedChange={() => handleToggleTagStatus(tag._id, tag.active ?? true)}
-                            />
-                            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
-                              (tag.active ?? true)
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-gray-100 text-gray-600'
-                            }`}>
-                              {(tag.active ?? true)
-                                ? t({ en: 'Active', id: 'Aktif' })
-                                : t({ en: 'Inactive', id: 'Nonaktif' })}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => handleOpenTagModal(tag)}
-                              className="p-1 hover:bg-muted rounded transition-colors"
-                              title="Edit"
-                            >
-                              <Edit2 className="h-4 w-4 text-blue-600" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteTag(tag._id)}
-                              className="p-1 hover:bg-muted rounded transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </button>
-                          </div>
+                  <tbody>
+                    {reports.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                          {t({ en: 'No reports found', id: 'Tidak ada laporan ditemukan' })}
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      reports.map((report) => (
+                        <tr key={report._id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                          <td className="py-3 px-2">
+                            {report.cover ? (
+                              <div
+                                className="relative w-12 h-16 rounded overflow-hidden border border-border cursor-pointer"
+                                onClick={() => setPreviewCover(report.cover)}
+                              >
+                                <Image src={report.cover} alt={report.titleEn} fill className="object-cover" />
+                              </div>
+                            ) : (
+                              <div className="w-12 h-16 rounded border border-border bg-muted flex items-center justify-center text-muted-foreground text-xs">
+                                N/A
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="font-medium text-foreground line-clamp-2 max-w-xs">
+                              {language === 'en' ? report.titleEn : report.titleId}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                              {language === 'en' ? report.titleId : report.titleEn}
+                            </div>
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="flex flex-wrap gap-1 max-w-48">
+                              {(report.tags || []).slice(0, 3).map((tag) => (
+                                <span key={tag} className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs border border-border">
+                                  {tag}
+                                </span>
+                              ))}
+                              {(report.tags || []).length > 3 && (
+                                <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs border border-border">
+                                  +{report.tags.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 px-2 text-center">
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${report.hasPdf ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>
+                              {report.hasPdf ? '✓' : '—'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-2 text-center">
+                            <Switch
+                              checked={report.published}
+                              onCheckedChange={() => handleTogglePublished(report._id, report.published)}
+                            />
+                          </td>
+                          <td className="py-3 px-2 text-center">
+                            <button
+                              onClick={() => report.pinned ? handleUnpin(report._id) : handlePin(report._id, report.pinned)}
+                              title={report.pinned
+                                ? t({ en: 'Unpin from homepage', id: 'Unpin dari beranda' })
+                                : t({ en: 'Pin to homepage', id: 'Pin ke beranda' })}
+                              className={`p-1.5 rounded-lg transition-colors ${report.pinned
+                                  ? 'text-primary bg-primary/10 hover:bg-primary/20'
+                                  : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                                }`}
+                            >
+                              {report.pinned ? <Pin className="h-4 w-4 fill-current" /> : <PinOff className="h-4 w-4" />}
+                            </button>
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="flex items-center justify-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => router.push(`/cms/knowledge-hub/form?id=${report._id}`)}
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => handleDeleteReport(report._id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
-        )}
-      </Card>
 
-      {/* Reports Section */}
-      <Card className="p-6">
-        <div
-          className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-          onClick={() => setExpandedSections((s) => ({ ...s, reports: !s.reports }))}
-        >
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Reports', id: 'Laporan' })}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{t({ en: 'Manage downloadable reports', id: 'Kelola laporan yang dapat diunduh' })}</p>
-          </div>
-          <ChevronDown className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.reports ? 'rotate-0' : '-rotate-90'}`} />
-        </div>
-
-        {expandedSections.reports && (
-          <div className="mt-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <Button onClick={() => router.push('/cms/knowledge-hub/form')}>
-                <Plus className="h-4 w-4 mr-2" />
-                {t({ en: 'Add Report', id: 'Tambah Laporan' })}
-              </Button>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  className="pl-9"
-                  placeholder={t({ en: 'Search reports...', id: 'Cari laporan...' })}
-                  value={reportSearch}
-                  onChange={(e) => setReportSearch(e.target.value)}
-                />
-              </div>
-              <select
-                className="h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                value={reportPublishedFilter}
-                onChange={(e) => setReportPublishedFilter(e.target.value)}
-              >
-                <option value="">{t({ en: 'All Status', id: 'Semua Status' })}</option>
-                <option value="true">{t({ en: 'Published', id: 'Dipublikasikan' })}</option>
-                <option value="false">{t({ en: 'Unpublished', id: 'Belum Dipublikasikan' })}</option>
-              </select>
-              {(reportSearch || reportPublishedFilter) && (
-                <Button variant="ghost" size="sm" onClick={() => { setReportSearch(''); setReportPublishedFilter('') }}>
-                  <X className="h-4 w-4 mr-1" />{t({ en: 'Reset', id: 'Reset' })}
-                </Button>
-              )}
-            </div>
-
-            {/* Note about pin */}
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
-              <Pin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-              <p className="text-xs text-muted-foreground">
-                {t({
-                  en: 'Only one report can be pinned at a time. The pinned report is shown on the homepage "Our Latest Publication" section.',
-                  id: 'Hanya satu laporan yang dapat di-pin sekaligus. Laporan yang di-pin ditampilkan di bagian "Publikasi Terbaru Kami" di beranda.',
-                })}
-              </p>
-            </div>
-
-            {/* Reports Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left">
-                    <th className="py-3 px-2 font-semibold text-muted-foreground w-16">{t({ en: 'Cover', id: 'Cover' })}</th>
-                    <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Title', id: 'Judul' })}</th>
-                    <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Tags', id: 'Tag' })}</th>
-                    <th className="py-3 px-2 font-semibold text-muted-foreground text-center">{t({ en: 'PDF', id: 'PDF' })}</th>
-                    <th className="py-3 px-2 font-semibold text-muted-foreground text-center">{t({ en: 'Published', id: 'Publikasi' })}</th>
-                    <th className="py-3 px-2 font-semibold text-muted-foreground text-center">{t({ en: 'Pin', id: 'Pin' })}</th>
-                    <th className="py-3 px-2 font-semibold text-muted-foreground text-center">{t({ en: 'Actions', id: 'Aksi' })}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reports.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="py-8 text-center text-muted-foreground">
-                        {t({ en: 'No reports found', id: 'Tidak ada laporan ditemukan' })}
-                      </td>
-                    </tr>
-                  ) : (
-                    reports.map((report) => (
-                      <tr key={report._id} className="border-b border-border hover:bg-muted/30 transition-colors">
-                        <td className="py-3 px-2">
-                          {report.cover ? (
-                            <div
-                              className="relative w-12 h-16 rounded overflow-hidden border border-border cursor-pointer"
-                              onClick={() => setPreviewCover(report.cover)}
-                            >
-                              <Image src={report.cover} alt={report.titleEn} fill className="object-cover" />
-                            </div>
-                          ) : (
-                            <div className="w-12 h-16 rounded border border-border bg-muted flex items-center justify-center text-muted-foreground text-xs">
-                              N/A
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-3 px-2">
-                          <div className="font-medium text-foreground line-clamp-2 max-w-xs">
-                            {language === 'en' ? report.titleEn : report.titleId}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                            {language === 'en' ? report.titleId : report.titleEn}
-                          </div>
-                        </td>
-                        <td className="py-3 px-2">
-                          <div className="flex flex-wrap gap-1 max-w-48">
-                            {(report.tags || []).slice(0, 3).map((tag) => (
-                              <span key={tag} className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs border border-border">
-                                {tag}
-                              </span>
-                            ))}
-                            {(report.tags || []).length > 3 && (
-                              <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs border border-border">
-                                +{report.tags.length - 3}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 px-2 text-center">
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${report.hasPdf ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>
-                            {report.hasPdf ? '✓' : '—'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-2 text-center">
-                          <Switch
-                            checked={report.published}
-                            onCheckedChange={() => handleTogglePublished(report._id, report.published)}
-                          />
-                        </td>
-                        <td className="py-3 px-2 text-center">
-                          <button
-                            onClick={() => report.pinned ? handleUnpin(report._id) : handlePin(report._id, report.pinned)}
-                            title={report.pinned
-                              ? t({ en: 'Unpin from homepage', id: 'Unpin dari beranda' })
-                              : t({ en: 'Pin to homepage', id: 'Pin ke beranda' })}
-                            className={`p-1.5 rounded-lg transition-colors ${
-                              report.pinned
-                                ? 'text-primary bg-primary/10 hover:bg-primary/20'
-                                : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
-                            }`}
-                          >
-                            {report.pinned ? <Pin className="h-4 w-4 fill-current" /> : <PinOff className="h-4 w-4" />}
-                          </button>
-                        </td>
-                        <td className="py-3 px-2">
-                          <div className="flex items-center justify-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => router.push(`/cms/knowledge-hub/form?id=${report._id}`)}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => handleDeleteReport(report._id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Reports Pagination */}
-            {reportTotalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 pt-2">
-                <Button variant="outline" size="sm" disabled={reportPage <= 1} onClick={() => fetchReports(reportPage - 1, reportSearch, reportPublishedFilter)}>
-                  {t({ en: 'Previous', id: 'Sebelumnya' })}
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {reportPage} / {reportTotalPages}
-                </span>
-                <Button variant="outline" size="sm" disabled={reportPage >= reportTotalPages} onClick={() => fetchReports(reportPage + 1, reportSearch, reportPublishedFilter)}>
-                  {t({ en: 'Next', id: 'Selanjutnya' })}
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-      </Card>
-
-      {/* Download Records Section */}
-      <Card className="p-6">
-        <div
-          className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-          onClick={() => setExpandedSections((s) => ({ ...s, downloads: !s.downloads }))}
-        >
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Download Records', id: 'Riwayat Unduhan' })}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{t({ en: 'History of report downloads', id: 'Riwayat pengunduhan laporan' })}</p>
-          </div>
-          <ChevronDown className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.downloads ? 'rotate-0' : '-rotate-90'}`} />
-        </div>
-
-        {expandedSections.downloads && (
-          <div className="mt-4 space-y-4">
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  className="pl-9"
-                  placeholder={t({ en: 'Search by name, company, email...', id: 'Cari nama, perusahaan, email...' })}
-                  value={dlSearch}
-                  onChange={(e) => setDlSearch(e.target.value)}
-                />
-              </div>
-              <select
-                className="h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                value={dlMemberFilter}
-                onChange={(e) => setDlMemberFilter(e.target.value)}
-              >
-                <option value="">{t({ en: 'All', id: 'Semua' })}</option>
-                <option value="Anggota ADIGSI">{t({ en: 'ADIGSI Members', id: 'Anggota ADIGSI' })}</option>
-                <option value="Non-Anggota">{t({ en: 'Non-Members', id: 'Non-Anggota' })}</option>
-              </select>
-              {(dlSearch || dlMemberFilter) && (
-                <Button variant="ghost" size="sm" onClick={() => { setDlSearch(''); setDlMemberFilter('') }}>
-                  <X className="h-4 w-4 mr-1" />{t({ en: 'Reset', id: 'Reset' })}
-                </Button>
-              )}
-            </div>
-
-            {/* Downloads Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left">
-                    <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Full Name', id: 'Nama Lengkap' })}</th>
-                    <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Company', id: 'Perusahaan' })}</th>
-                    <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Position', id: 'Jabatan' })}</th>
-                    <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Email', id: 'Email' })}</th>
-                    <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Member', id: 'Anggota' })}</th>
-                    <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Report', id: 'Laporan' })}</th>
-                    <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Downloaded At', id: 'Diunduh Pada' })}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {isDlLoading ? (
-                    <tr>
-                      <td colSpan={7} className="py-8 text-center text-muted-foreground">{t({ en: 'Loading...', id: 'Memuat...' })}</td>
-                    </tr>
-                  ) : downloads.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="py-8 text-center text-muted-foreground">{t({ en: 'No records found', id: 'Tidak ada catatan ditemukan' })}</td>
-                    </tr>
-                  ) : (
-                    downloads.map((record) => (
-                      <tr key={record._id.toString()} className="border-b border-border hover:bg-muted/30">
-                        <td className="py-3 px-2 font-medium text-foreground">{record.fullname}</td>
-                        <td className="py-3 px-2 text-muted-foreground">{record.company}</td>
-                        <td className="py-3 px-2 text-muted-foreground">{record.position}</td>
-                        <td className="py-3 px-2 text-muted-foreground">{record.email}</td>
-                        <td className="py-3 px-2">
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                            record.member === 'Anggota ADIGSI'
-                              ? 'bg-green-500/10 text-green-600'
-                              : 'bg-muted text-muted-foreground'
-                          }`}>
-                            {record.member}
-                          </span>
-                        </td>
-                        <td className="py-3 px-2 text-muted-foreground text-xs max-w-40 line-clamp-2">
-                          {record.reportTitleEn || record.reportTitleId || '—'}
-                        </td>
-                        <td className="py-3 px-2 text-muted-foreground text-xs whitespace-nowrap">{formatDate(record.downloadedAt)}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Downloads Pagination */}
-            {dlPagination.totalPages > 1 && (
-              <div className="flex items-center justify-between pt-2">
-                <p className="text-sm text-muted-foreground">
-                  {t({ en: 'Showing', id: 'Menampilkan' })} {Math.min((dlPagination.page - 1) * dlPagination.limit + 1, dlPagination.total)}–{Math.min(dlPagination.page * dlPagination.limit, dlPagination.total)} {t({ en: 'of', id: 'dari' })} {dlPagination.total}
-                </p>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" disabled={dlPagination.page <= 1} onClick={() => fetchDownloads(dlPagination.page - 1, dlSearch, dlMemberFilter)}>
+              {/* Reports Pagination */}
+              {reportTotalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  <Button variant="outline" size="sm" disabled={reportPage <= 1} onClick={() => fetchReports(reportPage - 1, reportSearch, reportPublishedFilter)}>
                     {t({ en: 'Previous', id: 'Sebelumnya' })}
                   </Button>
-                  <Button variant="outline" size="sm" disabled={dlPagination.page >= dlPagination.totalPages} onClick={() => fetchDownloads(dlPagination.page + 1, dlSearch, dlMemberFilter)}>
+                  <span className="text-sm text-muted-foreground">
+                    {reportPage} / {reportTotalPages}
+                  </span>
+                  <Button variant="outline" size="sm" disabled={reportPage >= reportTotalPages} onClick={() => fetchReports(reportPage + 1, reportSearch, reportPublishedFilter)}>
                     {t({ en: 'Next', id: 'Selanjutnya' })}
                   </Button>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-      </Card>
-
-      {/* Tag Modal */}
-      {isTagModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-sm">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4 text-foreground">
-                {editingTag
-                  ? t({ en: 'Edit Tag', id: 'Edit Tag' })
-                  : t({ en: 'Add Tag', id: 'Tambah Tag' })}
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="tag-name-en">{t({ en: 'Name (English)', id: 'Nama (English)' })}</Label>
-                  <Input
-                    id="tag-name-en"
-                    value={tagFormData.nameEn}
-                    onChange={(e) => setTagFormData({ ...tagFormData, nameEn: e.target.value })}
-                    placeholder={t({ en: 'e.g. Cybersecurity', id: 'mis. Keamanan Siber' })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="tag-name-id">{t({ en: 'Name (Bahasa Indonesia)', id: 'Nama (Bahasa Indonesia)' })}</Label>
-                  <Input
-                    id="tag-name-id"
-                    value={tagFormData.nameId}
-                    onChange={(e) => setTagFormData({ ...tagFormData, nameId: e.target.value })}
-                    placeholder={t({ en: 'e.g. Keamanan Siber', id: 'mis. Keamanan Siber' })}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2 mt-6">
-                <Button onClick={handleSaveTag} disabled={isSavingTag} className="flex-1">
-                  {isSavingTag ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save', id: 'Simpan' })}
-                </Button>
-                <Button variant="outline" onClick={handleCloseTagModal} disabled={isSavingTag} className="flex-1">
-                  {t({ en: 'Cancel', id: 'Batalkan' })}
-                </Button>
-              </div>
+              )}
             </div>
           </Card>
-        </div>
-      )}
+        </TabsContent>
+
+        {/* Downloads Tab */}
+        <TabsContent value="downloads">
+          <Card className="p-6">
+            <div className="space-y-4">
+              {/* Filters */}
+              <div className="flex flex-col md:flex-row gap-3">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    className="pl-9"
+                    placeholder={t({ en: 'Search by name, company, email...', id: 'Cari nama, perusahaan, email...' })}
+                    value={dlSearch}
+                    onChange={(e) => setDlSearch(e.target.value)}
+                  />
+                </div>
+                <select
+                  className="h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  value={dlMemberFilter}
+                  onChange={(e) => setDlMemberFilter(e.target.value)}
+                >
+                  <option value="">{t({ en: 'All', id: 'Semua' })}</option>
+                  <option value="Anggota ADIGSI">{t({ en: 'ADIGSI Members', id: 'Anggota ADIGSI' })}</option>
+                  <option value="Non-Anggota">{t({ en: 'Non-Members', id: 'Non-Anggota' })}</option>
+                </select>
+                {(dlSearch || dlMemberFilter) && (
+                  <Button variant="ghost" size="sm" onClick={() => { setDlSearch(''); setDlMemberFilter('') }}>
+                    <X className="h-4 w-4 mr-1" />{t({ en: 'Reset', id: 'Reset' })}
+                  </Button>
+                )}
+              </div>
+
+              {/* Downloads Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left">
+                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Full Name', id: 'Nama Lengkap' })}</th>
+                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Company', id: 'Perusahaan' })}</th>
+                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Position', id: 'Jabatan' })}</th>
+                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Email', id: 'Email' })}</th>
+                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Member', id: 'Anggota' })}</th>
+                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Report', id: 'Laporan' })}</th>
+                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Downloaded At', id: 'Diunduh Pada' })}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {isDlLoading ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-muted-foreground">{t({ en: 'Loading...', id: 'Memuat...' })}</td>
+                      </tr>
+                    ) : downloads.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-muted-foreground">{t({ en: 'No records found', id: 'Tidak ada catatan ditemukan' })}</td>
+                      </tr>
+                    ) : (
+                      downloads.map((record) => (
+                        <tr key={record._id.toString()} className="border-b border-border hover:bg-muted/30">
+                          <td className="py-3 px-2 font-medium text-foreground">{record.fullname}</td>
+                          <td className="py-3 px-2 text-muted-foreground">{record.company}</td>
+                          <td className="py-3 px-2 text-muted-foreground">{record.position}</td>
+                          <td className="py-3 px-2 text-muted-foreground">{record.email}</td>
+                          <td className="py-3 px-2">
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${record.member === 'Anggota ADIGSI'
+                                ? 'bg-green-500/10 text-green-600'
+                                : 'bg-muted text-muted-foreground'
+                              }`}>
+                              {record.member}
+                            </span>
+                          </td>
+                          <td className="py-3 px-2 text-muted-foreground text-xs max-w-40 line-clamp-2">
+                            {record.reportTitleEn || record.reportTitleId || '—'}
+                          </td>
+                          <td className="py-3 px-2 text-muted-foreground text-xs whitespace-nowrap">{formatDate(record.downloadedAt)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Downloads Pagination */}
+              {dlPagination.totalPages > 1 && (
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-sm text-muted-foreground">
+                    {t({ en: 'Showing', id: 'Menampilkan' })} {Math.min((dlPagination.page - 1) * dlPagination.limit + 1, dlPagination.total)}–{Math.min(dlPagination.page * dlPagination.limit, dlPagination.total)} {t({ en: 'of', id: 'dari' })} {dlPagination.total}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" disabled={dlPagination.page <= 1} onClick={() => fetchDownloads(dlPagination.page - 1, dlSearch, dlMemberFilter)}>
+                      {t({ en: 'Previous', id: 'Sebelumnya' })}
+                    </Button>
+                    <Button variant="outline" size="sm" disabled={dlPagination.page >= dlPagination.totalPages} onClick={() => fetchDownloads(dlPagination.page + 1, dlSearch, dlMemberFilter)}>
+                      {t({ en: 'Next', id: 'Selanjutnya' })}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Tag Modal */}
       {isTagModalOpen && (
@@ -937,6 +851,6 @@ export default function CMSKnowledgeHubPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }

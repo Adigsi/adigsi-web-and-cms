@@ -14,6 +14,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { ChevronDown, Trash2, Check } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
 interface BannerData {
   titleEn: string
@@ -106,8 +107,8 @@ function IconPicker({
                 setOpen(false)
               }}
               className={`p-2 rounded border transition-all flex flex-col items-center justify-center gap-1 text-xs capitalize hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950 ${value === iconType
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                  : 'border-muted hover:border-gray-400'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                : 'border-muted hover:border-gray-400'
                 }`}
               title={iconType}
             >
@@ -150,12 +151,6 @@ export default function CMSMembersPage() {
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [draggedLogo, setDraggedLogo] = useState<{ categoryIndex: number; logoIndex: number } | null>(null)
-  const [expandedSections, setExpandedSections] = useState({
-    banner: false,
-    cybersecurity: false,
-    digital: false,
-    partners: false,
-  })
 
   // Banner section state
   const [bannerData, setBannerData] = useState<BannerData>({
@@ -251,7 +246,7 @@ export default function CMSMembersPage() {
             titleEn: data.heading?.titleEn || 'ADIGSI Cyber Security Members',
             titleId: data.heading?.titleId || 'Anggota Cyber Security ADIGSI',
           })
-          
+
           setCybersecCategoriesData({
             categories: data.categories || [
               {
@@ -272,7 +267,7 @@ export default function CMSMembersPage() {
             titleEn: data.heading?.titleEn || 'Digital Member Categories',
             titleId: data.heading?.titleId || 'Kategori Member Digital',
           })
-          
+
           setDigitalCategoriesData({
             categories: data.categories || [
               {
@@ -415,267 +410,233 @@ export default function CMSMembersPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Members Page Management', id: 'Manajemen Halaman Members' })}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t({ en: 'Manage content sections for the Members page', id: 'Kelola konten section untuk halaman Members' })}
-        </p>
-      </div>
-
+    <>
       {isLoading ? (
-        <Card className="p-6">
-          <div className="text-center py-8 text-muted-foreground">
-            {t({ en: 'Loading...', id: 'Memuat...' })}
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Members Page Management', id: 'Manajemen Halaman Members' })}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t({ en: 'Manage content sections for the Members page', id: 'Kelola konten section untuk halaman Members' })}
+            </p>
           </div>
-        </Card>
+          <Card className="p-6">
+            <div className="text-center py-8 text-muted-foreground">
+              {t({ en: 'Loading...', id: 'Memuat...' })}
+            </div>
+          </Card>
+        </div>
       ) : (
-        <>
-          {/* Banner Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, banner: !expandedSections.banner })}
-            >
+        <Tabs defaultValue="banner" className="h-full">
+          {/* Sticky header */}
+          <div className="sticky top-16 md:top-0 z-20 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 pt-4 pb-3 bg-background/95 backdrop-blur-sm border-b border-border mb-6">
+            <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Members Page Management', id: 'Manajemen Halaman Members' })}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t({ en: 'Manage content sections for the Members page', id: 'Kelola konten section untuk halaman Members' })}
+            </p>
+            <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-primary/10 p-1 rounded-md mt-3">
+              <TabsTrigger value="banner">{t({ en: 'Page Title', id: 'Judul Halaman' })}</TabsTrigger>
+              <TabsTrigger value="cybersecurity">{t({ en: 'Cybersecurity', id: 'Cybersecurity' })}</TabsTrigger>
+              <TabsTrigger value="digital">{t({ en: 'Digital', id: 'Digital' })}</TabsTrigger>
+              <TabsTrigger value="partners">{t({ en: 'Partners', id: 'Partner' })}</TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Banner Tab */}
+          <TabsContent value="banner">
+            <div className="flex flex-col h-full">
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Banner', id: 'Banner' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage the Members page banner', id: 'Kelola banner halaman Members' })}
-                </p>
+                <Card className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
+                      <Input
+                        id="banner-title-en"
+                        value={bannerData.titleEn}
+                        onChange={(e) => setBannerData({ ...bannerData, titleEn: e.target.value })}
+                        placeholder={t({ en: 'Enter banner title in English', id: 'Masukkan judul banner dalam English' })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="banner-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
+                      <Input
+                        id="banner-title-id"
+                        value={bannerData.titleId}
+                        onChange={(e) => setBannerData({ ...bannerData, titleId: e.target.value })}
+                        placeholder={t({ en: 'Enter banner title in Indonesian', id: 'Masukkan judul banner dalam Indonesia' })}
+                      />
+                    </div>
+
+                  </div>
+                </Card>
               </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.banner ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
-            </div>
-
-            {expandedSections.banner && (
-              <>
-                <div className="space-y-4 mt-4">
-                  <div>
-                    <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
-                    <Input
-                      id="banner-title-en"
-                      value={bannerData.titleEn}
-                      onChange={(e) => setBannerData({ ...bannerData, titleEn: e.target.value })}
-                      placeholder={t({ en: 'Enter banner title in English', id: 'Masukkan judul banner dalam English' })}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="banner-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
-                    <Input
-                      id="banner-title-id"
-                      value={bannerData.titleId}
-                      onChange={(e) => setBannerData({ ...bannerData, titleId: e.target.value })}
-                      placeholder={t({ en: 'Enter banner title in Indonesian', id: 'Masukkan judul banner dalam Indonesia' })}
-                    />
-                  </div>
-
-                  <Button onClick={() => handleSave('banner')} disabled={isSaving === 'banner'}>
-                    {isSaving === 'banner' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Banner', id: 'Simpan Banner' })}
-                  </Button>
-                </div>
-              </>
-            )}
-          </Card>
-
-          {/* Cybersecurity Member Categories Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, cybersecurity: !expandedSections.cybersecurity })}
-            >
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Cybersecurity Member Categories', id: 'Kategori Member Cybersecurity' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage cybersecurity member categories and member count', id: 'Kelola kategori member cybersecurity dan jumlah anggota' })}
-                </p>
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
+                <Button onClick={() => handleSave('banner')} disabled={isSaving === 'banner'}>
+                  {isSaving === 'banner' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                </Button>
               </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.cybersecurity ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
             </div>
+          </TabsContent>
 
-            {expandedSections.cybersecurity && (
-              <>
-                {/* Section Heading Fields */}
-                <div className="bg-muted/30 border border-muted rounded-lg p-4 mt-4 mb-6">
-                  <h3 className="text-sm font-semibold mb-4 text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="subtitle-en">{t({ en: 'Subtitle (EN)', id: 'Subtitle (EN)' })}</Label>
-                      <Input
-                        id="subtitle-en"
-                        value={cybersecHeadingData.subtitleEn}
-                        onChange={(e) => setCybersecHeadingData({ ...cybersecHeadingData, subtitleEn: e.target.value })}
-                        placeholder={t({ en: 'Enter subtitle in English', id: 'Masukkan subtitle dalam Inggris' })}
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="subtitle-id">{t({ en: 'Subtitle (ID)', id: 'Subtitle (ID)' })}</Label>
-                      <Input
-                        id="subtitle-id"
-                        value={cybersecHeadingData.subtitleId}
-                        onChange={(e) => setCybersecHeadingData({ ...cybersecHeadingData, subtitleId: e.target.value })}
-                        placeholder={t({ en: 'Enter subtitle in Indonesian', id: 'Masukkan subtitle dalam Indonesia' })}
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="title-en">{t({ en: 'Title (EN)', id: 'Judul (EN)' })}</Label>
-                      <Input
-                        id="title-en"
-                        value={cybersecHeadingData.titleEn}
-                        onChange={(e) => setCybersecHeadingData({ ...cybersecHeadingData, titleEn: e.target.value })}
-                        placeholder={t({ en: 'Enter title in English', id: 'Masukkan judul dalam Inggris' })}
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="title-id">{t({ en: 'Title (ID)', id: 'Judul (ID)' })}</Label>
-                      <Input
-                        id="title-id"
-                        value={cybersecHeadingData.titleId}
-                        onChange={(e) => setCybersecHeadingData({ ...cybersecHeadingData, titleId: e.target.value })}
-                        placeholder={t({ en: 'Enter title in Indonesian', id: 'Masukkan judul dalam Indonesia' })}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                  {cybersecCategoriesData.categories.map((category, index) => (
-                    <Card key={index} className="p-3 border-muted bg-muted/30 flex flex-col">
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <h3 className="font-semibold text-sm text-foreground">{t({ en: 'Category', id: 'Kategori' })} {index + 1}</h3>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            const newCategories = cybersecCategoriesData.categories.filter((_, i) => i !== index)
-                            setCybersecCategoriesData({ ...cybersecCategoriesData, categories: newCategories })
-                          }}
-                          className="h-8 w-8 p-0 shrink-0"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+          {/* Cybersecurity Tab */}
+          <TabsContent value="cybersecurity">
+            <div className="flex flex-col h-full">
+              <Card className="p-6 flex-1">
+                <div className="space-y-4">
+                  <div className="bg-muted/30 border border-muted rounded-lg p-4 mt-4 mb-6">
+                    <h3 className="text-sm font-semibold mb-4 text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="subtitle-en">{t({ en: 'Subtitle (EN)', id: 'Subtitle (EN)' })}</Label>
+                        <Input
+                          id="subtitle-en"
+                          value={cybersecHeadingData.subtitleEn}
+                          onChange={(e) => setCybersecHeadingData({ ...cybersecHeadingData, subtitleEn: e.target.value })}
+                          placeholder={t({ en: 'Enter subtitle in English', id: 'Masukkan subtitle dalam Inggris' })}
+                        />
                       </div>
 
-                      <div className="space-y-2 flex-1">
-                        <div>
-                          <Label className="text-xs">{t({ en: 'Title (EN)', id: 'Judul (EN)' })}</Label>
-                          <Input
-                            value={category.titleEn}
-                            onChange={(e) => {
-                              const newCategories = [...cybersecCategoriesData.categories]
-                              newCategories[index] = { ...category, titleEn: e.target.value }
-                              setCybersecCategoriesData({ ...cybersecCategoriesData, categories: newCategories })
-                            }}
-                            placeholder="e.g., Network Security"
-                            className="h-8 text-xs"
-                          />
-                        </div>
-
-                        <div>
-                          <Label className="text-xs">{t({ en: 'Title (ID)', id: 'Judul (ID)' })}</Label>
-                          <Input
-                            value={category.titleId}
-                            onChange={(e) => {
-                              const newCategories = [...cybersecCategoriesData.categories]
-                              newCategories[index] = { ...category, titleId: e.target.value }
-                              setCybersecCategoriesData({ ...cybersecCategoriesData, categories: newCategories })
-                            }}
-                            placeholder="e.g., Keamanan Jaringan"
-                            className="h-8 text-xs"
-                          />
-                        </div>
-
-                        <div>
-                          <Label className="text-xs">{t({ en: 'Count', id: 'Jumlah' })}</Label>
-                          <Input
-                            type="number"
-                            value={category.count}
-                            onChange={(e) => {
-                              const newCategories = [...cybersecCategoriesData.categories]
-                              newCategories[index] = { ...category, count: parseInt(e.target.value) || 0 }
-                              setCybersecCategoriesData({ ...cybersecCategoriesData, categories: newCategories })
-                            }}
-                            placeholder="25"
-                            min="0"
-                            className="h-8 text-xs"
-                          />
-                        </div>
-
-                        <div>
-                          <Label className="text-xs mb-1 block">{t({ en: 'Icon', id: 'Icon' })}</Label>
-                          <IconPicker
-                            value={category.icon}
-                            onChange={(icon) => {
-                              const newCategories = [...cybersecCategoriesData.categories]
-                              newCategories[index] = { ...category, icon }
-                              setCybersecCategoriesData({ ...cybersecCategoriesData, categories: newCategories })
-                            }}
-                          />
-                        </div>
+                      <div>
+                        <Label htmlFor="subtitle-id">{t({ en: 'Subtitle (ID)', id: 'Subtitle (ID)' })}</Label>
+                        <Input
+                          id="subtitle-id"
+                          value={cybersecHeadingData.subtitleId}
+                          onChange={(e) => setCybersecHeadingData({ ...cybersecHeadingData, subtitleId: e.target.value })}
+                          placeholder={t({ en: 'Enter subtitle in Indonesian', id: 'Masukkan subtitle dalam Indonesia' })}
+                        />
                       </div>
-                    </Card>
-                  ))}
 
+                      <div>
+                        <Label htmlFor="title-en">{t({ en: 'Title (EN)', id: 'Judul (EN)' })}</Label>
+                        <Input
+                          id="title-en"
+                          value={cybersecHeadingData.titleEn}
+                          onChange={(e) => setCybersecHeadingData({ ...cybersecHeadingData, titleEn: e.target.value })}
+                          placeholder={t({ en: 'Enter title in English', id: 'Masukkan judul dalam Inggris' })}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="title-id">{t({ en: 'Title (ID)', id: 'Judul (ID)' })}</Label>
+                        <Input
+                          id="title-id"
+                          value={cybersecHeadingData.titleId}
+                          onChange={(e) => setCybersecHeadingData({ ...cybersecHeadingData, titleId: e.target.value })}
+                          placeholder={t({ en: 'Enter title in Indonesian', id: 'Masukkan judul dalam Indonesia' })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                    {cybersecCategoriesData.categories.map((category, index) => (
+                      <Card key={index} className="p-3 border-muted bg-muted/30 flex flex-col">
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <h3 className="font-semibold text-sm text-foreground">{t({ en: 'Category', id: 'Kategori' })} {index + 1}</h3>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              const newCategories = cybersecCategoriesData.categories.filter((_, i) => i !== index)
+                              setCybersecCategoriesData({ ...cybersecCategoriesData, categories: newCategories })
+                            }}
+                            className="h-8 w-8 p-0 shrink-0"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+
+                        <div className="space-y-2 flex-1">
+                          <div>
+                            <Label className="text-xs">{t({ en: 'Title (EN)', id: 'Judul (EN)' })}</Label>
+                            <Input
+                              value={category.titleEn}
+                              onChange={(e) => {
+                                const newCategories = [...cybersecCategoriesData.categories]
+                                newCategories[index] = { ...category, titleEn: e.target.value }
+                                setCybersecCategoriesData({ ...cybersecCategoriesData, categories: newCategories })
+                              }}
+                              placeholder="e.g., Network Security"
+                              className="h-8 text-xs"
+                            />
+                          </div>
+
+                          <div>
+                            <Label className="text-xs">{t({ en: 'Title (ID)', id: 'Judul (ID)' })}</Label>
+                            <Input
+                              value={category.titleId}
+                              onChange={(e) => {
+                                const newCategories = [...cybersecCategoriesData.categories]
+                                newCategories[index] = { ...category, titleId: e.target.value }
+                                setCybersecCategoriesData({ ...cybersecCategoriesData, categories: newCategories })
+                              }}
+                              placeholder="e.g., Keamanan Jaringan"
+                              className="h-8 text-xs"
+                            />
+                          </div>
+
+                          <div>
+                            <Label className="text-xs">{t({ en: 'Count', id: 'Jumlah' })}</Label>
+                            <Input
+                              type="number"
+                              value={category.count}
+                              onChange={(e) => {
+                                const newCategories = [...cybersecCategoriesData.categories]
+                                newCategories[index] = { ...category, count: parseInt(e.target.value) || 0 }
+                                setCybersecCategoriesData({ ...cybersecCategoriesData, categories: newCategories })
+                              }}
+                              placeholder="25"
+                              min="0"
+                              className="h-8 text-xs"
+                            />
+                          </div>
+
+                          <div>
+                            <Label className="text-xs mb-1 block">{t({ en: 'Icon', id: 'Icon' })}</Label>
+                            <IconPicker
+                              value={category.icon}
+                              onChange={(icon) => {
+                                const newCategories = [...cybersecCategoriesData.categories]
+                                newCategories[index] = { ...category, icon }
+                                setCybersecCategoriesData({ ...cybersecCategoriesData, categories: newCategories })
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={() => {
-                      setCybersecCategoriesData({
-                        ...cybersecCategoriesData,
-                        categories: [
-                          ...cybersecCategoriesData.categories,
-                          {
-                            titleEn: '',
-                            titleId: '',
-                            count: 0,
-                            icon: 'network',
-                          }
-                        ]
-                      })
-                    }}
-                    variant="outline"
-                  >
-                    {t({ en: '+ Add Category', id: '+ Tambah Kategori' })}
-                  </Button>
-
-                  <Button onClick={() => handleSave('cybersecurity')} disabled={isSaving === 'cybersecurity'}>
-                    {isSaving === 'cybersecurity' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Cybersecurity Categories', id: 'Simpan Kategori Cybersecurity' })}
-                  </Button>
-                </div>
-              </>
-            )}
-          </Card>
-
-          {/* Digital Member Categories Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, digital: !expandedSections.digital })}
-            >
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Digital Member Categories', id: 'Kategori Member Digital' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage digital member business sector categories', id: 'Kelola kategori sektor bisnis member digital' })}
-                </p>
+              </Card>
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
+                <Button
+                  onClick={() => {
+                    setCybersecCategoriesData({
+                      ...cybersecCategoriesData,
+                      categories: [
+                        ...cybersecCategoriesData.categories,
+                        { titleEn: '', titleId: '', count: 0, icon: 'network' }
+                      ]
+                    })
+                  }}
+                  variant="outline"
+                >
+                  {t({ en: '+ Add Category', id: '+ Tambah Kategori' })}
+                </Button>
+                <Button onClick={() => handleSave('cybersecurity')} disabled={isSaving === 'cybersecurity'}>
+                  {isSaving === 'cybersecurity' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                </Button>
               </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.digital ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
             </div>
+          </TabsContent>
 
-            {expandedSections.digital && (
-              <>
+          {/* Digital Tab */}
+          <TabsContent value="digital">
+            <div className="flex flex-col h-full">
+              <Card className="p-6 flex-1">
                 {/* Section Heading Fields */}
-                <div className="bg-muted/30 border border-muted rounded-lg p-4 mt-4 mb-6">
+                <div className="bg-muted/30 border border-muted rounded-lg p-4 mb-6">
                   <h3 className="text-sm font-semibold mb-4 text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -808,8 +769,8 @@ export default function CMSMembersPage() {
                                       setDigitalCategoriesData({ ...digitalCategoriesData, categories: newCategories })
                                     }}
                                     className={`p-2 rounded border transition-all flex flex-col items-center justify-center gap-1 text-xs capitalize hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950 ${category.icon === iconType
-                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                                        : 'border-muted hover:border-gray-400'
+                                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                                      : 'border-muted hover:border-gray-400'
                                       }`}
                                     title={iconType}
                                   >
@@ -828,58 +789,35 @@ export default function CMSMembersPage() {
                     </Card>
                   ))}
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={() => {
-                      setDigitalCategoriesData({
-                        ...digitalCategoriesData,
-                        categories: [
-                          ...digitalCategoriesData.categories,
-                          {
-                            nameEn: '',
-                            nameId: '',
-                            count: 0,
-                            icon: 'ecommerce',
-                          }
-                        ]
-                      })
-                    }}
-                    variant="outline"
-                  >
-                    {t({ en: '+ Add Digital Category', id: '+ Tambah Kategori Digital' })}
-                  </Button>
-
-                  <Button onClick={() => handleSave('digital')} disabled={isSaving === 'digital'}>
-                    {isSaving === 'digital' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Digital Categories', id: 'Simpan Kategori Digital' })}
-                  </Button>
-                </div>
-              </>
-            )}
-          </Card>
-
-          {/* Partner Logos Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, partners: !expandedSections.partners })}
-            >
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Partner Logos', id: 'Logo Partner' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage partner logos with categories and custom sizes', id: 'Kelola logo partner dengan kategori dan ukuran custom' })}
-                </p>
+              </Card>
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
+                <Button
+                  onClick={() => {
+                    setDigitalCategoriesData({
+                      ...digitalCategoriesData,
+                      categories: [
+                        ...digitalCategoriesData.categories,
+                        { nameEn: '', nameId: '', count: 0, icon: 'ecommerce' }
+                      ]
+                    })
+                  }}
+                  variant="outline"
+                >
+                  {t({ en: '+ Add Digital Category', id: '+ Tambah Kategori Digital' })}
+                </Button>
+                <Button onClick={() => handleSave('digital')} disabled={isSaving === 'digital'}>
+                  {isSaving === 'digital' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                </Button>
               </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.partners ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
             </div>
+          </TabsContent>
 
-            {expandedSections.partners && (
-              <>
+          {/* Partners Tab */}
+          <TabsContent value="partners">
+            <div className="flex flex-col h-full">
+              <Card className="p-6 flex-1">
                 {/* Section Heading Fields */}
-                <div className="bg-muted/30 border border-muted rounded-lg p-4 mt-4 mb-6">
+                <div className="bg-muted/30 border border-muted rounded-lg p-4 mb-6">
                   <h3 className="text-sm font-semibold mb-4 text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -1067,11 +1005,10 @@ export default function CMSMembersPage() {
                                     setDraggedLogo(null)
                                   }
                                 }}
-                                className={`border rounded-lg p-3 space-y-2 flex flex-col cursor-grab active:cursor-grabbing transition-opacity ${
-                                  draggedLogo?.categoryIndex === catIndex && draggedLogo?.logoIndex === logoIndex
+                                className={`border rounded-lg p-3 space-y-2 flex flex-col cursor-grab active:cursor-grabbing transition-opacity ${draggedLogo?.categoryIndex === catIndex && draggedLogo?.logoIndex === logoIndex
                                     ? 'border-dashed border-primary bg-primary/5 opacity-50'
                                     : 'border-dashed border-border'
-                                }`}
+                                  }`}
                               >
                                 {logo.imageUrl && (
                                   <div className="flex-1 flex items-center justify-center bg-gray-50 rounded h-20">
@@ -1143,40 +1080,30 @@ export default function CMSMembersPage() {
                     </Card>
                   ))}
                 </div>
-
-                <div className="flex items-center gap-2 mt-4">
-                  <Button
-                    onClick={() => {
-                      setPartnerLogosData({
-                        ...partnerLogosData,
-                        categories: [
-                          ...partnerLogosData.categories,
-                          {
-                            categoryNameEn: '',
-                            categoryNameId: '',
-                            width: 220,
-                            height: 140,
-                            homeLimit: 0,
-                            logos: [],
-                          }
-                        ]
-                      })
-                    }}
-                    variant="outline"
-                  >
-                    {t({ en: '+ Add Category', id: '+ Tambah Kategori' })}
-                  </Button>
-
-                  <Button onClick={() => handleSave('partners')} disabled={isSaving === 'partners'}>
-                    {isSaving === 'partners' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Partner Logos', id: 'Simpan Logo Partner' })}
-                  </Button>
-                </div>
-              </>
-            )}
-          </Card>
-
-        </>
+              </Card>
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
+                <Button
+                  onClick={() => {
+                    setPartnerLogosData({
+                      ...partnerLogosData,
+                      categories: [
+                        ...partnerLogosData.categories,
+                        { categoryNameEn: '', categoryNameId: '', width: 220, height: 140, homeLimit: 0, logos: [] }
+                      ]
+                    })
+                  }}
+                  variant="outline"
+                >
+                  {t({ en: '+ Add Category', id: '+ Tambah Kategori' })}
+                </Button>
+                <Button onClick={() => handleSave('partners')} disabled={isSaving === 'partners'}>
+                  {isSaving === 'partners' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       )}
-    </div>
+    </>
   )
 }

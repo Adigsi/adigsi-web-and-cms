@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useLanguage } from '@/contexts/language-context'
+import { CyberIcon } from '@/components/ui/cyber-icon'
 
 interface Membership {
   tier: string
@@ -10,6 +11,9 @@ interface Membership {
   descriptionEn: string
   descriptionId: string
   iconUrl: string
+  stripeCount?: number
+  stripeMax?: number
+  primaryColor?: string
 }
 
 type TierKey = 'bronze' | 'silver' | 'gold' | 'platinum' | 'default'
@@ -61,6 +65,15 @@ const TIER_CONFIG: Record<TierKey, {
 function getTierConfig(tier: string) {
   const key = tier.toLowerCase() as TierKey
   return TIER_CONFIG[key] ?? TIER_CONFIG.default
+}
+
+function hexToRgb(hex: string): string {
+  const clean = hex.replace('#', '')
+  const r = parseInt(clean.slice(0, 2), 16)
+  const g = parseInt(clean.slice(2, 4), 16)
+  const b = parseInt(clean.slice(4, 6), 16)
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return '58,111,247'
+  return `${r},${g},${b}`
 }
 
 /**
@@ -235,7 +248,16 @@ export function MembershipBenefitsSection() {
           }`}
         >
           {memberships.map((membership, index) => {
-            const cfg = getTierConfig(membership.tier)
+            const baseCfg = getTierConfig(membership.tier)
+            const primaryColor = membership.primaryColor || baseCfg.primaryColor
+            const glowRgb = membership.primaryColor ? hexToRgb(membership.primaryColor) : baseCfg.glowRgb
+            const cfg = {
+              ...baseCfg,
+              primaryColor,
+              glowRgb,
+              panelBg: `rgba(${glowRgb},0.10)`,
+              panelBgHover: `rgba(${glowRgb},0.18)`,
+            }
             return (
               <div
                 key={`${membership.tier}-${index}`}
@@ -285,7 +307,7 @@ export function MembershipBenefitsSection() {
                       border: `1px solid rgba(${cfg.glowRgb},0.25)`,
                     }}
                   >
-                    <TierIcon tier={membership.tier} />
+                    <CyberIcon type={membership.iconUrl || 'shield-check'} size={28} />
                   </div>
 
                   {/* Tier label vertical */}
@@ -309,51 +331,41 @@ export function MembershipBenefitsSection() {
                       <h3 className="text-foreground font-bold text-sm uppercase tracking-wide leading-snug">
                         {language === 'en' ? membership.nameEn : membership.nameId}
                       </h3>
-
-                      {/* Tier badge */}
-                      {/* {membership.tier && (
-                        <span
-                          className="shrink-0 text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest border"
-                          style={{
-                            color: cfg.primaryColor,
-                            borderColor: `rgba(${cfg.glowRgb},0.30)`,
-                            backgroundColor: `rgba(${cfg.glowRgb},0.06)`,
-                          }}
-                        >
-                          {membership.tier}
-                        </span>
-                      )} */}
                     </div>
 
                     <p className="text-muted-foreground text-sm leading-relaxed">
                       {language === 'en' ? membership.descriptionEn : membership.descriptionId}
                     </p>
 
-                    {/* Tier progress indicator — pinned to bottom, count matches stripe count */}
+                    {/* Tier progress indicator — arbitrary count/max from CMS */}
                     {(() => {
-                      const ALL_TIERS = ['bronze', 'silver', 'gold', 'platinum'] as const
-                      const tierStr = membership.tier.toLowerCase()
-                      // match exact first, then partial (handles "Bronze Member" etc.)
-                      const matched = ALL_TIERS.find(t => tierStr === t)
-                        ?? ALL_TIERS.find(t => tierStr.includes(t))
-                        ?? 'bronze'
-                      const count = ALL_TIERS.indexOf(matched) + 1   // bronze=1, silver=2, gold=3, platinum=4
+                      const filled = (membership.stripeCount && membership.stripeCount >= 1)
+                        ? membership.stripeCount
+                        : (() => {
+                            const ALL_TIERS = ['bronze', 'silver', 'gold', 'platinum'] as const
+                            const tierStr = membership.tier.toLowerCase()
+                            const matched = ALL_TIERS.find(t => tierStr === t)
+                              ?? ALL_TIERS.find(t => tierStr.includes(t))
+                              ?? 'bronze'
+                            return ALL_TIERS.indexOf(matched) + 1
+                          })()
+                      const total = (membership.stripeMax && membership.stripeMax >= filled)
+                        ? membership.stripeMax
+                        : Math.max(filled, 4)
+                      const segPct = `${(100 / total).toFixed(4)}%`
                       return (
-                        <div className="flex items-center gap-1.5 mt-auto pt-3">
-                          {ALL_TIERS.slice(0, count).map((t, i) => {
-                            const segCfg = TIER_CONFIG[t]
-                            const isLast = i === count - 1
-                            return (
-                              <div
-                                key={t}
-                                className="h-1 w-1/4 rounded-full"
-                                style={{
-                                  backgroundColor: segCfg.primaryColor,
-                                  opacity: isLast ? 1 : 0.35,
-                                }}
-                              />
-                            )
-                          })}
+                        <div className="flex items-center gap-1 mt-auto pt-3">
+                          {Array.from({ length: total }).map((_, i) => (
+                            <div
+                              key={i}
+                              className="h-1 rounded-full"
+                              style={{
+                                width: segPct,
+                                backgroundColor: i < filled ? cfg.primaryColor : cfg.primaryColor,
+                                opacity: i < filled ? (i === filled - 1 ? 1 : 0.40) : 0.10,
+                              }}
+                            />
+                          ))}
                         </div>
                       )
                     })()}

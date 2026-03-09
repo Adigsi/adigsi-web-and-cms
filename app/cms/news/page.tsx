@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, Edit2, Trash2, Plus, Search, X } from 'lucide-react'
+import { Edit2, Trash2, Plus, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useLanguage } from '@/contexts/language-context'
 import { useToast } from '@/hooks/use-toast'
 
@@ -54,11 +55,7 @@ export default function CMSNewsPage() {
   const { toast } = useToast()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [expandedSections, setExpandedSections] = useState({
-    banner: false,
-    categories: false,
-    news: false,
-  })
+  const [activeTab, setActiveTab] = useState('banner')
 
   // Banner section state
   const [bannerData, setBannerData] = useState<BannerData>({
@@ -69,7 +66,7 @@ export default function CMSNewsPage() {
   const [originalBannerData, setOriginalBannerData] = useState<BannerData>(bannerData)
 
   // News section state
-  const [news, setNews] = useState<NewsData[]>([]) 
+  const [news, setNews] = useState<NewsData[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
@@ -162,7 +159,7 @@ export default function CMSNewsPage() {
         ...(categoryFilter && { category: categoryFilter }),
         ...(publishedFilter && { published: publishedFilter }),
       })
-      
+
       const response = await fetch(`/api/cms/news/news?${params}`)
       if (response.ok) {
         const data: NewsResponse = await response.json()
@@ -176,15 +173,15 @@ export default function CMSNewsPage() {
   }
 
   useEffect(() => {
-    if (expandedSections.news) {
+    if (activeTab === 'news') {
       fetchNews(1)
       fetchCategories()
     }
-  }, [expandedSections.news])
+  }, [activeTab])
 
   // Auto-fetch when filters change
   useEffect(() => {
-    if (expandedSections.news && (categoryFilter || publishedFilter)) {
+    if (activeTab === 'news' && (categoryFilter || publishedFilter)) {
       setCurrentPage(1)
       fetchNews(1)
     }
@@ -192,7 +189,7 @@ export default function CMSNewsPage() {
 
   // Debounced search
   useEffect(() => {
-    if (!expandedSections.news) return
+    if (activeTab !== 'news') return
 
     const timeoutId = setTimeout(() => {
       if (searchQuery) {
@@ -218,10 +215,10 @@ export default function CMSNewsPage() {
   }
 
   useEffect(() => {
-    if (expandedSections.categories) {
+    if (activeTab === 'categories') {
       fetchCategories()
     }
-  }, [expandedSections.categories])
+  }, [activeTab])
 
   const handleOpenCatModal = (category?: NewsCategory) => {
     if (category) {
@@ -340,7 +337,7 @@ export default function CMSNewsPage() {
     setCategoryFilter('')
     setPublishedFilter('')
     setCurrentPage(1)
-    
+
     // Fetch immediately with no filters
     try {
       const response = await fetch(`/api/cms/news/news?page=1`)
@@ -419,100 +416,80 @@ export default function CMSNewsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{t({ en: 'News Page Management', id: 'Manajemen Halaman News' })}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t({ en: 'Manage content sections for the News page', id: 'Kelola konten section untuk halaman News' })}
-        </p>
-      </div>
-
+    <>
       {isLoading ? (
-        <Card className="p-6">
-          <div className="text-center py-8 text-muted-foreground">
-            {t({ en: 'Loading...', id: 'Memuat...' })}
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{t({ en: 'News Page Management', id: 'Manajemen Halaman News' })}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t({ en: 'Manage content sections for the News page', id: 'Kelola konten section untuk halaman News' })}
+            </p>
           </div>
-        </Card>
-      ) : (
-        <>
-          {/* Banner Section */}
           <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, banner: !expandedSections.banner })}
-            >
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Banner', id: 'Banner' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage the banner section with title and image', id: 'Kelola section banner dengan judul dan gambar' })}
-                </p>
-              </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.banner ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
+            <div className="text-center py-8 text-muted-foreground">
+              {t({ en: 'Loading...', id: 'Memuat...' })}
             </div>
-
-            {expandedSections.banner && (
-              <>
-                <div className="space-y-4 mt-4">
-                  <div>
-                    <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
-                    <Input
-                      id="banner-title-en"
-                      value={bannerData.titleEn}
-                      onChange={(e) => setBannerData({ ...bannerData, titleEn: e.target.value })}
-                      placeholder={t({ en: 'Enter banner title in English', id: 'Masukkan judul banner dalam English' })}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="banner-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
-                    <Input
-                      id="banner-title-id"
-                      value={bannerData.titleId}
-                      onChange={(e) => setBannerData({ ...bannerData, titleId: e.target.value })}
-                      placeholder={t({ en: 'Enter banner title in Indonesian', id: 'Masukkan judul banner dalam Indonesia' })}
-                    />
-                  </div>
-
-                  <Button onClick={handleSaveBanner} disabled={isSaving === 'banner' || !hasChanges(bannerData, originalBannerData)}>
-                    {isSaving === 'banner' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
-                  </Button>
-                  {hasChanges(bannerData, originalBannerData) && (
-                    <Button
-                      variant="outline"
-                      onClick={handleCancelBanner}
-                      disabled={isSaving === 'banner'}
-                      className='ml-4'
-                    >
-                      {t({ en: 'Cancel Changes', id: 'Batalkan Perubahan' })}
-                    </Button>
-                  )}
-                </div>
-              </>
-            )}
           </Card>
+        </div>
+      ) : (
+        <Tabs defaultValue="banner" className="h-full" onValueChange={setActiveTab}>
+          {/* Sticky header */}
+          <div className="sticky top-16 md:top-0 z-20 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 pt-4 pb-3 bg-background/95 backdrop-blur-sm border-b border-border mb-6">
+            <h1 className="text-2xl font-bold text-foreground">{t({ en: 'News Page Management', id: 'Manajemen Halaman News' })}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t({ en: 'Manage content sections for the News page', id: 'Kelola konten section untuk halaman News' })}
+            </p>
+            <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-primary/10 p-1 rounded-md mt-3">
+              <TabsTrigger value="banner">{t({ en: 'Page Title', id: 'Judul Halaman' })}</TabsTrigger>
+              <TabsTrigger value="categories">{t({ en: 'Categories', id: 'Kategori' })}</TabsTrigger>
+              <TabsTrigger value="news">{t({ en: 'News', id: 'Berita' })}</TabsTrigger>
+            </TabsList>
+          </div>
 
-          {/* News Categories Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, categories: !expandedSections.categories })}
-            >
+          {/* Banner Tab */}
+          <TabsContent value="banner">
+            <div className="flex flex-col h-full">
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'News Categories', id: 'Kategori Berita' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage bilingual news categories used across all news articles', id: 'Kelola kategori berita bilingual yang digunakan di semua artikel berita' })}
-                </p>
+                <Card className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
+                      <Input
+                        id="banner-title-en"
+                        value={bannerData.titleEn}
+                        onChange={(e) => setBannerData({ ...bannerData, titleEn: e.target.value })}
+                        placeholder={t({ en: 'Enter banner title in English', id: 'Masukkan judul banner dalam English' })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="banner-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
+                      <Input
+                        id="banner-title-id"
+                        value={bannerData.titleId}
+                        onChange={(e) => setBannerData({ ...bannerData, titleId: e.target.value })}
+                        placeholder={t({ en: 'Enter banner title in Indonesian', id: 'Masukkan judul banner dalam Indonesia' })}
+                      />
+                    </div>
+                  </div>
+                </Card>
               </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.categories ? 'rotate-0' : '-rotate-90'}`}
-              />
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
+                <Button onClick={handleSaveBanner} disabled={isSaving === 'banner' || !hasChanges(bannerData, originalBannerData)}>
+                  {isSaving === 'banner' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                </Button>
+                {hasChanges(bannerData, originalBannerData) && (
+                  <Button variant="outline" onClick={handleCancelBanner} disabled={isSaving === 'banner'}>
+                    {t({ en: 'Cancel Changes', id: 'Batalkan Perubahan' })}
+                  </Button>
+                )}
+              </div>
             </div>
+          </TabsContent>
 
-            {expandedSections.categories && (
-              <div className="mt-4 space-y-4">
+          {/* Categories Tab */}
+          <TabsContent value="categories">
+            <Card className="p-6">
+              <div className="space-y-4">
                 <Button onClick={() => handleOpenCatModal()} className="gap-2">
                   <Plus className="h-4 w-4" />
                   {t({ en: 'Add Category', id: 'Tambah Kategori' })}
@@ -544,11 +521,10 @@ export default function CMSNewsPage() {
                                   checked={cat.active ?? true}
                                   onCheckedChange={() => handleToggleCategoryStatus(cat._id, cat.active ?? true)}
                                 />
-                                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                  (cat.active ?? true)
+                                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${(cat.active ?? true)
                                     ? 'bg-green-100 text-green-800'
                                     : 'bg-gray-100 text-gray-600'
-                                }`}>
+                                  }`}>
                                   {(cat.active ?? true)
                                     ? t({ en: 'Active', id: 'Aktif' })
                                     : t({ en: 'Inactive', id: 'Nonaktif' })}
@@ -580,212 +556,194 @@ export default function CMSNewsPage() {
                   </div>
                 )}
               </div>
-            )}
-          </Card>
+            </Card>
+          </TabsContent>
 
-          {/* News Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, news: !expandedSections.news })}
-            >
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'News', id: 'Berita' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage news articles with bilingual support', id: 'Kelola artikel berita dengan dukungan bilingual' })}
-                </p>
+          {/* News Tab */}
+          <TabsContent value="news">
+            <Card className="p-6">
+              <div className="mb-4">
+                <Button onClick={() => router.push('/cms/news/form')}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t({ en: 'Add News', id: 'Tambah Berita' })}
+                </Button>
               </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.news ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
-            </div>
 
-            {expandedSections.news && (
-              <>
-                <div className="mt-4">
-                  <Button onClick={() => router.push('/cms/news/form')}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t({ en: 'Add News', id: 'Tambah Berita' })}
-                  </Button>
-                </div>
-
-                {/* Search and Filters */}
-                <div className="mt-4 space-y-3">
-                  <div className="flex flex-col md:flex-row gap-3">
-                    <div className="flex-1 relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="text"
-                        placeholder={t({ en: 'Search news by title...', id: 'Cari berita berdasarkan judul...' })}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <select
-                        value={categoryFilter}
-                        onChange={(e) => setCategoryFilter(e.target.value)}
-                        className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                      >
-                        <option value="">{t({ en: 'All Categories', id: 'Semua Kategori' })}</option>
-                        {availableCategories.map((cat) => (
-                          <option key={cat._id} value={cat.nameEn}>{cat.nameEn} / {cat.nameId}</option>
-                        ))}
-                      </select>
-                      <select
-                        value={publishedFilter}
-                        onChange={(e) => setPublishedFilter(e.target.value)}
-                        className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                      >
-                        <option value="">{t({ en: 'All Status', id: 'Semua Status' })}</option>
-                        <option value="true">{t({ en: 'Published', id: 'Diterbitkan' })}</option>
-                        <option value="false">{t({ en: 'Draft', id: 'Draft' })}</option>
-                      </select>
-                      {(searchQuery || categoryFilter || publishedFilter) && (
-                        <Button onClick={handleResetFilters} variant="outline" size="sm">
-                          <X className="h-4 w-4 mr-1" />
-                          {t({ en: 'Reset', id: 'Reset' })}
-                        </Button>
-                      )}
-                    </div>
+              {/* Search and Filters */}
+              <div className="mt-4 space-y-3">
+                <div className="flex flex-col md:flex-row gap-3">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      placeholder={t({ en: 'Search news by title...', id: 'Cari berita berdasarkan judul...' })}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <select
+                      value={categoryFilter}
+                      onChange={(e) => setCategoryFilter(e.target.value)}
+                      className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      <option value="">{t({ en: 'All Categories', id: 'Semua Kategori' })}</option>
+                      {availableCategories.map((cat) => (
+                        <option key={cat._id} value={cat.nameEn}>{cat.nameEn} / {cat.nameId}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={publishedFilter}
+                      onChange={(e) => setPublishedFilter(e.target.value)}
+                      className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      <option value="">{t({ en: 'All Status', id: 'Semua Status' })}</option>
+                      <option value="true">{t({ en: 'Published', id: 'Diterbitkan' })}</option>
+                      <option value="false">{t({ en: 'Draft', id: 'Draft' })}</option>
+                    </select>
+                    {(searchQuery || categoryFilter || publishedFilter) && (
+                      <Button onClick={handleResetFilters} variant="outline" size="sm">
+                        <X className="h-4 w-4 mr-1" />
+                        {t({ en: 'Reset', id: 'Reset' })}
+                      </Button>
+                    )}
                   </div>
                 </div>
+              </div>
 
-                {news.length > 0 ? (
-                  <>
-                    <div className="mt-4 border border-border rounded-lg overflow-hidden">
-                      <table className="w-full">
-                        <thead className="bg-muted">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                              {t({ en: 'Title', id: 'Judul' })}
-                            </th>
-                            {/* <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+              {news.length > 0 ? (
+                <>
+                  <div className="mt-4 border border-border rounded-lg overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-muted">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                            {t({ en: 'Title', id: 'Judul' })}
+                          </th>
+                          {/* <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
                               {t({ en: 'Slug', id: 'Slug' })}
                             </th> */}
-                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                              {t({ en: 'Category', id: 'Kategori' })}
-                            </th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                              {t({ en: 'Status', id: 'Status' })}
-                            </th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                              {t({ en: 'Actions', id: 'Aksi' })}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
-                          {news.map((newsItem) => (
-                            <tr key={newsItem._id} className="hover:bg-muted/50">
-                              <td className="px-4 py-3">
-                                <div className="flex items-start gap-3">
-                                  {newsItem.image && (
-                                    <img
-                                      src={newsItem.image}
-                                      alt={newsItem.titleEn}
-                                      className="w-16 h-16 object-cover rounded cursor-pointer hover:opacity-80"
-                                      onClick={() => setPreviewImage(newsItem.image)}
-                                    />
-                                  )}
-                                  <div>
-                                    <div className="text-sm font-medium text-foreground">
-                                      <span className="font-bold">EN:</span> {newsItem.titleEn}
-                                    </div>
-                                    <div className="text-sm font-medium text-foreground mt-1">
-                                      <span className="font-bold">ID:</span> {newsItem.titleId}
-                                    </div>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                            {t({ en: 'Category', id: 'Kategori' })}
+                          </th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                            {t({ en: 'Status', id: 'Status' })}
+                          </th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                            {t({ en: 'Actions', id: 'Aksi' })}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {news.map((newsItem) => (
+                          <tr key={newsItem._id} className="hover:bg-muted/50">
+                            <td className="px-4 py-3">
+                              <div className="flex items-start gap-3">
+                                {newsItem.image && (
+                                  <img
+                                    src={newsItem.image}
+                                    alt={newsItem.titleEn}
+                                    className="w-16 h-16 object-cover rounded cursor-pointer hover:opacity-80"
+                                    onClick={() => setPreviewImage(newsItem.image)}
+                                  />
+                                )}
+                                <div>
+                                  <div className="text-sm font-medium text-foreground">
+                                    <span className="font-bold">EN:</span> {newsItem.titleEn}
+                                  </div>
+                                  <div className="text-sm font-medium text-foreground mt-1">
+                                    <span className="font-bold">ID:</span> {newsItem.titleId}
                                   </div>
                                 </div>
-                              </td>
-                              {/* <td className="px-4 py-3">
+                              </div>
+                            </td>
+                            {/* <td className="px-4 py-3">
                                 <div className="text-sm text-muted-foreground font-mono">
                                   {newsItem.slug}
                                 </div>
                               </td> */}
-                              <td className="px-4 py-3">
-                                <div className="text-sm text-foreground">
-                                  <span className="font-bold">EN:</span> {newsItem.categoryEn}
-                                </div>
-                                <div className="text-sm text-foreground mt-1">
-                                  <span className="font-bold">ID:</span> {newsItem.categoryId}
-                                </div>
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-2">
-                                  <Switch
-                                    checked={newsItem.published}
-                                    onCheckedChange={() => handleTogglePublish(newsItem._id!, newsItem.published)}
-                                  />
-                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${newsItem.published
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-gray-100 text-gray-800'
-                                    }`}>
-                                    {newsItem.published
-                                      ? t({ en: 'Published', id: 'Diterbitkan' })
-                                      : t({ en: 'Draft', id: 'Draft' })}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => router.push(`/cms/news/form?id=${newsItem._id}`)}
-                                  >
-                                    <Edit2 className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleDeleteNews(newsItem._id!)}
-                                  >
-                                    <Trash2 className="h-4 w-4 text-red-600" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* Pagination */}
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="text-sm text-muted-foreground">
-                        {t({ en: `Page ${currentPage} of ${totalPages}`, id: `Halaman ${currentPage} dari ${totalPages}` })}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => fetchNews(currentPage - 1)}
-                          disabled={currentPage === 1}
-                        >
-                          {t({ en: 'Previous', id: 'Sebelumnya' })}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => fetchNews(currentPage + 1)}
-                          disabled={currentPage === totalPages}
-                        >
-                          {t({ en: 'Next', id: 'Selanjutnya' })}
-                        </Button>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="mt-4 text-center py-8 text-muted-foreground">
-                    {t({ en: 'No news found', id: 'Tidak ada berita' })}
+                            <td className="px-4 py-3">
+                              <div className="text-sm text-foreground">
+                                <span className="font-bold">EN:</span> {newsItem.categoryEn}
+                              </div>
+                              <div className="text-sm text-foreground mt-1">
+                                <span className="font-bold">ID:</span> {newsItem.categoryId}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <Switch
+                                  checked={newsItem.published}
+                                  onCheckedChange={() => handleTogglePublish(newsItem._id!, newsItem.published)}
+                                />
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${newsItem.published
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-gray-100 text-gray-800'
+                                  }`}>
+                                  {newsItem.published
+                                    ? t({ en: 'Published', id: 'Diterbitkan' })
+                                    : t({ en: 'Draft', id: 'Draft' })}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => router.push(`/cms/news/form?id=${newsItem._id}`)}
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteNews(newsItem._id!)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-600" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                )}
-              </>
-            )}
-          </Card>
-        </>
+
+                  {/* Pagination */}
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      {t({ en: `Page ${currentPage} of ${totalPages}`, id: `Halaman ${currentPage} dari ${totalPages}` })}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchNews(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        {t({ en: 'Previous', id: 'Sebelumnya' })}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchNews(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        {t({ en: 'Next', id: 'Selanjutnya' })}
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="mt-4 text-center py-8 text-muted-foreground">
+                  {t({ en: 'No news found', id: 'Tidak ada berita' })}
+                </div>
+              )}
+            </Card>
+          </TabsContent>
+        </Tabs>
       )}
 
       {/* Category Modal */}
@@ -855,6 +813,6 @@ export default function CMSNewsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }

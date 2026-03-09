@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { CyberIcon } from '@/components/ui/cyber-icon'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useLanguage } from '@/contexts/language-context'
 import { useToast } from '@/hooks/use-toast'
 
@@ -47,11 +48,10 @@ function IconPicker({
                 onChange(iconType)
                 setOpen(false)
               }}
-              className={`p-2 rounded border transition-all flex flex-col items-center justify-center gap-1 text-xs capitalize hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950 ${
-                value === iconType
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                  : 'border-muted hover:border-gray-400'
-              }`}
+              className={`p-2 rounded border transition-all flex flex-col items-center justify-center gap-1 text-xs capitalize hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950 ${value === iconType
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                : 'border-muted hover:border-gray-400'
+                }`}
               title={iconType}
             >
               <div className="text-muted-foreground">
@@ -82,6 +82,10 @@ const ICON_OPTIONS = [
   'retail', 'shopping', 'cart', 'manufacturing', 'agriculture', 'energy', 'construction',
   // Custom Icons
   'shield-check', 'tri-network', 'hex-core',
+  // Membership Tier Medals
+  'medal-bronze', 'medal-silver', 'medal-gold', 'medal-platinum',
+  'medal-5', 'medal-6',
+  'medal-star', 'medal-crown', 'medal-shield', 'medal-diamond',
 ]
 
 interface BannerData {
@@ -120,6 +124,9 @@ interface Membership {
   descriptionEn: string
   descriptionId: string
   iconUrl: string
+  stripeCount?: number
+  stripeMax?: number
+  primaryColor?: string
 }
 
 interface MembershipBenefitsData {
@@ -131,12 +138,6 @@ export default function CMSRegisterPage() {
   const { toast } = useToast()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [expandedSections, setExpandedSections] = useState({
-    banner: false,
-    membership: false,
-    join: false,
-    membershipBenefits: false,
-  })
 
   // Banner section state
   const [bannerData, setBannerData] = useState<BannerData>({
@@ -238,7 +239,10 @@ export default function CMSRegisterPage() {
                 nameId: 'BRONZE MEMBERSHIP',
                 descriptionEn: '',
                 descriptionId: '',
-                iconUrl: '/images/badges/bronze-membership.png',
+                iconUrl: 'shield-check',
+                stripeCount: 1,
+                stripeMax: 4,
+                primaryColor: '#B5651D',
               },
               {
                 tier: 'silver',
@@ -246,7 +250,10 @@ export default function CMSRegisterPage() {
                 nameId: 'SILVER MEMBERSHIP',
                 descriptionEn: '',
                 descriptionId: '',
-                iconUrl: '/images/badges/silver-membership.png',
+                iconUrl: 'shield-check',
+                stripeCount: 2,
+                stripeMax: 4,
+                primaryColor: '#A8A9AD',
               },
               {
                 tier: 'gold',
@@ -254,7 +261,10 @@ export default function CMSRegisterPage() {
                 nameId: 'GOLD MEMBERSHIP',
                 descriptionEn: '',
                 descriptionId: '',
-                iconUrl: '/images/badges/gold-membership.png',
+                iconUrl: 'shield-check',
+                stripeCount: 3,
+                stripeMax: 4,
+                primaryColor: '#F5C518',
               },
               {
                 tier: 'platinum',
@@ -262,7 +272,10 @@ export default function CMSRegisterPage() {
                 nameId: 'PLATINUM MEMBERSHIP',
                 descriptionEn: '',
                 descriptionId: '',
-                iconUrl: '/images/badges/platinum-membership.png',
+                iconUrl: 'shield-check',
+                stripeCount: 4,
+                stripeMax: 4,
+                primaryColor: '#00C2FF',
               },
             ],
           })
@@ -367,92 +380,77 @@ export default function CMSRegisterPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Register Page Management', id: 'Manajemen Halaman Daftar' })}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t({ en: 'Manage content sections for the Register page', id: 'Kelola konten section untuk halaman Daftar' })}
-        </p>
-      </div>
-
+    <>
       {isLoading ? (
-        <Card className="p-6">
-          <div className="text-center py-8 text-muted-foreground">
-            {t({ en: 'Loading...', id: 'Memuat...' })}
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Register Page Management', id: 'Manajemen Halaman Daftar' })}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t({ en: 'Manage content sections for the Register page', id: 'Kelola konten section untuk halaman Daftar' })}
+            </p>
           </div>
-        </Card>
-      ) : (
-        <>
-          {/* Banner Section */}
           <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, banner: !expandedSections.banner })}
-            >
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Banner', id: 'Banner' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage the Register page banner', id: 'Kelola banner halaman Daftar' })}
-                </p>
-              </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.banner ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
+            <div className="text-center py-8 text-muted-foreground">
+              {t({ en: 'Loading...', id: 'Memuat...' })}
             </div>
-
-            {expandedSections.banner && (
-              <>
-                <div className="space-y-4 mt-4">
-                  <div>
-                    <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
-                    <Input
-                      id="banner-title-en"
-                      value={bannerData.titleEn}
-                      onChange={(e) => setBannerData({ ...bannerData, titleEn: e.target.value })}
-                      placeholder={t({ en: 'Enter banner title in English', id: 'Masukkan judul banner dalam English' })}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="banner-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
-                    <Input
-                      id="banner-title-id"
-                      value={bannerData.titleId}
-                      onChange={(e) => setBannerData({ ...bannerData, titleId: e.target.value })}
-                      placeholder={t({ en: 'Enter banner title in Indonesian', id: 'Masukkan judul banner dalam Indonesia' })}
-                    />
-                  </div>
-
-                  <Button onClick={() => handleSave('banner')} disabled={isSaving === 'banner'}>
-                    {isSaving === 'banner' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Banner', id: 'Simpan Banner' })}
-                  </Button>
-                </div>
-              </>
-            )}
           </Card>
+        </div>
+      ) : (
+        <Tabs defaultValue="banner" className="h-full">
+          {/* Sticky header */}
+          <div className="sticky top-16 md:top-0 z-20 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 pt-4 pb-3 bg-background/95 backdrop-blur-sm border-b border-border mb-6">
+            <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Register Page Management', id: 'Manajemen Halaman Daftar' })}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t({ en: 'Manage content sections for the Register page', id: 'Kelola konten section untuk halaman Daftar' })}
+            </p>
+            <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-primary/10 p-1 rounded-md mt-3">
+              <TabsTrigger value="banner">{t({ en: 'Page Title', id: 'Judul Halaman' })}</TabsTrigger>
+              <TabsTrigger value="membership">{t({ en: 'Membership Categories', id: 'Kategori Membership' })}</TabsTrigger>
+              <TabsTrigger value="join">{t({ en: 'Join ADIGSI', id: 'Bergabung ADIGSI' })}</TabsTrigger>
+              <TabsTrigger value="membershipBenefits">{t({ en: 'Membership Benefits', id: 'Manfaat Keanggotaan' })}</TabsTrigger>
+            </TabsList>
+          </div>
 
-          {/* Membership Categories Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, membership: !expandedSections.membership })}
-            >
+          {/* Banner Tab */}
+          <TabsContent value="banner">
+            <div className="flex flex-col h-full">
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Membership Categories', id: 'Kategori Membership' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage membership categories and packages', id: 'Kelola kategori dan paket membership' })}
-                </p>
+                <Card className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="banner-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
+                      <Input
+                        id="banner-title-en"
+                        value={bannerData.titleEn}
+                        onChange={(e) => setBannerData({ ...bannerData, titleEn: e.target.value })}
+                        placeholder={t({ en: 'Enter banner title in English', id: 'Masukkan judul banner dalam English' })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="banner-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
+                      <Input
+                        id="banner-title-id"
+                        value={bannerData.titleId}
+                        onChange={(e) => setBannerData({ ...bannerData, titleId: e.target.value })}
+                        placeholder={t({ en: 'Enter banner title in Indonesian', id: 'Masukkan judul banner dalam Indonesia' })}
+                      />
+                    </div>
+                  </div>
+                </Card>
               </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.membership ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
+                <Button onClick={() => handleSave('banner')} disabled={isSaving === 'banner'}>
+                  {isSaving === 'banner' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                </Button>
+              </div>
             </div>
+          </TabsContent>
 
-            {expandedSections.membership && (
-              <>
-                <div className="space-y-6 mt-4">
+          {/* Membership Tab */}
+          <TabsContent value="membership">
+            <div className="flex flex-col h-full">
+              <Card className="p-6 flex-1">
+                <div className="space-y-6">
                   <div className="border-b border-border pb-4 mb-4">
                     <h3 className="text-sm font-semibold text-foreground mb-4">{t({ en: 'Section Settings', id: 'Pengaturan Section' })}</h3>
 
@@ -602,142 +600,113 @@ export default function CMSRegisterPage() {
                     </Card>
                   ))}
 
-                  <div className="flex items-center gap-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setMembershipData({
-                          ...membershipData,
-                          categories: [
-                            ...membershipData.categories,
-                            {
-                              titleEn: '',
-                              titleId: '',
-                              descriptionEn: '',
-                              descriptionId: '',
-                              iconUrl: '',
-                            }
-                          ]
-                        })
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      {t({ en: 'Add Category', id: 'Tambah Kategori' })}
-                    </Button>
-
-                    <Button onClick={() => handleSave('membership')} disabled={isSaving === 'membership'}>
-                      {isSaving === 'membership' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Categories', id: 'Simpan Kategori' })}
-                    </Button>
-                  </div>
                 </div>
-              </>
-            )}
-          </Card>
-
-          {/* Join ADIGSI Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, join: !expandedSections.join })}
-            >
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Join ADIGSI', id: 'Bergabung ADIGSI' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage join section content', id: 'Kelola konten section bergabung' })}
-                </p>
+              </Card>
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setMembershipData({
+                      ...membershipData,
+                      categories: [
+                        ...membershipData.categories,
+                        {
+                          titleEn: '',
+                          titleId: '',
+                          descriptionEn: '',
+                          descriptionId: '',
+                          iconUrl: '',
+                        }
+                      ]
+                    })
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t({ en: 'Add Category', id: 'Tambah Kategori' })}
+                </Button>
+                <Button onClick={() => handleSave('membership')} disabled={isSaving === 'membership'}>
+                  {isSaving === 'membership' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                </Button>
               </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.join ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
             </div>
+          </TabsContent>
 
-            {expandedSections.join && (
-              <>
-                <div className="space-y-4 mt-4">
-                  <div>
-                    <Label htmlFor="join-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
-                    <Textarea
-                      id="join-title-en"
-                      value={joinData.titleEn}
-                      onChange={(e) => setJoinData({ ...joinData, titleEn: e.target.value })}
-                      placeholder="Enter title in English"
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="join-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
-                    <Textarea
-                      id="join-title-id"
-                      value={joinData.titleId}
-                      onChange={(e) => setJoinData({ ...joinData, titleId: e.target.value })}
-                      placeholder="Masukkan judul dalam Indonesia"
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="join-button-text-en">{t({ en: 'Button Text (English)', id: 'Text Tombol (English)' })}</Label>
-                    <Input
-                      id="join-button-text-en"
-                      value={joinData.buttonTextEn}
-                      onChange={(e) => setJoinData({ ...joinData, buttonTextEn: e.target.value })}
-                      placeholder="e.g., Join Now"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="join-button-text-id">{t({ en: 'Button Text (Bahasa Indonesia)', id: 'Text Tombol (Bahasa Indonesia)' })}</Label>
-                    <Input
-                      id="join-button-text-id"
-                      value={joinData.buttonTextId}
-                      onChange={(e) => setJoinData({ ...joinData, buttonTextId: e.target.value })}
-                      placeholder="e.g., Bergabung Sekarang"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="join-button-url">{t({ en: 'Button URL', id: 'URL Tombol' })}</Label>
-                    <Input
-                      id="join-button-url"
-                      type="url"
-                      value={joinData.buttonUrl}
-                      onChange={(e) => setJoinData({ ...joinData, buttonUrl: e.target.value })}
-                      placeholder="https://example.com/form"
-                    />
-                  </div>
-
-                  <Button onClick={() => handleSave('join')} disabled={isSaving === 'join'}>
-                    {isSaving === 'join' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Join Section', id: 'Simpan Section Bergabung' })}
-                  </Button>
-                </div>
-              </>
-            )}
-          </Card>
-
-          {/* Membership Benefits Section */}
-          <Card className="p-6">
-            <div
-              className="border-b border-border pb-4 flex items-center justify-between cursor-pointer select-none hover:bg-muted/50 p-3 -m-3 rounded transition-colors"
-              onClick={() => setExpandedSections({ ...expandedSections, membershipBenefits: !expandedSections.membershipBenefits })}
-            >
+          {/* Join Tab */}
+          <TabsContent value="join">
+            <div className="flex flex-col h-full">
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{t({ en: 'Membership Benefits', id: 'Manfaat Keanggotaan' })}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t({ en: 'Manage membership tiers and benefits', id: 'Kelola tingkat keanggotaan dan manfaat' })}
-                </p>
-              </div>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform duration-300 shrink-0 ${expandedSections.membershipBenefits ? 'rotate-0' : '-rotate-90'
-                  }`}
-              />
-            </div>
+                <Card className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="join-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
+                      <Textarea
+                        id="join-title-en"
+                        value={joinData.titleEn}
+                        onChange={(e) => setJoinData({ ...joinData, titleEn: e.target.value })}
+                        placeholder="Enter title in English"
+                        rows={3}
+                      />
+                    </div>
 
-            {expandedSections.membershipBenefits && (
-              <>
+                    <div>
+                      <Label htmlFor="join-title-id">{t({ en: 'Title (Bahasa Indonesia)', id: 'Judul (Bahasa Indonesia)' })}</Label>
+                      <Textarea
+                        id="join-title-id"
+                        value={joinData.titleId}
+                        onChange={(e) => setJoinData({ ...joinData, titleId: e.target.value })}
+                        placeholder="Masukkan judul dalam Indonesia"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="join-button-text-en">{t({ en: 'Button Text (English)', id: 'Text Tombol (English)' })}</Label>
+                      <Input
+                        id="join-button-text-en"
+                        value={joinData.buttonTextEn}
+                        onChange={(e) => setJoinData({ ...joinData, buttonTextEn: e.target.value })}
+                        placeholder="e.g., Join Now"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="join-button-text-id">{t({ en: 'Button Text (Bahasa Indonesia)', id: 'Text Tombol (Bahasa Indonesia)' })}</Label>
+                      <Input
+                        id="join-button-text-id"
+                        value={joinData.buttonTextId}
+                        onChange={(e) => setJoinData({ ...joinData, buttonTextId: e.target.value })}
+                        placeholder="e.g., Bergabung Sekarang"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="join-button-url">{t({ en: 'Button URL', id: 'URL Tombol' })}</Label>
+                      <Input
+                        id="join-button-url"
+                        type="url"
+                        value={joinData.buttonUrl}
+                        onChange={(e) => setJoinData({ ...joinData, buttonUrl: e.target.value })}
+                        placeholder="https://example.com/form"
+                      />
+                    </div>
+
+                  </div>
+                </Card>
+              </div>
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
+                <Button onClick={() => handleSave('join')} disabled={isSaving === 'join'}>
+                  {isSaving === 'join' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Membership Benefits Tab */}
+          <TabsContent value="membershipBenefits">
+            <div className="flex flex-col h-full">
+              <Card className="p-6 flex-1">
                 {/* Membership Tiers */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {membershipBenefitsData.memberships.map((membership, membershipIndex) => (
                     <Card key={membershipIndex} className="p-3 border-muted bg-muted/20">
                       <div className="flex items-start justify-between">
@@ -758,69 +727,103 @@ export default function CMSRegisterPage() {
                       <div className="space-y-3">
                         {/* Tier Icon Selection */}
                         <div className="border border-input rounded-lg p-2 bg-background">
-                          <Label className="text-xs font-semibold mb-2 block">{t({ en: 'Icon/Badge', id: 'Icon/Badge' })}</Label>
-                          
-                          <div className="flex items-start gap-2">
-                            {/* Icon Preview - Left */}
-                            {membership.iconUrl && (
-                              <div className="shrink-0 w-14 h-14 border border-input rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
-                                <img 
-                                  src={membership.iconUrl} 
-                                  alt="membership badge"
-                                  className="w-full h-full object-contain p-1"
-                                  onError={(e) => { e.currentTarget.style.display = 'none' }}
-                                />
-                              </div>
-                            )}
+                          <Label className="text-xs font-semibold mb-2 block">{t({ en: 'Icon', id: 'Ikon' })}</Label>
+                          <IconPicker
+                            value={membership.iconUrl || 'shield-check'}
+                            onChange={(icon) => {
+                              const newMemberships = [...membershipBenefitsData.memberships]
+                              newMemberships[membershipIndex].iconUrl = icon
+                              setMembershipBenefitsData({ ...membershipBenefitsData, memberships: newMemberships })
+                            }}
+                          />
+                        </div>
 
-                            {/* Preset & Upload - Right */}
-                            <div className="flex-1 space-y-1">
-                              {/* Preset Icon Selector */}
-                              <select
-                                value={membership.iconUrl}
-                                onChange={(e) => {
+                        {/* Tier Label */}
+                        <div>
+                          <Label className="text-xs">{t({ en: 'Tier Label (vertical text)', id: 'Label Tingkat (teks vertikal)' })}</Label>
+                          <Input
+                            value={membership.tier}
+                            onChange={(e) => {
+                              const newMemberships = [...membershipBenefitsData.memberships]
+                              newMemberships[membershipIndex].tier = e.target.value
+                              setMembershipBenefitsData({ ...membershipBenefitsData, memberships: newMemberships })
+                            }}
+                            placeholder="e.g., BRONZE"
+                            className="h-7 text-xs mt-1"
+                          />
+                        </div>
+
+                        {/* Color */}
+                        <div>
+                          <Label className="text-xs font-semibold">{t({ en: 'Color', id: 'Warna' })}</Label>
+                          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                            {[
+                              { label: 'Bronze', color: '#B5651D' },
+                              { label: 'Silver', color: '#A8A9AD' },
+                              { label: 'Gold', color: '#F5C518' },
+                              { label: 'Platinum', color: '#00C2FF' },
+                              { label: 'Blue', color: '#3A6FF7' },
+                            ].map(({ label, color }) => (
+                              <button
+                                key={color}
+                                title={label}
+                                type="button"
+                                onClick={() => {
                                   const newMemberships = [...membershipBenefitsData.memberships]
-                                  newMemberships[membershipIndex].iconUrl = e.target.value
+                                  newMemberships[membershipIndex].primaryColor = color
                                   setMembershipBenefitsData({ ...membershipBenefitsData, memberships: newMemberships })
                                 }}
-                                className="h-7 w-full px-2 py-0 rounded-md border border-input bg-background text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                              >
-                                <option value="">-- {t({ en: 'Select', id: 'Pilih' })} --</option>
-                                <option value="/images/badges/bronze-membership.png">🥉 {t({ en: 'Bronze', id: 'Perunggu' })}</option>
-                                <option value="/images/badges/silver-membership.png">🥈 {t({ en: 'Silver', id: 'Perak' })}</option>
-                                <option value="/images/badges/gold-membership.png">🥇 {t({ en: 'Gold', id: 'Emas' })}</option>
-                                <option value="/images/badges/platinum-membership.png">💎 {t({ en: 'Platinum', id: 'Platinum' })}</option>
-                              </select>
-
-                              {/* Custom Upload */}
-                              <div className="flex items-center gap-1">
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0]
-                                    if (file) {
-                                      const reader = new FileReader()
-                                      reader.onload = (event) => {
-                                        const base64 = event.target?.result as string
-                                        const newMemberships = [...membershipBenefitsData.memberships]
-                                        newMemberships[membershipIndex].iconUrl = base64
-                                        setMembershipBenefitsData({ ...membershipBenefitsData, memberships: newMemberships })
-                                      }
-                                      reader.readAsDataURL(file)
-                                    }
-                                  }}
-                                  className="hidden"
-                                  id={`icon-upload-${membershipIndex}`}
-                                />
-                                <label htmlFor={`icon-upload-${membershipIndex}`} className="cursor-pointer">
-                                  <Button variant="outline" size="sm" className="h-7 text-xs px-2" asChild>
-                                    <span>{t({ en: 'Upload', id: 'Upload' })}</span>
-                                  </Button>
-                                </label>
-                                <p className="text-xs text-muted-foreground">{t({ en: 'PNG/JPG', id: 'PNG/JPG' })}</p>
-                              </div>
+                                className={`w-5 h-5 rounded-full border-2 transition-transform ${
+                                  membership.primaryColor === color ? 'border-foreground scale-110' : 'border-transparent hover:scale-110'
+                                }`}
+                                style={{ backgroundColor: color }}
+                              />
+                            ))}
+                            <div className="flex items-center gap-1.5 ml-1">
+                              <input
+                                type="color"
+                                value={membership.primaryColor || '#3A6FF7'}
+                                onChange={(e) => {
+                                  const newMemberships = [...membershipBenefitsData.memberships]
+                                  newMemberships[membershipIndex].primaryColor = e.target.value
+                                  setMembershipBenefitsData({ ...membershipBenefitsData, memberships: newMemberships })
+                                }}
+                                className="w-6 h-6 rounded border border-input cursor-pointer bg-transparent p-0"
+                              />
+                              <span className="text-[10px] text-muted-foreground font-mono">{membership.primaryColor || '#3A6FF7'}</span>
                             </div>
+                          </div>
+                        </div>
+
+                        {/* Stripe Count / Max */}
+                        <div>
+                          <Label className="text-xs">{t({ en: 'Stripe (Count / Max)', id: 'Strip (Jumlah / Maks)' })}</Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input
+                              type="number"
+                              min={1}
+                              value={membership.stripeCount ?? 1}
+                              onChange={(e) => {
+                                const newMemberships = [...membershipBenefitsData.memberships]
+                                newMemberships[membershipIndex].stripeCount = Math.max(1, Number(e.target.value))
+                                setMembershipBenefitsData({ ...membershipBenefitsData, memberships: newMemberships })
+                              }}
+                              className="h-7 text-xs"
+                              placeholder="1"
+                            />
+                            <span className="text-muted-foreground text-xs font-bold shrink-0">/</span>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={membership.stripeMax ?? 4}
+                              onChange={(e) => {
+                                const newMemberships = [...membershipBenefitsData.memberships]
+                                newMemberships[membershipIndex].stripeMax = Math.max(1, Number(e.target.value))
+                                setMembershipBenefitsData({ ...membershipBenefitsData, memberships: newMemberships })
+                              }}
+                              className="h-7 text-xs"
+                              placeholder="4"
+                            />
                           </div>
                         </div>
 
@@ -887,8 +890,8 @@ export default function CMSRegisterPage() {
                   ))}
                 </div>
 
-                {/* Add Tier Button */}
-                <div className="flex items-center gap-4">
+              </Card>
+              <div className="sticky bottom-0 z-10 mt-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 py-3 bg-background/95 backdrop-blur-sm border-t border-border shadow-[0_-2px_8px_-1px_rgba(0,0,0,0.06)] flex items-center gap-3">
                 <Button
                   variant="outline"
                   className="mt-3 h-8 text-xs"
@@ -899,25 +902,24 @@ export default function CMSRegisterPage() {
                       nameId: '',
                       descriptionEn: '',
                       descriptionId: '',
-                      iconUrl: '/images/badges/bronze-membership.png',
+                      iconUrl: 'shield-check',
+                      stripeCount: 1,
+                      stripeMax: 4,
+                      primaryColor: '#3A6FF7',
                     }]
                     setMembershipBenefitsData({ ...membershipBenefitsData, memberships: newMemberships })
                   }}
                 >
                   {t({ en: '+ Add Tier', id: '+ Tambah Tingkat' })}
                 </Button>
-
                 <Button onClick={() => handleSave('membershipBenefits')} disabled={isSaving === 'membershipBenefits'} className="mt-3 h-8 text-xs">
-                  {isSaving === 'membershipBenefits' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Membership Benefits', id: 'Simpan Manfaat Keanggotaan' })}
+                  {isSaving === 'membershipBenefits' ? t({ en: 'Saving...', id: 'Menyimpan...' }) : t({ en: 'Save Changes', id: 'Simpan Perubahan' })}
                 </Button>
-                </div>
-              </>
-            )}
-          </Card>
-
-          
-        </>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       )}
-    </div>
+    </>
   )
 }
