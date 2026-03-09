@@ -93,6 +93,7 @@ export function NewsListSection() {
   const [totalPages, setTotalPages] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string>('')
+  const [apiCategories, setApiCategories] = useState<{ _id: string; nameEn: string; nameId: string }[]>([])
   const sectionRef = useRef<HTMLElement>(null)
   const scrollDirectionRef = useRef<'up' | 'down'>('down')
   const lastScrollYRef = useRef(0)
@@ -119,7 +120,20 @@ export function NewsListSection() {
     }
   }
 
+  const fetchApiCategories = async () => {
+    try {
+      const response = await fetch('/api/cms/news/categories?active=true')
+      if (response.ok) {
+        const data = await response.json()
+        setApiCategories(data.categories || [])
+      }
+    } catch {
+      // silently fail — categories will not render
+    }
+  }
+
   useEffect(() => { fetchNews(1) }, [])
+  useEffect(() => { fetchApiCategories() }, [])
 
   const animClass = useCallback(() => {
     if (isFadingOut) return 'animate-fade-out-down'
@@ -166,12 +180,36 @@ export function NewsListSection() {
 
   const rawNews = news.length > 0 ? news : defaultNews
 
-  const categories = Array.from(
-    new Set(rawNews.map((n) => language === 'en' ? n.categoryEn : n.categoryId))
-  )
+  // Build category list:
+  // 1. Start with API categories (from news_categories collection — always shown if active)
+  // 2. Then append any unique categories found in real news that aren't already in the API list
+  //    (covers news whose category was not yet added to news_categories)
+  // 3. Never derive from defaultNews so mock data doesn't pollute the filter bar.
+  const apiCategoryKeys = new Set(apiCategories.map((c) => c.nameEn))
+  const newsDerivedCategories: { key: string; label: string }[] =
+    news.length > 0
+      ? Array.from(new Set(news.map((n) => n.categoryEn)))
+          .filter((nameEn) => nameEn && !apiCategoryKeys.has(nameEn))
+          .map((nameEn) => ({
+            key: nameEn,
+            label:
+              language === 'en'
+                ? nameEn
+                : (news.find((n) => n.categoryEn === nameEn)?.categoryId || nameEn),
+          }))
+      : []
 
+  const categories: { key: string; label: string }[] = [
+    ...apiCategories.map((c) => ({
+      key: c.nameEn,
+      label: language === 'en' ? c.nameEn : c.nameId,
+    })),
+    ...newsDerivedCategories,
+  ]
+
+  // selectedCategory stores nameEn so it stays stable when language switches
   const displayNews = selectedCategory
-    ? rawNews.filter((n) => (language === 'en' ? n.categoryEn : n.categoryId) === selectedCategory)
+    ? rawNews.filter((n) => n.categoryEn === selectedCategory)
     : rawNews
 
   return (
@@ -198,8 +236,8 @@ export function NewsListSection() {
 
       <div className="relative max-w-7xl mx-auto px-4 md:px-8 lg:px-12">
 
-        {/* Category filter bar */}
-        {!isLoading && (
+        {/* Category filter bar — only shown when there are real categories to display */}
+        {!isLoading && categories.length > 0 && (
           <div className={`mb-8 flex flex-wrap items-center gap-2 ${animClass()}`}>
             <button
               onClick={() => setSelectedCategory('')}
@@ -218,20 +256,20 @@ export function NewsListSection() {
             </button>
             {categories.map((cat) => (
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat === selectedCategory ? '' : cat)}
+                key={cat.key}
+                onClick={() => setSelectedCategory(cat.key === selectedCategory ? '' : cat.key)}
                 className={`relative inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest
                   border transition-all duration-200 overflow-hidden
-                  ${selectedCategory === cat
+                  ${selectedCategory === cat.key
                     ? 'border-primary bg-primary/10 text-primary shadow-[0_0_10px_rgba(58,111,247,0.2)]'
                     : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5'
                   }`}
               >
-                {selectedCategory === cat && (
+                {selectedCategory === cat.key && (
                   <span className="absolute inset-0 bg-linear-to-r from-transparent via-primary/10 to-transparent" />
                 )}
-                <span className={`w-1 h-1 rounded-full ${selectedCategory === cat ? 'bg-primary animate-pulse' : 'bg-muted-foreground/40'}`} />
-                {cat}
+                <span className={`w-1 h-1 rounded-full ${selectedCategory === cat.key ? 'bg-primary animate-pulse' : 'bg-muted-foreground/40'}`} />
+                {cat.label}
               </button>
             ))}
           </div>
