@@ -1,4 +1,4 @@
-export type UploadProvider = 'local' | 'cloudinary' | 'r2'
+export type UploadProvider = 'local' | 'cloudinary' | 'r2' | 'gcs'
 
 export interface UploadResult {
   url: string

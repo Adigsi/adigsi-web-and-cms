@@ -4,7 +4,7 @@ export function getUploadProvider(): IUploadProvider {
   const provider = process.env.UPLOAD_PROVIDER
 
   if (!provider) {
-    throw new Error('UPLOAD_PROVIDER belum diset di environment variables. Nilai yang valid: local, cloudinary, r2')
+    throw new Error('UPLOAD_PROVIDER belum diset di environment variables. Nilai yang valid: local, cloudinary, r2, gcs')
   }
 
   if (provider === 'local') {
@@ -22,5 +22,10 @@ export function getUploadProvider(): IUploadProvider {
     return new R2Provider()
   }
 
-  throw new Error(`UPLOAD_PROVIDER tidak dikenali: "${provider}". Nilai yang valid: local, cloudinary, r2`)
+  if (provider === 'gcs') {
+    const { GCSProvider } = require('./gcs-provider')
+    return new GCSProvider()
+  }
+
+  throw new Error(`UPLOAD_PROVIDER tidak dikenali: "${provider}". Nilai yang valid: local, cloudinary, r2, gcs`)
 }

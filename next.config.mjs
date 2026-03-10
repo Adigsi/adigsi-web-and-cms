@@ -6,7 +6,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  serverExternalPackages: ['cloudinary', '@aws-sdk/client-s3', '@aws-sdk/lib-storage'],
+  serverExternalPackages: ['cloudinary', '@aws-sdk/client-s3', '@aws-sdk/lib-storage', '@google-cloud/storage'],
 }
 
 export default nextConfig
