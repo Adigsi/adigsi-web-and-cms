@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
+import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
 
 /**
  * GET /api/cms/members/partner-logos
@@ -200,6 +201,15 @@ export async function POST(request: NextRequest) {
           { error: `Category ${i + 1}: logos must be an array` },
           { status: 400 }
         )
+      }
+
+      // Validate media URLs for logos
+      for (let logoIndex = 0; logoIndex < cat.logos.length; logoIndex++) {
+        const logo = cat.logos[logoIndex]
+        const imageError = getMediaUrlValidationError(logo.imageUrl, `categories[${i}].logos[${logoIndex}].imageUrl`)
+        if (imageError) {
+          return NextResponse.json({ error: imageError }, { status: 400 })
+        }
       }
     }
 

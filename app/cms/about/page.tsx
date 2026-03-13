@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useLanguage } from '@/contexts/language-context'
 import { useToast } from '@/hooks/use-toast'
+import { useFileUpload } from '@/hooks/use-file-upload'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
 interface Logo {
@@ -29,10 +30,22 @@ interface PartnersData {
 export default function CMSAboutPage() {
   const { t } = useLanguage()
   const { toast } = useToast()
+  const { upload } = useFileUpload()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [draggedItem, setDraggedItem] = useState<{ groupIndex: number; memberIndex: number } | null>(null)
   const [draggedLogo, setDraggedLogo] = useState<{ categoryIndex: number; logoIndex: number } | null>(null)
+
+  // Create file upload callbacks for different sections
+  const uploadFileOrg = useCallback(async (file: File) => {
+    const result = await upload(file)
+    return result?.url || ''
+  }, [upload])
+
+  const uploadFilePartners = useCallback(async (file: File) => {
+    const result = await upload(file)
+    return result?.url || ''
+  }, [upload])
 
   // Banner section state
   const [bannerData, setBannerData] = useState({
@@ -580,16 +593,21 @@ export default function CMSAboutPage() {
                                   <input
                                     type="file"
                                     accept="image/*"
-                                    onChange={(e) => {
+                                    onChange={async (e) => {
                                       const file = e.target.files?.[0]
                                       if (file) {
-                                        const reader = new FileReader()
-                                        reader.onloadend = () => {
+                                        try {
+                                          const url = await uploadFileOrg(file)
                                           const newGroups = [...orgData.groups]
-                                          newGroups[groupIndex].members[memberIndex].imageUrl = reader.result as string
+                                          newGroups[groupIndex].members[memberIndex].imageUrl = url
                                           setOrgData({ ...orgData, groups: newGroups })
+                                        } catch (error) {
+                                          toast({
+                                            title: t({ en: 'Error', id: 'Kesalahan' }),
+                                            description: error instanceof Error ? error.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }),
+                                            variant: 'destructive',
+                                          })
                                         }
-                                        reader.readAsDataURL(file)
                                       }
                                     }}
                                     className="hidden"
@@ -805,20 +823,24 @@ export default function CMSAboutPage() {
                                 <input
                                   type="file"
                                   accept="image/*"
-                                  onChange={(e) => {
+                                  onChange={async (e) => {
                                     const file = e.target.files?.[0]
                                     if (file) {
-                                      const reader = new FileReader()
-                                      reader.onload = (event) => {
-                                        const base64 = event.target?.result as string
+                                      try {
+                                        const url = await uploadFilePartners(file)
                                         const newCategories = [...partnersData.categories]
-                                        newCategories[categoryIndex].logos[logoIndex].imageUrl = base64
+                                        newCategories[categoryIndex].logos[logoIndex].imageUrl = url
                                         // Auto-generate alt text from filename without extension
                                         const filename = file.name.split('.')[0].replace(/[-_]/g, ' ')
                                         newCategories[categoryIndex].logos[logoIndex].alt = filename
                                         setPartnersData({ ...partnersData, categories: newCategories })
+                                      } catch (error) {
+                                        toast({
+                                          title: t({ en: 'Error', id: 'Kesalahan' }),
+                                          description: error instanceof Error ? error.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }),
+                                          variant: 'destructive',
+                                        })
                                       }
-                                      reader.readAsDataURL(file)
                                     }
                                   }}
                                   className="hidden"

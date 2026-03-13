@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { Upload, X } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { useFileUpload } from '@/hooks/use-file-upload'
 
 interface CarousellSlide {
   image: string
@@ -21,6 +22,7 @@ interface CarousellData {
 export function CarousellTab() {
   const { t } = useLanguage()
   const { toast } = useToast()
+  const { upload, status } = useFileUpload()
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [draggedSlide, setDraggedSlide] = useState<number | null>(null)
@@ -36,21 +38,25 @@ export function CarousellTab() {
       .finally(() => setIsLoading(false))
   }, [])
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 5 * 1024 * 1024) {
       toast({ title: t({ en: 'Error', id: 'Kesalahan' }), description: t({ en: 'File size must be less than 5MB', id: 'Ukuran file harus kurang dari 5MB' }), variant: 'destructive' })
       return
     }
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const newSlides = [...data.slides]
-      newSlides[index].image = ev.target?.result as string
-      setData({ slides: newSlides })
+    try {
+      const result = await upload(file)
+      if (result?.url) {
+        const newSlides = [...data.slides]
+        newSlides[index].image = result.url
+        setData({ slides: newSlides })
+        toast({ title: t({ en: 'Success', id: 'Sukses' }), description: t({ en: 'Image uploaded successfully', id: 'Gambar berhasil diupload' }) })
+      }
+    } catch (error) {
+      toast({ title: t({ en: 'Error', id: 'Kesalahan' }), description: error instanceof Error ? error.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }), variant: 'destructive' })
     }
-    reader.readAsDataURL(file)
-  }
+  }, [upload, data, setData, t, toast])
 
   const handleSave = async () => {
     setIsSaving(true)

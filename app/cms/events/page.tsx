@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Edit2, Trash2, Plus, Search, X } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { useLanguage } from '@/contexts/language-context'
 import { useToast } from '@/hooks/use-toast'
+import { useFileUpload } from '@/hooks/use-file-upload'
 
 interface BannerData {
   titleEn: string
@@ -965,34 +966,10 @@ export default function CMSEventsPage() {
 
                 <div>
                   <Label htmlFor="event-image">{t({ en: 'Image', id: 'Gambar' })}</Label>
-                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
-                    {formData.image && (
-                      <div className="mb-2">
-                        <img src={formData.image} alt="Event preview" className="h-24 w-auto mx-auto rounded object-cover" />
-                      </div>
-                    )}
-                    <input
-                      id="event-image"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) {
-                          const reader = new FileReader()
-                          reader.onloadend = () => {
-                            setFormData({ ...formData, image: reader.result as string })
-                          }
-                          reader.readAsDataURL(file)
-                        }
-                      }}
-                      className="hidden"
-                    />
-                    <label htmlFor="event-image" className="cursor-pointer">
-                      <div className="text-xs text-muted-foreground">
-                        {t({ en: 'Click to upload', id: 'Klik untuk upload' })}
-                      </div>
-                    </label>
-                  </div>
+                  <EventsImageUpload 
+                    currentImage={formData.image}
+                    onImageUpload={(url) => setFormData({ ...formData, image: url })}
+                  />
                 </div>
 
                 <div>
@@ -1061,5 +1038,65 @@ export default function CMSEventsPage() {
         </div>
       )}
     </>
+  )
+}
+
+interface EventsImageUploadProps {
+  currentImage: string
+  onImageUpload: (url: string) => void
+}
+
+function EventsImageUpload({ currentImage, onImageUpload }: EventsImageUploadProps) {
+  const { t } = useLanguage()
+  const { toast } = useToast()
+  const { upload, status } = useFileUpload()
+  const isUploading = status === 'uploading' || status === 'compressing'
+
+  const handleImageChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const result = await upload(file)
+      if (result?.url) {
+        onImageUpload(result.url)
+        toast({
+          title: t({ en: 'Success', id: 'Berhasil' }),
+          description: t({ en: 'Image uploaded successfully', id: 'Gambar berhasil diupload' }),
+        })
+      }
+    } catch (error) {
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: error instanceof Error ? error.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }),
+        variant: 'destructive',
+      })
+    }
+  }, [upload, onImageUpload, t, toast])
+
+  return (
+    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+      {currentImage && (
+        <div className="mb-2">
+          <img src={currentImage} alt="Event preview" className="h-24 w-auto mx-auto rounded object-cover" />
+        </div>
+      )}
+      <input
+        id="event-image"
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+        disabled={isUploading}
+        className="hidden"
+      />
+      <label htmlFor="event-image" className={`cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+        <div className="text-xs text-muted-foreground">
+          {isUploading 
+            ? t({ en: 'Uploading...', id: 'Mengupload...' })
+            : t({ en: 'Click to upload', id: 'Klik untuk upload' })
+          }
+        </div>
+      </label>
+    </div>
   )
 }

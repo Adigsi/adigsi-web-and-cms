@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
+import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
 
 interface Testimonial {
   quoteEn: string
@@ -105,6 +106,11 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           )
         }
+      }
+
+      const imageError = getMediaUrlValidationError(testimonial.image, `testimonials[${i}].image`)
+      if (imageError) {
+        return NextResponse.json({ error: imageError }, { status: 400 })
       }
     }
 

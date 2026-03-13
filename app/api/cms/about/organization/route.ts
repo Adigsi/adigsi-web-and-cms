@@ -1,5 +1,6 @@
 import { getMongoDatabase } from '@/lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
+import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
 
 export async function GET() {
   try {
@@ -44,6 +45,23 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!groups || !Array.isArray(groups)) {
       return NextResponse.json({ error: 'Groups array is required' }, { status: 400 })
+    }
+
+    // Validate media URLs in member images
+    for (let groupIndex = 0; groupIndex < groups.length; groupIndex++) {
+      const group = groups[groupIndex]
+      if (!group.members || !Array.isArray(group.members)) {
+        return NextResponse.json({ error: `Group ${groupIndex + 1}: members must be an array` }, { status: 400 })
+      }
+      for (let memberIndex = 0; memberIndex < group.members.length; memberIndex++) {
+        const member = group.members[memberIndex]
+        if (member.imageUrl) {
+          const imageError = getMediaUrlValidationError(member.imageUrl, `groups[${groupIndex}].members[${memberIndex}].imageUrl`)
+          if (imageError) {
+            return NextResponse.json({ error: imageError }, { status: 400 })
+          }
+        }
+      }
     }
 
     const db = await getMongoDatabase()

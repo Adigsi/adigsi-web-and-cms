@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLanguage } from '@/contexts/language-context'
 import { useToast } from '@/hooks/use-toast'
+import { useFileUpload } from '@/hooks/use-file-upload'
 import { CyberIcon } from '@/components/ui/cyber-icon'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -148,9 +149,16 @@ const PRESET_SIZES = [
 export default function CMSMembersPage() {
   const { t } = useLanguage()
   const { toast } = useToast()
+  const { upload } = useFileUpload()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [draggedLogo, setDraggedLogo] = useState<{ categoryIndex: number; logoIndex: number } | null>(null)
+
+  // Create file upload callback for partner logos
+  const uploadFileMemberLogos = useCallback(async (file: File) => {
+    const result = await upload(file)
+    return result?.url || ''
+  }, [upload])
 
   // Banner section state
   const [bannerData, setBannerData] = useState<BannerData>({
@@ -1018,20 +1026,24 @@ export default function CMSMembersPage() {
                                 <input
                                   type="file"
                                   accept="image/*"
-                                  onChange={(e) => {
+                                  onChange={async (e) => {
                                     const file = e.target.files?.[0]
                                     if (file) {
-                                      const reader = new FileReader()
-                                      reader.onload = (event) => {
-                                        const base64 = event.target?.result as string
+                                      try {
+                                        const url = await uploadFileMemberLogos(file)
                                         const newCategories = [...partnerLogosData.categories]
-                                        newCategories[catIndex].logos[logoIndex].imageUrl = base64
+                                        newCategories[catIndex].logos[logoIndex].imageUrl = url
                                         // Auto-generate alt text from filename without extension
                                         const filename = file.name.split('.')[0].replace(/[-_]/g, ' ')
                                         newCategories[catIndex].logos[logoIndex].alt = filename
                                         setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                                      } catch (error) {
+                                        toast({
+                                          title: t({ en: 'Error', id: 'Kesalahan' }),
+                                          description: error instanceof Error ? error.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }),
+                                          variant: 'destructive',
+                                        })
                                       }
-                                      reader.readAsDataURL(file)
                                     }
                                   }}
                                   className="hidden"

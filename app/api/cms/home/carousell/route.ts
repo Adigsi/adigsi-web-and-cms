@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
+import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
 
 interface CarousellSlide {
   image: string
@@ -80,6 +81,11 @@ export async function POST(request: NextRequest) {
           { error: `Slide ${i + 1}: image is required when published` },
           { status: 400 }
         )
+      }
+
+      const imageError = getMediaUrlValidationError(slide.image, `slides[${i}].image`)
+      if (imageError) {
+        return NextResponse.json({ error: imageError }, { status: 400 })
       }
 
       if (slide.link && typeof slide.link !== 'string') {

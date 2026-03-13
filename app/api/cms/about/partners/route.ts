@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
+import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
 
 interface Logo {
   alt: string
@@ -29,7 +30,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate each category
-    for (const category of data.categories) {
+    for (let i = 0; i < data.categories.length; i++) {
+      const category = data.categories[i]
       if (!category.titleEn || !category.titleId) {
         return NextResponse.json(
           { error: 'Each category must have English and Indonesian titles' },
@@ -41,6 +43,14 @@ export async function POST(request: NextRequest) {
           { error: 'Logos must be an array' },
           { status: 400 }
         )
+      }
+      // Validate media URLs for logos
+      for (let logoIndex = 0; logoIndex < category.logos.length; logoIndex++) {
+        const logo = category.logos[logoIndex]
+        const imageError = getMediaUrlValidationError(logo.imageUrl, `categories[${i}].logos[${logoIndex}].imageUrl`)
+        if (imageError) {
+          return NextResponse.json({ error: imageError }, { status: 400 })
+        }
       }
     }
 

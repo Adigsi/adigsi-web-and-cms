@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
+import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
 
 /**
  * GET /api/cms/members/membership-benefits
@@ -157,6 +158,12 @@ export async function POST(request: NextRequest) {
           { error: `Membership ${i + 1}: all fields must be strings` },
           { status: 400 }
         )
+      }
+
+      // Validate media URL for icon
+      const iconError = getMediaUrlValidationError(membership.iconUrl, `memberships[${i}].iconUrl`)
+      if (iconError) {
+        return NextResponse.json({ error: iconError }, { status: 400 })
       }
     }
 
