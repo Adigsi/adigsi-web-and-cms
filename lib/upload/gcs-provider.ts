@@ -39,7 +39,9 @@ export class GCSProvider implements IUploadProvider {
       try {
         credentials = JSON.parse(keyJson)
       } catch {
-        throw new Error('GCS_KEY_JSON tidak valid: bukan JSON yang valid.')
+        throw new Error(
+          'GCS_KEY_JSON tidak valid. Gunakan JSON satu baris (single-line) atau pakai GOOGLE_APPLICATION_CREDENTIALS ke path file service account JSON.'
+        )
       }
       this.storage = new Storage({ projectId, credentials })
     } else {
