@@ -11,16 +11,25 @@ interface MemberCategory {
   icon: string
 }
 
+interface HeadingData {
+  subtitleEn: string
+  subtitleId: string
+  titleEn: string
+  titleId: string
+  showSubtitle?: boolean
+}
+
 export function MemberCategoriesSection() {
   const [isVisible, setIsVisible] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [categories, setCategories] = useState<MemberCategory[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [heading, setHeading] = useState({
+  const [heading, setHeading] = useState<HeadingData>({
     subtitleEn: 'OUR COMMUNITY',
     subtitleId: 'KOMUNITAS KAMI',
     titleEn: 'ADIGSI Cyber Security Members',
     titleId: 'Anggota Cyber Security ADIGSI',
+    showSubtitle: true,
   })
   const sectionRef = useRef<HTMLElement>(null)
   const scrollDirectionRef = useRef<'up' | 'down'>('down')
@@ -39,6 +48,7 @@ export function MemberCategoriesSection() {
             subtitleId: data.heading.subtitleId || 'KOMUNITAS KAMI',
             titleEn: data.heading.titleEn || 'ADIGSI Cyber Security Members',
             titleId: data.heading.titleId || 'Anggota Cyber Security ADIGSI',
+            showSubtitle: data.heading.showSubtitle ?? true,
           })
         }
       })
@@ -121,12 +131,14 @@ export function MemberCategoriesSection() {
           className={`flex flex-col items-center text-center mb-14 transition-all duration-700 ${animClass()}`}
         >
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
-              {language === 'en' ? heading.subtitleEn : heading.subtitleId}
-            </span>
-          </div>
+          {(heading.showSubtitle ?? true) && (
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
+                {language === 'en' ? heading.subtitleEn : heading.subtitleId}
+              </span>
+            </div>
+          )}
 
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4 tracking-tight">
             {language === 'en' ? heading.titleEn : heading.titleId}

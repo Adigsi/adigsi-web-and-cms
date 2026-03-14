@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
+import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
 
 interface EventData {
   titleEn: string
@@ -28,41 +29,31 @@ export async function GET(request: NextRequest) {
     const collection = db.collection('events_content')
 
     const skip = (page - 1) * limit
-
-    // Build filter query
     const filter: any = { section: 'event' }
-    
-    // Add search filter (search in title EN and ID)
+
     if (search) {
       filter.$or = [
         { titleEn: { $regex: search, $options: 'i' } },
         { titleId: { $regex: search, $options: 'i' } },
       ]
     }
-    
-    // Add category filter
+
     if (category) {
       filter.$and = filter.$and || []
       filter.$and.push({
         $or: [
           { categoryEn: { $regex: category, $options: 'i' } },
           { categoryId: { $regex: category, $options: 'i' } },
-        ]
+        ],
       })
     }
-    
-    // Add published filter
+
     if (published) {
       filter.published = published === 'true'
     }
 
     const [events, total] = await Promise.all([
-      collection
-        .find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .toArray(),
+      collection.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
       collection.countDocuments(filter),
     ])
 
@@ -85,19 +76,11 @@ export async function GET(request: NextRequest) {
         createdAt: event.createdAt,
         updatedAt: event.updatedAt,
       })),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-      },
+      pagination: { page, limit, total, totalPages },
     })
   } catch (error) {
     console.error('Error fetching events:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch events' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 })
   }
 }
 
@@ -105,19 +88,19 @@ export async function POST(request: NextRequest) {
   try {
     const data: EventData & { _id?: string } = await request.json()
 
-    // Validation
     if (!data.titleEn || !data.titleId || !data.image || !data.categoryEn || !data.categoryId || !data.registerLink) {
-      return NextResponse.json(
-        { error: 'All fields are required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
+    }
+
+    const imageError = getMediaUrlValidationError(data.image, 'image')
+    if (imageError) {
+      return NextResponse.json({ error: imageError }, { status: 400 })
     }
 
     const db = await getMongoDatabase()
     const collection = db.collection('events_content')
 
     if (data._id) {
-      // Update existing event
       const result = await collection.updateOne(
         { _id: new ObjectId(data._id), section: 'event' },
         {
@@ -138,43 +121,36 @@ export async function POST(request: NextRequest) {
       )
 
       if (result.matchedCount === 0) {
-        return NextResponse.json(
-          { error: 'Event not found' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: 'Event not found' }, { status: 404 })
       }
 
       return NextResponse.json({ success: true, message: 'Event updated successfully' })
-    } else {
-      // Create new event
-      const result = await collection.insertOne({
-        section: 'event',
-        titleEn: data.titleEn,
-        titleId: data.titleId,
-        categoryEn: data.categoryEn,
-        categoryId: data.categoryId,
-        image: data.image,
-        registerLink: data.registerLink,
-        published: data.published ?? true,
-        date: data.date || '',
-        time: data.time || '',
-        location: data.location || '',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-
-      return NextResponse.json({
-        success: true,
-        message: 'Event created successfully',
-        id: result.insertedId.toString(),
-      })
     }
+
+    const result = await collection.insertOne({
+      section: 'event',
+      titleEn: data.titleEn,
+      titleId: data.titleId,
+      categoryEn: data.categoryEn,
+      categoryId: data.categoryId,
+      image: data.image,
+      registerLink: data.registerLink,
+      published: data.published ?? true,
+      date: data.date || '',
+      time: data.time || '',
+      location: data.location || '',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'Event created successfully',
+      id: result.insertedId.toString(),
+    })
   } catch (error) {
     console.error('Error saving event:', error)
-    return NextResponse.json(
-      { error: 'Failed to save event' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to save event' }, { status: 500 })
   }
 }
 
@@ -184,34 +160,22 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id')
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Event ID is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Event ID is required' }, { status: 400 })
     }
 
     const db = await getMongoDatabase()
     const collection = db.collection('events_content')
 
-    const result = await collection.deleteOne({
-      _id: new ObjectId(id),
-      section: 'event',
-    })
+    const result = await collection.deleteOne({ _id: new ObjectId(id), section: 'event' })
 
     if (result.deletedCount === 0) {
-      return NextResponse.json(
-        { error: 'Event not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 })
     }
 
     return NextResponse.json({ success: true, message: 'Event deleted successfully' })
   } catch (error) {
     console.error('Error deleting event:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete event' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 })
   }
 }
 
@@ -223,17 +187,11 @@ export async function PATCH(request: NextRequest) {
     const { published } = body
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Event ID is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Event ID is required' }, { status: 400 })
     }
 
     if (typeof published !== 'boolean') {
-      return NextResponse.json(
-        { error: 'Published status is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Published status is required' }, { status: 400 })
     }
 
     const db = await getMongoDatabase()
@@ -241,27 +199,16 @@ export async function PATCH(request: NextRequest) {
 
     const result = await collection.updateOne(
       { _id: new ObjectId(id), section: 'event' },
-      {
-        $set: {
-          published,
-          updatedAt: new Date(),
-        },
-      }
+      { $set: { published, updatedAt: new Date() } }
     )
 
     if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { error: 'Event not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 })
     }
 
     return NextResponse.json({ success: true, message: 'Event status updated successfully' })
   } catch (error) {
     console.error('Error updating event status:', error)
-    return NextResponse.json(
-      { error: 'Failed to update event status' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to update event status' }, { status: 500 })
   }
 }

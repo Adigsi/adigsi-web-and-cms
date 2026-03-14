@@ -4,7 +4,7 @@ import { getMongoDatabase } from '@/lib/mongodb'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { titleEn, titleId, buttonTextEn, buttonTextId, buttonUrl } = body
+    const { subtitleEn, subtitleId, showSubtitle, titleEn, titleId, buttonTextEn, buttonTextId, buttonUrl } = body
 
     // Validate required fields
     if (!titleEn || !titleId) {
@@ -29,6 +29,9 @@ export async function POST(request: NextRequest) {
       { section: 'join' },
       {
         $set: {
+          subtitleEn: subtitleEn || 'Join Us',
+          subtitleId: subtitleId || 'Bergabung',
+          showSubtitle: showSubtitle ?? true,
           titleEn,
           titleId,
           buttonTextEn: buttonTextEn || 'Join Now',
@@ -43,7 +46,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Join section updated successfully',
-      data: { titleEn, titleId, buttonTextEn, buttonTextId, buttonUrl },
+      data: {
+        subtitleEn: subtitleEn || 'Join Us',
+        subtitleId: subtitleId || 'Bergabung',
+        showSubtitle: showSubtitle ?? true,
+        titleEn,
+        titleId,
+        buttonTextEn,
+        buttonTextId,
+        buttonUrl,
+      },
     })
   } catch (error) {
     console.error('Error updating join section:', error)
@@ -72,6 +84,9 @@ export async function GET() {
     }
 
     return NextResponse.json({
+      subtitleEn: join.subtitleEn || 'Join Us',
+      subtitleId: join.subtitleId || 'Bergabung',
+      showSubtitle: join.showSubtitle ?? true,
       titleEn: join.titleEn || '',
       titleId: join.titleId || '',
       buttonTextEn: join.buttonTextEn || 'Join Now',

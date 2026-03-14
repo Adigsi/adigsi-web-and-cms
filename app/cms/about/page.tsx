@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import { useLanguage } from '@/contexts/language-context'
 import { useToast } from '@/hooks/use-toast'
+import { useFileUpload } from '@/hooks/use-file-upload'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
 interface Logo {
@@ -23,16 +25,70 @@ interface Category {
 }
 
 interface PartnersData {
+  heading: {
+    subtitleEn: string
+    subtitleId: string
+    titleEn: string
+    titleId: string
+    showSubtitle: boolean
+  }
   categories: Category[]
+}
+
+interface OrganizationMember {
+  name: string
+  positionEn: string
+  positionId: string
+  imageUrl: string
+}
+
+interface OrganizationGroup {
+  titleEn: string
+  titleId: string
+  members: OrganizationMember[]
+}
+
+interface OrganizationData {
+  headingSubtitleEn: string
+  headingSubtitleId: string
+  headingTitleEn: string
+  headingTitleId: string
+  showSubtitle: boolean
+  groups: OrganizationGroup[]
+}
+
+interface AboutData {
+  subtitleEn: string
+  subtitleId: string
+  showSubtitle: boolean
+  titleEn: string
+  titleId: string
+  descriptionEn: string
+  descriptionId: string
+  visionEn: string
+  visionId: string
+  missions: { en: string; id: string }[]
 }
 
 export default function CMSAboutPage() {
   const { t } = useLanguage()
   const { toast } = useToast()
+  const { upload } = useFileUpload()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [draggedItem, setDraggedItem] = useState<{ groupIndex: number; memberIndex: number } | null>(null)
   const [draggedLogo, setDraggedLogo] = useState<{ categoryIndex: number; logoIndex: number } | null>(null)
+
+  // Create file upload callbacks for different sections
+  const uploadFileOrg = useCallback(async (file: File) => {
+    const result = await upload(file)
+    return result?.url || ''
+  }, [upload])
+
+  const uploadFilePartners = useCallback(async (file: File) => {
+    const result = await upload(file)
+    return result?.url || ''
+  }, [upload])
 
   // Banner section state
   const [bannerData, setBannerData] = useState({
@@ -41,7 +97,12 @@ export default function CMSAboutPage() {
   })
 
   // Organization Structure section state
-  const [orgData, setOrgData] = useState({
+  const [orgData, setOrgData] = useState<OrganizationData>({
+    headingSubtitleEn: 'Organization',
+    headingSubtitleId: 'Organisasi',
+    headingTitleEn: 'Organization Structure',
+    headingTitleId: 'Struktur Organisasi',
+    showSubtitle: true,
     groups: [
       {
         titleEn: 'Supervisory Board',
@@ -59,7 +120,10 @@ export default function CMSAboutPage() {
   })
 
   // About ADIGSI section state
-  const [aboutData, setAboutData] = useState({
+  const [aboutData, setAboutData] = useState<AboutData>({
+    subtitleEn: 'About ADIGSI',
+    subtitleId: 'Tentang ADIGSI',
+    showSubtitle: true,
     titleEn: 'Indonesian Association for Digitalization and Cybersecurity',
     titleId: 'Asosiasi Indonesia untuk Digitalisasi dan Keamanan Siber',
     descriptionEn: '',
@@ -71,6 +135,13 @@ export default function CMSAboutPage() {
 
   // Partners section state
   const [partnersData, setPartnersData] = useState<PartnersData>({
+    heading: {
+      subtitleEn: 'Partners & Members',
+      subtitleId: 'Mitra & Anggota',
+      titleEn: 'Our Ecosystem',
+      titleId: 'Ekosistem Kami',
+      showSubtitle: true,
+    },
     categories: [
       {
         titleEn: 'Government Organizations',
@@ -120,36 +191,87 @@ export default function CMSAboutPage() {
 
         if (orgRes.ok) {
           const data = await orgRes.json()
-          if (data.groups && data.groups.length > 0) {
-            setOrgData({ groups: data.groups })
-          }
+          setOrgData({
+            headingSubtitleEn: data.headingSubtitleEn || 'Organization',
+            headingSubtitleId: data.headingSubtitleId || 'Organisasi',
+            headingTitleEn: data.headingTitleEn || 'Organization Structure',
+            headingTitleId: data.headingTitleId || 'Struktur Organisasi',
+            showSubtitle: data.showSubtitle ?? true,
+            groups: data.groups && data.groups.length > 0 ? data.groups : [
+              {
+                titleEn: 'Supervisory Board',
+                titleId: 'Dewan Pengawas',
+                members: [
+                  {
+                    name: '',
+                    positionEn: '',
+                    positionId: '',
+                    imageUrl: ''
+                  }
+                ]
+              }
+            ],
+          })
         }
 
         if (aboutRes.ok) {
           const data = await aboutRes.json()
-          if (data.titleEn) {
-            setAboutData({
-              titleEn: data.titleEn,
-              titleId: data.titleId,
-              descriptionEn: data.descriptionEn,
-              descriptionId: data.descriptionId,
-              visionEn: data.visionEn,
-              visionId: data.visionId,
-              missions: data.missions || [{ en: '', id: '' }]
-            })
-          }
+          setAboutData({
+            subtitleEn: data.subtitleEn || 'About ADIGSI',
+            subtitleId: data.subtitleId || 'Tentang ADIGSI',
+            showSubtitle: data.showSubtitle ?? true,
+            titleEn: data.titleEn || 'Indonesian Association for Digitalization and Cybersecurity',
+            titleId: data.titleId || 'Asosiasi Indonesia untuk Digitalisasi dan Keamanan Siber',
+            descriptionEn: data.descriptionEn || '',
+            descriptionId: data.descriptionId || '',
+            visionEn: data.visionEn || '',
+            visionId: data.visionId || '',
+            missions: data.missions || [{ en: '', id: '' }]
+          })
         }
 
         if (partnersRes.ok) {
           const data = await partnersRes.json()
-          if (data.categories && data.categories.length > 0) {
-            setPartnersData({
-              categories: data.categories.map((cat: Category) => ({
-                ...cat,
-                homeLimit: cat.homeLimit ?? 0,
-              }))
-            })
-          }
+          setPartnersData({
+            heading: {
+              subtitleEn: data.heading?.subtitleEn || 'Partners & Members',
+              subtitleId: data.heading?.subtitleId || 'Mitra & Anggota',
+              titleEn: data.heading?.titleEn || 'Our Ecosystem',
+              titleId: data.heading?.titleId || 'Ekosistem Kami',
+              showSubtitle: data.heading?.showSubtitle ?? true,
+            },
+            categories: data.categories && data.categories.length > 0
+              ? data.categories.map((cat: Category) => ({
+                  ...cat,
+                  homeLimit: cat.homeLimit ?? 0,
+                }))
+              : [
+                  {
+                    titleEn: 'Government Organizations',
+                    titleId: 'Organisasi Pemerintah',
+                    homeLimit: 0,
+                    logos: []
+                  },
+                  {
+                    titleEn: 'International Institutions',
+                    titleId: 'Institusi Internasional',
+                    homeLimit: 0,
+                    logos: []
+                  },
+                  {
+                    titleEn: 'Associations',
+                    titleId: 'Asosiasi',
+                    homeLimit: 0,
+                    logos: []
+                  },
+                  {
+                    titleEn: 'Companies',
+                    titleId: 'Perusahaan',
+                    homeLimit: 0,
+                    logos: []
+                  }
+                ]
+          })
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -322,6 +444,39 @@ export default function CMSAboutPage() {
             <div className="flex flex-col h-full">
               <Card className="p-6 flex-1">
                 <div className="space-y-6">
+                  <div className="border-b border-border pb-4 mb-2 space-y-3">
+                    <div className="flex items-center justify-between rounded-md border border-border bg-muted/20 p-3">
+                      <Label className="text-xs">{t({ en: 'Show Subtitle Badge', id: 'Tampilkan Badge Subtitle' })}</Label>
+                      <Switch
+                        checked={aboutData.showSubtitle}
+                        onCheckedChange={(checked) => setAboutData({ ...aboutData, showSubtitle: checked })}
+                      />
+                    </div>
+
+                    {aboutData.showSubtitle && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="about-subtitle-en">{t({ en: 'Subtitle (English)', id: 'Subtitle (English)' })}</Label>
+                          <Input
+                            id="about-subtitle-en"
+                            value={aboutData.subtitleEn}
+                            onChange={(e) => setAboutData({ ...aboutData, subtitleEn: e.target.value })}
+                            placeholder="e.g., About ADIGSI"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="about-subtitle-id">{t({ en: 'Subtitle (Indonesian)', id: 'Subtitle (Indonesia)' })}</Label>
+                          <Input
+                            id="about-subtitle-id"
+                            value={aboutData.subtitleId}
+                            onChange={(e) => setAboutData({ ...aboutData, subtitleId: e.target.value })}
+                            placeholder="misal, Tentang ADIGSI"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Title Section */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -478,6 +633,59 @@ export default function CMSAboutPage() {
             <div className="flex flex-col h-full">
               <Card className="p-6 flex-1">
                 <div className="space-y-6">
+                  <div className="border border-border rounded-lg p-4 space-y-3 bg-muted/20">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs text-muted-foreground">{t({ en: 'Show Subtitle', id: 'Tampilkan Subtitle' })}</Label>
+                        <Switch
+                          checked={orgData.showSubtitle}
+                          onCheckedChange={(checked) => setOrgData({ ...orgData, showSubtitle: checked })}
+                        />
+                      </div>
+                    </div>
+
+                    {orgData.showSubtitle && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>{t({ en: 'Subtitle (English)', id: 'Subtitle (English)' })}</Label>
+                          <Input
+                            value={orgData.headingSubtitleEn}
+                            onChange={(e) => setOrgData({ ...orgData, headingSubtitleEn: e.target.value })}
+                            placeholder="e.g., Organization"
+                          />
+                        </div>
+                        <div>
+                          <Label>{t({ en: 'Subtitle (Indonesian)', id: 'Subtitle (Indonesia)' })}</Label>
+                          <Input
+                            value={orgData.headingSubtitleId}
+                            onChange={(e) => setOrgData({ ...orgData, headingSubtitleId: e.target.value })}
+                            placeholder="misal, Organisasi"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
+                        <Input
+                          value={orgData.headingTitleEn}
+                          onChange={(e) => setOrgData({ ...orgData, headingTitleEn: e.target.value })}
+                          placeholder="e.g., Organization Structure"
+                        />
+                      </div>
+                      <div>
+                        <Label>{t({ en: 'Title (Indonesian)', id: 'Judul (Indonesia)' })}</Label>
+                        <Input
+                          value={orgData.headingTitleId}
+                          onChange={(e) => setOrgData({ ...orgData, headingTitleId: e.target.value })}
+                          placeholder="misal, Struktur Organisasi"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {orgData.groups.map((group, groupIndex) => (
                     <div key={groupIndex} className="border border-border rounded-lg p-4 space-y-4">
                       <div className="flex items-center justify-between">
@@ -580,16 +788,21 @@ export default function CMSAboutPage() {
                                   <input
                                     type="file"
                                     accept="image/*"
-                                    onChange={(e) => {
+                                    onChange={async (e) => {
                                       const file = e.target.files?.[0]
                                       if (file) {
-                                        const reader = new FileReader()
-                                        reader.onloadend = () => {
+                                        try {
+                                          const url = await uploadFileOrg(file)
                                           const newGroups = [...orgData.groups]
-                                          newGroups[groupIndex].members[memberIndex].imageUrl = reader.result as string
+                                          newGroups[groupIndex].members[memberIndex].imageUrl = url
                                           setOrgData({ ...orgData, groups: newGroups })
+                                        } catch (error) {
+                                          toast({
+                                            title: t({ en: 'Error', id: 'Kesalahan' }),
+                                            description: error instanceof Error ? error.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }),
+                                            variant: 'destructive',
+                                          })
                                         }
-                                        reader.readAsDataURL(file)
                                       }
                                     }}
                                     className="hidden"
@@ -708,6 +921,78 @@ export default function CMSAboutPage() {
             <div className="flex flex-col h-full">
               <Card className="p-6 flex-1">
                 <div className="space-y-6">
+                  <div className="border border-border rounded-lg p-4 space-y-3 bg-muted/20">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs text-muted-foreground">{t({ en: 'Show Subtitle', id: 'Tampilkan Subtitle' })}</Label>
+                        <Switch
+                          checked={partnersData.heading.showSubtitle}
+                          onCheckedChange={(checked) => setPartnersData({
+                            ...partnersData,
+                            heading: { ...partnersData.heading, showSubtitle: checked }
+                          })}
+                        />
+                      </div>
+                    </div>
+
+                    {partnersData.heading.showSubtitle && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-xs">{t({ en: 'Subtitle (English)', id: 'Subtitle (English)' })}</Label>
+                          <Input
+                            value={partnersData.heading.subtitleEn}
+                            onChange={(e) => setPartnersData({
+                              ...partnersData,
+                              heading: { ...partnersData.heading, subtitleEn: e.target.value }
+                            })}
+                            placeholder="e.g., Partners & Members"
+                            className="text-xs h-8 mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">{t({ en: 'Subtitle (Indonesian)', id: 'Subtitle (Indonesia)' })}</Label>
+                          <Input
+                            value={partnersData.heading.subtitleId}
+                            onChange={(e) => setPartnersData({
+                              ...partnersData,
+                              heading: { ...partnersData.heading, subtitleId: e.target.value }
+                            })}
+                            placeholder="misal, Mitra & Anggota"
+                            className="text-xs h-8 mt-1"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
+                        <Input
+                          value={partnersData.heading.titleEn}
+                          onChange={(e) => setPartnersData({
+                            ...partnersData,
+                            heading: { ...partnersData.heading, titleEn: e.target.value }
+                          })}
+                          placeholder="e.g., Our Ecosystem"
+                          className="text-xs h-8 mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">{t({ en: 'Title (Indonesian)', id: 'Judul (Indonesia)' })}</Label>
+                        <Input
+                          value={partnersData.heading.titleId}
+                          onChange={(e) => setPartnersData({
+                            ...partnersData,
+                            heading: { ...partnersData.heading, titleId: e.target.value }
+                          })}
+                          placeholder="misal, Ekosistem Kami"
+                          className="text-xs h-8 mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {partnersData.categories.map((category, categoryIndex) => (
                     <div key={categoryIndex} className="border border-border rounded-lg p-4 space-y-4">
                       <div className="border-b pb-4 flex items-center justify-between">
@@ -805,20 +1090,24 @@ export default function CMSAboutPage() {
                                 <input
                                   type="file"
                                   accept="image/*"
-                                  onChange={(e) => {
+                                  onChange={async (e) => {
                                     const file = e.target.files?.[0]
                                     if (file) {
-                                      const reader = new FileReader()
-                                      reader.onload = (event) => {
-                                        const base64 = event.target?.result as string
+                                      try {
+                                        const url = await uploadFilePartners(file)
                                         const newCategories = [...partnersData.categories]
-                                        newCategories[categoryIndex].logos[logoIndex].imageUrl = base64
+                                        newCategories[categoryIndex].logos[logoIndex].imageUrl = url
                                         // Auto-generate alt text from filename without extension
                                         const filename = file.name.split('.')[0].replace(/[-_]/g, ' ')
                                         newCategories[categoryIndex].logos[logoIndex].alt = filename
                                         setPartnersData({ ...partnersData, categories: newCategories })
+                                      } catch (error) {
+                                        toast({
+                                          title: t({ en: 'Error', id: 'Kesalahan' }),
+                                          description: error instanceof Error ? error.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }),
+                                          variant: 'destructive',
+                                        })
                                       }
-                                      reader.readAsDataURL(file)
                                     }
                                   }}
                                   className="hidden"

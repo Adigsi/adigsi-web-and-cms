@@ -7,6 +7,9 @@ import { usePathname } from 'next/navigation'
 import { useLanguage } from '@/contexts/language-context'
 
 interface AboutData {
+  subtitleEn: string
+  subtitleId: string
+  showSubtitle: boolean
   titleEn: string
   titleId: string
   descriptionEn: string
@@ -26,6 +29,17 @@ interface Category {
   titleId: string
   homeLimit: number
   logos: Logo[]
+}
+
+interface PartnersData {
+  heading: {
+    subtitleEn: string
+    subtitleId: string
+    titleEn: string
+    titleId: string
+    showSubtitle: boolean
+  }
+  categories: Category[]
 }
 
 // ─── Shared animation hook ───────────────────────────────────────────────────
@@ -101,6 +115,9 @@ export function AboutAdigsiSection() {
         if (res.ok) {
           const data = await res.json()
           setAboutData({
+            subtitleEn: data.subtitleEn || 'About ADIGSI',
+            subtitleId: data.subtitleId || 'Tentang ADIGSI',
+            showSubtitle: data.showSubtitle ?? true,
             titleEn: data.titleEn || 'Indonesian Association for Digitalization and Cybersecurity',
             titleId: data.titleId || 'Asosiasi Indonesia untuk Digitalisasi dan Keamanan Siber',
             descriptionEn: data.descriptionEn || '',
@@ -164,12 +181,14 @@ export function AboutAdigsiSection() {
           className={`flex flex-col items-center text-center mb-12 ${animClass()}`}
           style={animStyle('0ms')}
         >
-          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-accent/30 bg-accent/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-accent">
-              {t({ en: 'About ADIGSI', id: 'Tentang ADIGSI' })}
-            </span>
-          </div>
+          {aboutData.showSubtitle && (
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-accent/30 bg-accent/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-accent">
+                {language === 'en' ? aboutData.subtitleEn : aboutData.subtitleId}
+              </span>
+            </div>
+          )}
           <h2 className="text-2xl md:text-3xl font-bold text-foreground max-w-2xl">
             {title}
           </h2>
@@ -246,7 +265,7 @@ export function AboutAdigsiSection() {
 
 // ─── PartnersSection ──────────────────────────────────────────────────────────
 export function PartnersSection() {
-  const [partnersData, setPartnersData] = useState<{ categories: Category[] } | null>(null)
+  const [partnersData, setPartnersData] = useState<PartnersData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const { t, language } = useLanguage()
   const pathname = usePathname()
@@ -302,15 +321,20 @@ export function PartnersSection() {
           className={`flex flex-col items-center text-center mb-12 ${animClass()}`}
           style={animStyle('0ms')}
         >
-          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
-              {t({ en: 'Partners & Members', id: 'Mitra & Anggota' })}
-            </span>
-          </div>
+          {partnersData.heading?.showSubtitle && (
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
+                {language === 'en'
+                  ? (partnersData.heading.subtitleEn || 'Partners & Members')
+                  : (partnersData.heading.subtitleId || 'Mitra & Anggota')}
+              </span>
+            </div>
+          )}
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-            {t({ en: 'Our', id: 'Ekosistem' })}{' '}
-            <span className="text-primary">{t({ en: 'Ecosystem', id: 'Kami' })}</span>
+            {language === 'en'
+              ? (partnersData.heading?.titleEn || 'Our Ecosystem')
+              : (partnersData.heading?.titleId || 'Ekosistem Kami')}
           </h2>
           <div className="mt-3 h-px w-16 bg-linear-to-r from-primary to-accent" />
         </div>

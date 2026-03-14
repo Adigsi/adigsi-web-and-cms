@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLanguage } from '@/contexts/language-context'
 import { useToast } from '@/hooks/use-toast'
+import { useFileUpload } from '@/hooks/use-file-upload'
 import { CyberIcon } from '@/components/ui/cyber-icon'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/popover'
 import { ChevronDown, Trash2, Check } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Switch } from '@/components/ui/switch'
 
 interface BannerData {
   titleEn: string
@@ -48,6 +50,7 @@ interface HeadingData {
   subtitleId: string
   titleEn: string
   titleId: string
+  showSubtitle?: boolean
 }
 
 interface PartnerLogo {
@@ -148,9 +151,16 @@ const PRESET_SIZES = [
 export default function CMSMembersPage() {
   const { t } = useLanguage()
   const { toast } = useToast()
+  const { upload } = useFileUpload()
   const [isSaving, setIsSaving] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [draggedLogo, setDraggedLogo] = useState<{ categoryIndex: number; logoIndex: number } | null>(null)
+
+  // Create file upload callback for partner logos
+  const uploadFileMemberLogos = useCallback(async (file: File) => {
+    const result = await upload(file)
+    return result?.url || ''
+  }, [upload])
 
   // Banner section state
   const [bannerData, setBannerData] = useState<BannerData>({
@@ -164,6 +174,7 @@ export default function CMSMembersPage() {
     subtitleId: 'KOMUNITAS KAMI',
     titleEn: 'ADIGSI Cyber Security Members',
     titleId: 'Anggota Cyber Security ADIGSI',
+    showSubtitle: true,
   })
 
   // Cybersecurity Member Categories section state
@@ -184,6 +195,7 @@ export default function CMSMembersPage() {
     subtitleId: 'KOMUNITAS DIGITAL KAMI',
     titleEn: 'Digital Member Categories',
     titleId: 'Kategori Member Digital',
+    showSubtitle: true,
   })
 
   const [digitalCategoriesData, setDigitalCategoriesData] = useState<DigitalCategoriesData>({
@@ -204,6 +216,7 @@ export default function CMSMembersPage() {
       subtitleId: 'MITRA KAMI',
       titleEn: 'ADIGSI Members',
       titleId: 'Anggota ADIGSI',
+      showSubtitle: true,
     },
     categories: [
       {
@@ -245,6 +258,7 @@ export default function CMSMembersPage() {
             subtitleId: data.heading?.subtitleId || 'KOMUNITAS KAMI',
             titleEn: data.heading?.titleEn || 'ADIGSI Cyber Security Members',
             titleId: data.heading?.titleId || 'Anggota Cyber Security ADIGSI',
+            showSubtitle: data.heading?.showSubtitle ?? true,
           })
 
           setCybersecCategoriesData({
@@ -266,6 +280,7 @@ export default function CMSMembersPage() {
             subtitleId: data.heading?.subtitleId || 'KOMUNITAS DIGITAL KAMI',
             titleEn: data.heading?.titleEn || 'Digital Member Categories',
             titleId: data.heading?.titleId || 'Kategori Member Digital',
+            showSubtitle: data.heading?.showSubtitle ?? true,
           })
 
           setDigitalCategoriesData({
@@ -288,6 +303,7 @@ export default function CMSMembersPage() {
               subtitleId: data.heading?.subtitleId || 'MITRA KAMI',
               titleEn: data.heading?.titleEn || 'ADIGSI Members',
               titleId: data.heading?.titleId || 'Anggota ADIGSI',
+              showSubtitle: data.heading?.showSubtitle ?? true,
             },
             categories: data.categories || [
               {
@@ -484,27 +500,40 @@ export default function CMSMembersPage() {
               <Card className="p-6 flex-1">
                 <div className="space-y-4">
                   <div className="bg-muted/30 border border-muted rounded-lg p-4 mt-4 mb-6">
-                    <h3 className="text-sm font-semibold mb-4 text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs text-muted-foreground">{t({ en: 'Show Subtitle', id: 'Tampilkan Subtitle' })}</Label>
+                        <Switch
+                          checked={cybersecHeadingData.showSubtitle ?? true}
+                          onCheckedChange={(checked) => setCybersecHeadingData({ ...cybersecHeadingData, showSubtitle: checked })}
+                        />
+                      </div>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="subtitle-en">{t({ en: 'Subtitle (EN)', id: 'Subtitle (EN)' })}</Label>
-                        <Input
-                          id="subtitle-en"
-                          value={cybersecHeadingData.subtitleEn}
-                          onChange={(e) => setCybersecHeadingData({ ...cybersecHeadingData, subtitleEn: e.target.value })}
-                          placeholder={t({ en: 'Enter subtitle in English', id: 'Masukkan subtitle dalam Inggris' })}
-                        />
-                      </div>
+                      {(cybersecHeadingData.showSubtitle ?? true) && (
+                        <>
+                          <div>
+                            <Label htmlFor="subtitle-en">{t({ en: 'Subtitle (EN)', id: 'Subtitle (EN)' })}</Label>
+                            <Input
+                              id="subtitle-en"
+                              value={cybersecHeadingData.subtitleEn}
+                              onChange={(e) => setCybersecHeadingData({ ...cybersecHeadingData, subtitleEn: e.target.value })}
+                              placeholder={t({ en: 'Enter subtitle in English', id: 'Masukkan subtitle dalam Inggris' })}
+                            />
+                          </div>
 
-                      <div>
-                        <Label htmlFor="subtitle-id">{t({ en: 'Subtitle (ID)', id: 'Subtitle (ID)' })}</Label>
-                        <Input
-                          id="subtitle-id"
-                          value={cybersecHeadingData.subtitleId}
-                          onChange={(e) => setCybersecHeadingData({ ...cybersecHeadingData, subtitleId: e.target.value })}
-                          placeholder={t({ en: 'Enter subtitle in Indonesian', id: 'Masukkan subtitle dalam Indonesia' })}
-                        />
-                      </div>
+                          <div>
+                            <Label htmlFor="subtitle-id">{t({ en: 'Subtitle (ID)', id: 'Subtitle (ID)' })}</Label>
+                            <Input
+                              id="subtitle-id"
+                              value={cybersecHeadingData.subtitleId}
+                              onChange={(e) => setCybersecHeadingData({ ...cybersecHeadingData, subtitleId: e.target.value })}
+                              placeholder={t({ en: 'Enter subtitle in Indonesian', id: 'Masukkan subtitle dalam Indonesia' })}
+                            />
+                          </div>
+                        </>
+                      )}
 
                       <div>
                         <Label htmlFor="title-en">{t({ en: 'Title (EN)', id: 'Judul (EN)' })}</Label>
@@ -637,27 +666,40 @@ export default function CMSMembersPage() {
               <Card className="p-6 flex-1">
                 {/* Section Heading Fields */}
                 <div className="bg-muted/30 border border-muted rounded-lg p-4 mb-6">
-                  <h3 className="text-sm font-semibold mb-4 text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs text-muted-foreground">{t({ en: 'Show Subtitle', id: 'Tampilkan Subtitle' })}</Label>
+                      <Switch
+                        checked={digitalHeadingData.showSubtitle ?? true}
+                        onCheckedChange={(checked) => setDigitalHeadingData({ ...digitalHeadingData, showSubtitle: checked })}
+                      />
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="digital-subtitle-en">{t({ en: 'Subtitle (EN)', id: 'Subtitle (EN)' })}</Label>
-                      <Input
-                        id="digital-subtitle-en"
-                        value={digitalHeadingData.subtitleEn}
-                        onChange={(e) => setDigitalHeadingData({ ...digitalHeadingData, subtitleEn: e.target.value })}
-                        placeholder={t({ en: 'Enter subtitle in English', id: 'Masukkan subtitle dalam Inggris' })}
-                      />
-                    </div>
+                    {(digitalHeadingData.showSubtitle ?? true) && (
+                      <>
+                        <div>
+                          <Label htmlFor="digital-subtitle-en">{t({ en: 'Subtitle (EN)', id: 'Subtitle (EN)' })}</Label>
+                          <Input
+                            id="digital-subtitle-en"
+                            value={digitalHeadingData.subtitleEn}
+                            onChange={(e) => setDigitalHeadingData({ ...digitalHeadingData, subtitleEn: e.target.value })}
+                            placeholder={t({ en: 'Enter subtitle in English', id: 'Masukkan subtitle dalam Inggris' })}
+                          />
+                        </div>
 
-                    <div>
-                      <Label htmlFor="digital-subtitle-id">{t({ en: 'Subtitle (ID)', id: 'Subtitle (ID)' })}</Label>
-                      <Input
-                        id="digital-subtitle-id"
-                        value={digitalHeadingData.subtitleId}
-                        onChange={(e) => setDigitalHeadingData({ ...digitalHeadingData, subtitleId: e.target.value })}
-                        placeholder={t({ en: 'Enter subtitle in Indonesian', id: 'Masukkan subtitle dalam Indonesia' })}
-                      />
-                    </div>
+                        <div>
+                          <Label htmlFor="digital-subtitle-id">{t({ en: 'Subtitle (ID)', id: 'Subtitle (ID)' })}</Label>
+                          <Input
+                            id="digital-subtitle-id"
+                            value={digitalHeadingData.subtitleId}
+                            onChange={(e) => setDigitalHeadingData({ ...digitalHeadingData, subtitleId: e.target.value })}
+                            placeholder={t({ en: 'Enter subtitle in Indonesian', id: 'Masukkan subtitle dalam Indonesia' })}
+                          />
+                        </div>
+                      </>
+                    )}
 
                     <div>
                       <Label htmlFor="digital-title-en">{t({ en: 'Title (EN)', id: 'Judul (EN)' })}</Label>
@@ -818,27 +860,40 @@ export default function CMSMembersPage() {
               <Card className="p-6 flex-1">
                 {/* Section Heading Fields */}
                 <div className="bg-muted/30 border border-muted rounded-lg p-4 mb-6">
-                  <h3 className="text-sm font-semibold mb-4 text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs text-muted-foreground">{t({ en: 'Show Subtitle', id: 'Tampilkan Subtitle' })}</Label>
+                      <Switch
+                        checked={partnerLogosData.heading.showSubtitle ?? true}
+                        onCheckedChange={(checked) => setPartnerLogosData({ ...partnerLogosData, heading: { ...partnerLogosData.heading, showSubtitle: checked } })}
+                      />
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="partner-subtitle-en">{t({ en: 'Subtitle (EN)', id: 'Subtitle (EN)' })}</Label>
-                      <Input
-                        id="partner-subtitle-en"
-                        value={partnerLogosData.heading.subtitleEn}
-                        onChange={(e) => setPartnerLogosData({ ...partnerLogosData, heading: { ...partnerLogosData.heading, subtitleEn: e.target.value } })}
-                        placeholder={t({ en: 'Enter subtitle in English', id: 'Masukkan subtitle dalam Inggris' })}
-                      />
-                    </div>
+                    {(partnerLogosData.heading.showSubtitle ?? true) && (
+                      <>
+                        <div>
+                          <Label htmlFor="partner-subtitle-en">{t({ en: 'Subtitle (EN)', id: 'Subtitle (EN)' })}</Label>
+                          <Input
+                            id="partner-subtitle-en"
+                            value={partnerLogosData.heading.subtitleEn}
+                            onChange={(e) => setPartnerLogosData({ ...partnerLogosData, heading: { ...partnerLogosData.heading, subtitleEn: e.target.value } })}
+                            placeholder={t({ en: 'Enter subtitle in English', id: 'Masukkan subtitle dalam Inggris' })}
+                          />
+                        </div>
 
-                    <div>
-                      <Label htmlFor="partner-subtitle-id">{t({ en: 'Subtitle (ID)', id: 'Subtitle (ID)' })}</Label>
-                      <Input
-                        id="partner-subtitle-id"
-                        value={partnerLogosData.heading.subtitleId}
-                        onChange={(e) => setPartnerLogosData({ ...partnerLogosData, heading: { ...partnerLogosData.heading, subtitleId: e.target.value } })}
-                        placeholder={t({ en: 'Enter subtitle in Indonesian', id: 'Masukkan subtitle dalam Indonesia' })}
-                      />
-                    </div>
+                        <div>
+                          <Label htmlFor="partner-subtitle-id">{t({ en: 'Subtitle (ID)', id: 'Subtitle (ID)' })}</Label>
+                          <Input
+                            id="partner-subtitle-id"
+                            value={partnerLogosData.heading.subtitleId}
+                            onChange={(e) => setPartnerLogosData({ ...partnerLogosData, heading: { ...partnerLogosData.heading, subtitleId: e.target.value } })}
+                            placeholder={t({ en: 'Enter subtitle in Indonesian', id: 'Masukkan subtitle dalam Indonesia' })}
+                          />
+                        </div>
+                      </>
+                    )}
 
                     <div>
                       <Label htmlFor="partner-title-en">{t({ en: 'Title (EN)', id: 'Judul (EN)' })}</Label>
@@ -1018,20 +1073,24 @@ export default function CMSMembersPage() {
                                 <input
                                   type="file"
                                   accept="image/*"
-                                  onChange={(e) => {
+                                  onChange={async (e) => {
                                     const file = e.target.files?.[0]
                                     if (file) {
-                                      const reader = new FileReader()
-                                      reader.onload = (event) => {
-                                        const base64 = event.target?.result as string
+                                      try {
+                                        const url = await uploadFileMemberLogos(file)
                                         const newCategories = [...partnerLogosData.categories]
-                                        newCategories[catIndex].logos[logoIndex].imageUrl = base64
+                                        newCategories[catIndex].logos[logoIndex].imageUrl = url
                                         // Auto-generate alt text from filename without extension
                                         const filename = file.name.split('.')[0].replace(/[-_]/g, ' ')
                                         newCategories[catIndex].logos[logoIndex].alt = filename
                                         setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                                      } catch (error) {
+                                        toast({
+                                          title: t({ en: 'Error', id: 'Kesalahan' }),
+                                          description: error instanceof Error ? error.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }),
+                                          variant: 'destructive',
+                                        })
                                       }
-                                      reader.readAsDataURL(file)
                                     }
                                   }}
                                   className="hidden"

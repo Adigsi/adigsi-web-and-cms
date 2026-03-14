@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
+import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
 
 interface ReportData {
   titleEn: string
@@ -92,6 +93,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Title (EN and ID) is required' }, { status: 400 })
     }
 
+    // Validate media fields (URL-only, no base64)
+    if (cover) {
+      const coverError = getMediaUrlValidationError(cover, 'cover')
+      if (coverError) {
+        return NextResponse.json({ error: coverError }, { status: 400 })
+      }
+    }
+
+    if (pdfFile) {
+      const pdfError = getMediaUrlValidationError(pdfFile, 'pdfFile')
+      if (pdfError) {
+        return NextResponse.json({ error: pdfError }, { status: 400 })
+      }
+    }
+
     const db = await getMongoDatabase()
     const collection = db.collection('reports')
 
@@ -143,6 +159,19 @@ export async function PATCH(request: NextRequest) {
 
     for (const key of allowed) {
       if (key in body) {
+        // Validate media fields if present
+        if (key === 'cover' && body[key]) {
+          const coverError = getMediaUrlValidationError(body[key], 'cover')
+          if (coverError) {
+            return NextResponse.json({ error: coverError }, { status: 400 })
+          }
+        }
+        if (key === 'pdfFile' && body[key]) {
+          const pdfError = getMediaUrlValidationError(body[key], 'pdfFile')
+          if (pdfError) {
+            return NextResponse.json({ error: pdfError }, { status: 400 })
+          }
+        }
         updateFields[key] = body[key]
       }
     }

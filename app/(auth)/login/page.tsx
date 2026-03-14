@@ -32,8 +32,8 @@ function FlagID() {
 export default function CMSLoginPage() {
   const router = useRouter()
   const { language, setLanguage } = useLanguage()
-  const [email, setEmail] = useState('admin@adigsi.id')
-  const [password, setPassword] = useState('admin12345')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [isDarkMode, setIsDarkMode] = useState(false)

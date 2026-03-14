@@ -16,6 +16,14 @@ interface Membership {
   primaryColor?: string
 }
 
+interface MembershipHeading {
+  subtitleEn: string
+  subtitleId: string
+  titleEn: string
+  titleId: string
+  showSubtitle: boolean
+}
+
 type TierKey = 'bronze' | 'silver' | 'gold' | 'platinum' | 'default'
 
 const TIER_CONFIG: Record<TierKey, {
@@ -125,6 +133,13 @@ function TierIcon({ tier }: { tier: string }) {
 export function MembershipBenefitsSection() {
   const [isVisible, setIsVisible] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
+  const [heading, setHeading] = useState<MembershipHeading>({
+    subtitleEn: 'MEMBERSHIP TIERS',
+    subtitleId: 'TINGKATAN KEANGGOTAAN',
+    titleEn: 'Membership Category',
+    titleId: 'Kategori Keanggotaan',
+    showSubtitle: true,
+  })
   const [memberships, setMemberships] = useState<Membership[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const sectionRef = useRef<HTMLElement>(null)
@@ -139,6 +154,15 @@ export function MembershipBenefitsSection() {
         const response = await fetch('/api/cms/members/membership-benefits')
         if (response.ok) {
           const data = await response.json()
+          if (data.heading) {
+            setHeading({
+              subtitleEn: data.heading.subtitleEn || 'MEMBERSHIP TIERS',
+              subtitleId: data.heading.subtitleId || 'TINGKATAN KEANGGOTAAN',
+              titleEn: data.heading.titleEn || 'Membership Category',
+              titleId: data.heading.titleId || 'Kategori Keanggotaan',
+              showSubtitle: data.heading.showSubtitle ?? true,
+            })
+          }
           if (data.memberships && Array.isArray(data.memberships) && data.memberships.length > 0) {
             setMemberships(data.memberships)
           }
@@ -223,15 +247,17 @@ export function MembershipBenefitsSection() {
 
         {/* Header */}
         <div className={`flex flex-col items-center text-center mb-14 transition-all duration-700 ${animClass()}`}>
-          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
-              {language === 'en' ? 'MEMBERSHIP TIERS' : 'TINGKATAN KEANGGOTAAN'}
-            </span>
-          </div>
+          {heading.showSubtitle && (
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
+                {language === 'en' ? heading.subtitleEn : heading.subtitleId}
+              </span>
+            </div>
+          )}
 
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3 tracking-tight">
-            {language === 'en' ? 'Membership Category' : 'Kategori Keanggotaan'}
+            {language === 'en' ? heading.titleEn : heading.titleId}
           </h2>
 
           <div className="h-1 w-16 rounded-full bg-linear-to-r from-primary to-accent" />

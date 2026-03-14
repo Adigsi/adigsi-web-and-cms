@@ -26,6 +26,7 @@ interface PartnerLogosData {
     subtitleId: string
     titleEn: string
     titleId: string
+    showSubtitle?: boolean
   }
   categories: PartnerCategory[]
 }
@@ -147,15 +148,17 @@ export function PartnerLogosSection() {
 
         {/* Header */}
         <div className={`flex flex-col items-center text-center mb-14 transition-all duration-700 ${animClass()}`}>
-          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-accent/30 bg-accent/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-accent">
-              {t({
-                en: partnerLogosData.heading.subtitleEn,
-                id: partnerLogosData.heading.subtitleId,
-              })}
-            </span>
-          </div>
+          {(partnerLogosData.heading.showSubtitle ?? true) && (
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-accent/30 bg-accent/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-accent">
+                {t({
+                  en: partnerLogosData.heading.subtitleEn,
+                  id: partnerLogosData.heading.subtitleId,
+                })}
+              </span>
+            </div>
+          )}
 
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4 tracking-tight">
             {t({

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
+import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
 
 interface NewsData {
   titleEn: string
@@ -27,7 +28,7 @@ function generateSlug(title: string): string {
 async function ensureUniqueSlug(baseSlug: string, collection: any): Promise<string> {
   let slug = baseSlug
   let counter = 1
-  
+
   while (true) {
     const existing = await collection.findOne({ slug, section: 'news' })
     if (!existing) {
@@ -51,29 +52,25 @@ export async function GET(request: NextRequest) {
     const db = await getMongoDatabase()
     const collection = db.collection('news_content')
 
-    // Build filter query
     const filter: any = { section: 'news' }
-    
-    // Add search filter (search in title EN and ID)
+
     if (search) {
       filter.$or = [
         { titleEn: { $regex: search, $options: 'i' } },
         { titleId: { $regex: search, $options: 'i' } },
       ]
     }
-    
-    // Add category filter
+
     if (category) {
       filter.$and = filter.$and || []
       filter.$and.push({
         $or: [
           { categoryEn: { $regex: category, $options: 'i' } },
           { categoryId: { $regex: category, $options: 'i' } },
-        ]
+        ],
       })
     }
-    
-    // Add published filter
+
     if (published) {
       filter.published = published === 'true'
     }
@@ -90,10 +87,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: news.map((item) => {
-        const createdAt = item.createdAt 
+        const createdAt = item.createdAt
           ? new Date(item.createdAt).toISOString()
           : new Date(item._id.getTimestamp()).toISOString()
-        
+
         return {
           _id: item._id.toString(),
           slug: item.slug,
@@ -136,11 +133,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const imageError = getMediaUrlValidationError(image, 'image')
+    if (imageError) {
+      return NextResponse.json({ error: imageError }, { status: 400 })
+    }
+
     const db = await getMongoDatabase()
     const collection = db.collection('news_content')
 
     if (_id) {
-      // Update existing news (slug is NOT updated)
       await collection.updateOne(
         { _id: new ObjectId(_id) },
         {
@@ -158,10 +159,9 @@ export async function POST(request: NextRequest) {
         }
       )
     } else {
-      // Create new news - generate slug from titleEn
       const baseSlug = generateSlug(titleEn)
       const uniqueSlug = await ensureUniqueSlug(baseSlug, collection)
-      
+
       await collection.insertOne({
         section: 'news',
         slug: uniqueSlug,

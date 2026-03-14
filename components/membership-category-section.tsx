@@ -16,12 +16,22 @@ export function MembershipCategorySection() {
   const [isVisible, setIsVisible] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [sectionData, setSectionData] = useState<{
+    headerSubtitleEn: string
+    headerSubtitleId: string
+    headerTitleEn: string
+    headerTitleId: string
+    showSubtitle: boolean
     sectionTitleEn: string
     sectionTitleId: string
     sectionDescriptionEn: string
     sectionDescriptionId: string
     categories: Category[]
   }>({
+    headerSubtitleEn: 'CATEGORY',
+    headerSubtitleId: 'KATEGORI',
+    headerTitleEn: 'Membership Category',
+    headerTitleId: 'Kategori Keanggotaan',
+    showSubtitle: true,
     sectionTitleEn: 'CATEGORY',
     sectionTitleId: 'KATEGORI',
     sectionDescriptionEn:
@@ -44,6 +54,11 @@ export function MembershipCategorySection() {
         if (response.ok) {
           const data = await response.json()
           setSectionData({
+            headerSubtitleEn: data.headerSubtitleEn || data.sectionTitleEn || 'CATEGORY',
+            headerSubtitleId: data.headerSubtitleId || data.sectionTitleId || 'KATEGORI',
+            headerTitleEn: data.headerTitleEn || 'Membership Category',
+            headerTitleId: data.headerTitleId || 'Kategori Keanggotaan',
+            showSubtitle: data.showSubtitle ?? true,
             sectionTitleEn: data.sectionTitleEn || 'CATEGORY',
             sectionTitleId: data.sectionTitleId || 'KATEGORI',
             sectionDescriptionEn: data.sectionDescriptionEn || '',
@@ -129,15 +144,17 @@ export function MembershipCategorySection() {
 
         {/* Header */}
         <div className={`flex flex-col items-center text-center mb-14 transition-all duration-700 ${animClass()}`}>
-          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-accent/30 bg-accent/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-accent">
-              {language === 'en' ? sectionData.sectionTitleEn : sectionData.sectionTitleId}
-            </span>
-          </div>
+          {sectionData.showSubtitle && (
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-accent/30 bg-accent/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-accent">
+                {language === 'en' ? sectionData.headerSubtitleEn : sectionData.headerSubtitleId}
+              </span>
+            </div>
+          )}
 
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3 tracking-tight">
-            {language === 'en' ? 'Membership Category' : 'Kategori Keanggotaan'}
+            {language === 'en' ? sectionData.headerTitleEn : sectionData.headerTitleId}
           </h2>
 
           <div className="h-px w-16 rounded-full bg-linear-to-r from-accent to-primary mb-4" />

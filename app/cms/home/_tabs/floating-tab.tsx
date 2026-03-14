@@ -75,7 +75,7 @@ interface FloatingButtonsData {
 }
 
 const DEFAULT: FloatingButtonsData = {
-  joinButton: { textEn: 'Join Now', textId: 'Daftar', link: '/register', icon: 'network' },
+  joinButton: { textEn: 'Join Now', textId: 'Daftar', link: '/registration-form', icon: 'network' },
   contactButton: { email: 'info@adigsi.id', whatsapp: 'https://wa.me/62' },
 }
 

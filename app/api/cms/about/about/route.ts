@@ -10,6 +10,9 @@ export async function GET() {
 
     if (!data) {
       return NextResponse.json({
+        subtitleEn: 'About ADIGSI',
+        subtitleId: 'Tentang ADIGSI',
+        showSubtitle: true,
         titleEn: '',
         titleId: '',
         descriptionEn: '',
@@ -23,6 +26,9 @@ export async function GET() {
     }
 
     return NextResponse.json({
+      subtitleEn: data.subtitleEn || 'About ADIGSI',
+      subtitleId: data.subtitleId || 'Tentang ADIGSI',
+      showSubtitle: data.showSubtitle ?? true,
       titleEn: data.titleEn || '',
       titleId: data.titleId || '',
       descriptionEn: data.descriptionEn || '',
@@ -40,7 +46,18 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { titleEn, titleId, descriptionEn, descriptionId, visionEn, visionId, missions } = body
+    const {
+      subtitleEn,
+      subtitleId,
+      showSubtitle,
+      titleEn,
+      titleId,
+      descriptionEn,
+      descriptionId,
+      visionEn,
+      visionId,
+      missions,
+    } = body
 
     // Validate required fields
     if (!titleEn || !titleId || !descriptionEn || !descriptionId || !visionEn || !visionId) {
@@ -56,6 +73,9 @@ export async function POST(request: NextRequest) {
       {
         $set: {
           section: 'about',
+          subtitleEn: subtitleEn || 'About ADIGSI',
+          subtitleId: subtitleId || 'Tentang ADIGSI',
+          showSubtitle: showSubtitle ?? true,
           titleEn,
           titleId,
           descriptionEn,

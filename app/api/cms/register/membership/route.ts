@@ -10,6 +10,11 @@ interface Category {
 }
 
 interface MembershipData {
+  headerSubtitleEn?: string
+  headerSubtitleId?: string
+  headerTitleEn?: string
+  headerTitleId?: string
+  showSubtitle?: boolean
   sectionTitleEn: string
   sectionTitleId: string
   sectionDescriptionEn: string
@@ -20,7 +25,18 @@ interface MembershipData {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { sectionTitleEn, sectionTitleId, sectionDescriptionEn, sectionDescriptionId, categories } = body
+    const {
+      headerSubtitleEn,
+      headerSubtitleId,
+      headerTitleEn,
+      headerTitleId,
+      showSubtitle,
+      sectionTitleEn,
+      sectionTitleId,
+      sectionDescriptionEn,
+      sectionDescriptionId,
+      categories,
+    } = body
 
     // Validate required fields
     if (!sectionTitleEn || !sectionTitleId) {
@@ -55,6 +71,11 @@ export async function POST(request: NextRequest) {
       { section: 'membership' },
       {
         $set: {
+          headerSubtitleEn: headerSubtitleEn || sectionTitleEn || 'CATEGORY',
+          headerSubtitleId: headerSubtitleId || sectionTitleId || 'KATEGORI',
+          headerTitleEn: headerTitleEn || 'Membership Category',
+          headerTitleId: headerTitleId || 'Kategori Keanggotaan',
+          showSubtitle: showSubtitle ?? true,
           sectionTitleEn,
           sectionTitleId,
           sectionDescriptionEn: sectionDescriptionEn || '',
@@ -69,7 +90,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Membership categories updated successfully',
-      data: { sectionTitleEn, sectionTitleId, sectionDescriptionEn, sectionDescriptionId, categories },
+      data: {
+        headerSubtitleEn: headerSubtitleEn || sectionTitleEn || 'CATEGORY',
+        headerSubtitleId: headerSubtitleId || sectionTitleId || 'KATEGORI',
+        headerTitleEn: headerTitleEn || 'Membership Category',
+        headerTitleId: headerTitleId || 'Kategori Keanggotaan',
+        showSubtitle: showSubtitle ?? true,
+        sectionTitleEn,
+        sectionTitleId,
+        sectionDescriptionEn,
+        sectionDescriptionId,
+        categories,
+      },
     })
   } catch (error) {
     console.error('Error updating membership:', error)
@@ -98,6 +130,11 @@ export async function GET() {
     }
 
     return NextResponse.json({
+      headerSubtitleEn: membership.headerSubtitleEn || membership.sectionTitleEn || 'CATEGORY',
+      headerSubtitleId: membership.headerSubtitleId || membership.sectionTitleId || 'KATEGORI',
+      headerTitleEn: membership.headerTitleEn || 'Membership Category',
+      headerTitleId: membership.headerTitleId || 'Kategori Keanggotaan',
+      showSubtitle: membership.showSubtitle ?? true,
       sectionTitleEn: membership.sectionTitleEn || '',
       sectionTitleId: membership.sectionTitleId || '',
       sectionDescriptionEn: membership.sectionDescriptionEn || '',

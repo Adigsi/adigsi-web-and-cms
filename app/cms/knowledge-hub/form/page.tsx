@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, Upload, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { useLanguage } from '@/contexts/language-context'
 import { useToast } from '@/hooks/use-toast'
+import { useFileUpload } from '@/hooks/use-file-upload'
 import Image from 'next/image'
 
 interface ReportFormData {
@@ -29,6 +30,7 @@ function CMSKnowledgeHubFormContent() {
   const editId = searchParams.get('id')
   const { t } = useLanguage()
   const { toast } = useToast()
+  const { upload } = useFileUpload()
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(!!editId)
   const [apiTags, setApiTags] = useState<{ _id: string; nameEn: string; nameId: string }[]>([])
@@ -104,7 +106,7 @@ function CMSKnowledgeHubFormContent() {
     fetchReport()
   }, [editId])
 
-  const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 5 * 1024 * 1024) {
@@ -115,12 +117,18 @@ function CMSKnowledgeHubFormContent() {
       toast({ title: t({ en: 'Error', id: 'Kesalahan' }), description: t({ en: 'Only image files allowed', id: 'Hanya file gambar yang diizinkan' }), variant: 'destructive' })
       return
     }
-    const reader = new FileReader()
-    reader.onload = (ev) => setFormData((f) => ({ ...f, cover: ev.target?.result as string }))
-    reader.readAsDataURL(file)
-  }
+    try {
+      const result = await upload(file)
+      if (result?.url) {
+        setFormData((f) => ({ ...f, cover: result.url }))
+        toast({ title: t({ en: 'Success', id: 'Sukses' }), description: t({ en: 'Image uploaded successfully', id: 'Gambar berhasil diupload' }) })
+      }
+    } catch (error) {
+      toast({ title: t({ en: 'Error', id: 'Kesalahan' }), description: error instanceof Error ? error.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }), variant: 'destructive' })
+    }
+  }, [upload, t, toast])
 
-  const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePdfUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.type !== 'application/pdf') {
@@ -131,13 +139,17 @@ function CMSKnowledgeHubFormContent() {
       toast({ title: t({ en: 'Error', id: 'Kesalahan' }), description: t({ en: 'PDF must be less than 10MB', id: 'PDF harus kurang dari 10MB' }), variant: 'destructive' })
       return
     }
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      setFormData((f) => ({ ...f, pdfFile: ev.target?.result as string }))
-      setHasPdf(true)
+    try {
+      const result = await upload(file)
+      if (result?.url) {
+        setFormData((f) => ({ ...f, pdfFile: result.url }))
+        setHasPdf(true)
+        toast({ title: t({ en: 'Success', id: 'Sukses' }), description: t({ en: 'PDF uploaded successfully', id: 'PDF berhasil diupload' }) })
+      }
+    } catch (error) {
+      toast({ title: t({ en: 'Error', id: 'Kesalahan' }), description: error instanceof Error ? error.message : t({ en: 'Failed to upload PDF', id: 'Gagal mengupload PDF' }), variant: 'destructive' })
     }
-    reader.readAsDataURL(file)
-  }
+  }, [upload, t, toast])
 
   const toggleTag = (nameEn: string) => {
     setFormData((f) =>

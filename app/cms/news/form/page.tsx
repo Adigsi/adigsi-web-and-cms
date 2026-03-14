@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useFileUpload } from '@/hooks/use-file-upload'
 import { 
   ArrowLeft, Save, Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   Heading1, Heading2, Heading3, List, ListOrdered, Quote, Code,
@@ -704,42 +705,10 @@ function NewsFormContent() {
               {t({ en: 'Featured Image', id: 'Gambar Utama' })}
             </h3>
             
-            <div>
-              <Label htmlFor="image">{t({ en: 'Image', id: 'Gambar' })} *</Label>
-              <div className="mt-2">
-                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                  {formData.image && (
-                    <div className="mb-4">
-                      <img src={formData.image} alt="Preview" className="h-48 w-auto mx-auto rounded object-cover" />
-                    </div>
-                  )}
-                  <input
-                    id="image"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        const reader = new FileReader()
-                        reader.onloadend = () => {
-                          setFormData({ ...formData, image: reader.result as string })
-                        }
-                        reader.readAsDataURL(file)
-                      }
-                    }}
-                    className="hidden"
-                  />
-                  <label htmlFor="image" className="cursor-pointer">
-                    <div className="text-sm text-muted-foreground">
-                      {t({ en: 'Click to upload image', id: 'Klik untuk upload gambar' })}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {t({ en: 'PNG, JPG, GIF up to 10MB', id: 'PNG, JPG, GIF hingga 10MB' })}
-                    </div>
-                  </label>
-                </div>
-              </div>
-            </div>
+            <NewsImageUpload 
+              currentImage={formData.image}
+              onImageUpload={(url) => setFormData({ ...formData, image: url })}
+            />
           </div>
 
           {/* Publish Section */}
@@ -778,6 +747,74 @@ function NewsFormContent() {
           </Button>
         </div>
       </Card>
+    </div>
+  )
+}
+
+interface NewsImageUploadProps {
+  currentImage: string
+  onImageUpload: (url: string) => void
+}
+
+function NewsImageUpload({ currentImage, onImageUpload }: NewsImageUploadProps) {
+  const { t } = useLanguage()
+  const { toast } = useToast()
+  const { upload, status } = useFileUpload()
+  const isUploading = status === 'uploading' || status === 'compressing'
+
+  const handleImageChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const result = await upload(file)
+      if (result?.url) {
+        onImageUpload(result.url)
+        toast({
+          title: t({ en: 'Success', id: 'Berhasil' }),
+          description: t({ en: 'Image uploaded successfully', id: 'Gambar berhasil diupload' }),
+        })
+      }
+    } catch (error) {
+      toast({
+        title: t({ en: 'Error', id: 'Kesalahan' }),
+        description: error instanceof Error ? error.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }),
+        variant: 'destructive',
+      })
+    }
+  }, [upload, onImageUpload, t, toast])
+
+  return (
+    <div>
+      <Label htmlFor="image">{t({ en: 'Image', id: 'Gambar' })} *</Label>
+      <div className="mt-2">
+        <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+          {currentImage && (
+            <div className="mb-4">
+              <img src={currentImage} alt="Preview" className="h-48 w-auto mx-auto rounded object-cover" />
+            </div>
+          )}
+          <input
+            id="image"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            disabled={isUploading}
+            className="hidden"
+          />
+          <label htmlFor="image" className={`cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <div className="text-sm text-muted-foreground">
+              {isUploading 
+                ? t({ en: 'Uploading...', id: 'Mengupload...' })
+                : t({ en: 'Click to upload image', id: 'Klik untuk upload gambar' })
+              }
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {t({ en: 'PNG, JPG, GIF up to 10MB', id: 'PNG, JPG, GIF hingga 10MB' })}
+            </div>
+          </label>
+        </div>
+      </div>
     </div>
   )
 }

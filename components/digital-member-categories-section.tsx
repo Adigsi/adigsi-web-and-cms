@@ -16,6 +16,7 @@ interface HeadingData {
   subtitleId: string
   titleEn: string
   titleId: string
+  showSubtitle?: boolean
 }
 
 export function DigitalMemberCategoriesSection() {
@@ -28,6 +29,7 @@ export function DigitalMemberCategoriesSection() {
     subtitleId: 'EKOSISTEM DIGITAL',
     titleEn: 'ADIGSI Digital Members',
     titleId: 'Anggota Digital ADIGSI',
+    showSubtitle: true,
   })
   const sectionRef = useRef<HTMLElement>(null)
   const scrollDirectionRef = useRef<'up' | 'down'>('down')
@@ -46,6 +48,7 @@ export function DigitalMemberCategoriesSection() {
             subtitleId: data.heading.subtitleId || 'EKOSISTEM DIGITAL',
             titleEn: data.heading.titleEn || 'ADIGSI Digital Members',
             titleId: data.heading.titleId || 'Anggota Digital ADIGSI',
+            showSubtitle: data.heading.showSubtitle ?? true,
           })
         }
       })
@@ -129,12 +132,14 @@ export function DigitalMemberCategoriesSection() {
           className={`flex flex-col items-center text-center mb-14 transition-all duration-700 ${animClass()}`}
         >
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-accent/30 bg-accent/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-accent">
-              {language === 'en' ? heading.subtitleEn : heading.subtitleId}
-            </span>
-          </div>
+          {(heading.showSubtitle ?? true) && (
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-accent/30 bg-accent/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-accent">
+                {language === 'en' ? heading.subtitleEn : heading.subtitleId}
+              </span>
+            </div>
+          )}
 
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4 tracking-tight">
             {language === 'en' ? heading.titleEn : heading.titleId}
