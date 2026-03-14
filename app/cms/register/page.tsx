@@ -192,7 +192,7 @@ export default function CMSRegisterPage() {
     titleId: 'Bergabunglah dengan ADIGSI dan jadilah bagian dari jaringan keamanan siber dan transformasi digital terkemuka di Indonesia!',
     buttonTextEn: 'Join Now',
     buttonTextId: 'Bergabung Sekarang',
-    buttonUrl: 'https://docs.google.com/forms/d/e/1FAIpQLScG1BWquhT9vpcgMfHeJy0ummlZOQXhUAxtYXxSmkNTdUDr6g/viewform?pli=1',
+    buttonUrl: '/registration-form',
   })
 
   // Membership Benefits section state
