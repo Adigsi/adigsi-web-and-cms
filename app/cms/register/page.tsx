@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Switch } from '@/components/ui/switch'
 import { CyberIcon } from '@/components/ui/cyber-icon'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useLanguage } from '@/contexts/language-context'
@@ -102,6 +103,11 @@ interface MembershipCategory {
 }
 
 interface MembershipSectionData {
+  headerSubtitleEn: string
+  headerSubtitleId: string
+  headerTitleEn: string
+  headerTitleId: string
+  showSubtitle: boolean
   sectionTitleEn: string
   sectionTitleId: string
   sectionDescriptionEn: string
@@ -110,6 +116,9 @@ interface MembershipSectionData {
 }
 
 interface JoinData {
+  subtitleEn: string
+  subtitleId: string
+  showSubtitle: boolean
   titleEn: string
   titleId: string
   buttonTextEn: string
@@ -130,6 +139,13 @@ interface Membership {
 }
 
 interface MembershipBenefitsData {
+  heading: {
+    subtitleEn: string
+    subtitleId: string
+    titleEn: string
+    titleId: string
+    showSubtitle: boolean
+  }
   memberships: Membership[]
 }
 
@@ -147,6 +163,11 @@ export default function CMSRegisterPage() {
 
   // Membership Category section state
   const [membershipData, setMembershipData] = useState<MembershipSectionData>({
+    headerSubtitleEn: 'CATEGORY',
+    headerSubtitleId: 'KATEGORI',
+    headerTitleEn: 'Membership Category',
+    headerTitleId: 'Kategori Keanggotaan',
+    showSubtitle: true,
     sectionTitleEn: 'Membership Category',
     sectionTitleId: 'Kategori Keanggotaan',
     sectionDescriptionEn: '',
@@ -164,6 +185,9 @@ export default function CMSRegisterPage() {
 
   // Join ADIGSI section state
   const [joinData, setJoinData] = useState<JoinData>({
+    subtitleEn: 'Join Us',
+    subtitleId: 'Bergabung',
+    showSubtitle: true,
     titleEn: 'Join ADIGSI and be part of Indonesia\'s leading cybersecurity and digital transformation network!',
     titleId: 'Bergabunglah dengan ADIGSI dan jadilah bagian dari jaringan keamanan siber dan transformasi digital terkemuka di Indonesia!',
     buttonTextEn: 'Join Now',
@@ -173,6 +197,13 @@ export default function CMSRegisterPage() {
 
   // Membership Benefits section state
   const [membershipBenefitsData, setMembershipBenefitsData] = useState<MembershipBenefitsData>({
+    heading: {
+      subtitleEn: 'MEMBERSHIP TIERS',
+      subtitleId: 'TINGKATAN KEANGGOTAAN',
+      titleEn: 'Membership Category',
+      titleId: 'Kategori Keanggotaan',
+      showSubtitle: true,
+    },
     memberships: [],
   })
 
@@ -199,6 +230,11 @@ export default function CMSRegisterPage() {
           const data = await membershipRes.json()
           if (data.sectionTitleEn) {
             setMembershipData({
+              headerSubtitleEn: data.headerSubtitleEn || data.sectionTitleEn || 'CATEGORY',
+              headerSubtitleId: data.headerSubtitleId || data.sectionTitleId || 'KATEGORI',
+              headerTitleEn: data.headerTitleEn || 'Membership Category',
+              headerTitleId: data.headerTitleId || 'Kategori Keanggotaan',
+              showSubtitle: data.showSubtitle ?? true,
               sectionTitleEn: data.sectionTitleEn || '',
               sectionTitleId: data.sectionTitleId || '',
               sectionDescriptionEn: data.sectionDescriptionEn || '',
@@ -220,6 +256,9 @@ export default function CMSRegisterPage() {
           const data = await joinRes.json()
           if (data.titleEn) {
             setJoinData({
+              subtitleEn: data.subtitleEn || 'Join Us',
+              subtitleId: data.subtitleId || 'Bergabung',
+              showSubtitle: data.showSubtitle ?? true,
               titleEn: data.titleEn,
               titleId: data.titleId,
               buttonTextEn: data.buttonTextEn || 'Join Now',
@@ -232,6 +271,13 @@ export default function CMSRegisterPage() {
         if (membershipBenefitsRes.ok) {
           const data = await membershipBenefitsRes.json()
           setMembershipBenefitsData({
+            heading: {
+              subtitleEn: data.heading?.subtitleEn || 'MEMBERSHIP TIERS',
+              subtitleId: data.heading?.subtitleId || 'TINGKATAN KEANGGOTAAN',
+              titleEn: data.heading?.titleEn || 'Membership Category',
+              titleId: data.heading?.titleId || 'Kategori Keanggotaan',
+              showSubtitle: data.heading?.showSubtitle ?? true,
+            },
             memberships: data.memberships || [
               {
                 tier: 'bronze',
@@ -455,6 +501,56 @@ export default function CMSRegisterPage() {
                     <h3 className="text-sm font-semibold text-foreground mb-4">{t({ en: 'Section Settings', id: 'Pengaturan Section' })}</h3>
 
                     <div className="space-y-3">
+                      <div className="flex items-center justify-between rounded-md border border-border bg-muted/20 p-3">
+                        <Label className="text-xs">{t({ en: 'Show Subtitle Badge', id: 'Tampilkan Badge Subtitle' })}</Label>
+                        <Switch
+                          checked={membershipData.showSubtitle}
+                          onCheckedChange={(checked) => setMembershipData({ ...membershipData, showSubtitle: checked })}
+                        />
+                      </div>
+
+                      {membershipData.showSubtitle && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-xs">{t({ en: 'Header Subtitle (EN)', id: 'Subtitle Header (EN)' })}</Label>
+                            <Input
+                              value={membershipData.headerSubtitleEn}
+                              onChange={(e) => setMembershipData({ ...membershipData, headerSubtitleEn: e.target.value })}
+                              placeholder="e.g., CATEGORY"
+                            />
+                          </div>
+
+                          <div>
+                            <Label className="text-xs">{t({ en: 'Header Subtitle (ID)', id: 'Subtitle Header (ID)' })}</Label>
+                            <Input
+                              value={membershipData.headerSubtitleId}
+                              onChange={(e) => setMembershipData({ ...membershipData, headerSubtitleId: e.target.value })}
+                              placeholder="e.g., KATEGORI"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs">{t({ en: 'Header Title (EN)', id: 'Judul Header (EN)' })}</Label>
+                          <Input
+                            value={membershipData.headerTitleEn}
+                            onChange={(e) => setMembershipData({ ...membershipData, headerTitleEn: e.target.value })}
+                            placeholder="e.g., Membership Category"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">{t({ en: 'Header Title (ID)', id: 'Judul Header (ID)' })}</Label>
+                          <Input
+                            value={membershipData.headerTitleId}
+                            onChange={(e) => setMembershipData({ ...membershipData, headerTitleId: e.target.value })}
+                            placeholder="e.g., Kategori Keanggotaan"
+                          />
+                        </div>
+                      </div>
+
                       <div>
                         <Label className="text-xs">{t({ en: 'Section Title (English)', id: 'Judul Section (English)' })}</Label>
                         <Input
@@ -637,6 +733,38 @@ export default function CMSRegisterPage() {
               <div className="flex-1">
                 <Card className="p-6">
                   <div className="space-y-4">
+                    <div className="flex items-center justify-between rounded-md border border-border bg-muted/20 p-3">
+                      <Label className="text-xs">{t({ en: 'Show Subtitle Badge', id: 'Tampilkan Badge Subtitle' })}</Label>
+                      <Switch
+                        checked={joinData.showSubtitle}
+                        onCheckedChange={(checked) => setJoinData({ ...joinData, showSubtitle: checked })}
+                      />
+                    </div>
+
+                    {joinData.showSubtitle && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <Label htmlFor="join-subtitle-en">{t({ en: 'Subtitle (EN)', id: 'Subtitle (EN)' })}</Label>
+                          <Input
+                            id="join-subtitle-en"
+                            value={joinData.subtitleEn}
+                            onChange={(e) => setJoinData({ ...joinData, subtitleEn: e.target.value })}
+                            placeholder="e.g., Join Us"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="join-subtitle-id">{t({ en: 'Subtitle (ID)', id: 'Subtitle (ID)' })}</Label>
+                          <Input
+                            id="join-subtitle-id"
+                            value={joinData.subtitleId}
+                            onChange={(e) => setJoinData({ ...joinData, subtitleId: e.target.value })}
+                            placeholder="e.g., Bergabung"
+                          />
+                        </div>
+                      </div>
+                    )}
+
                     <div>
                       <Label htmlFor="join-title-en">{t({ en: 'Title (English)', id: 'Judul (English)' })}</Label>
                       <Textarea
@@ -705,6 +833,74 @@ export default function CMSRegisterPage() {
           <TabsContent value="membershipBenefits">
             <div className="flex flex-col h-full">
               <Card className="p-6 flex-1">
+                <div className="border border-border rounded-lg p-4 mb-6 bg-muted/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-foreground">{t({ en: 'Section Heading', id: 'Judul Seksi' })}</h3>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs text-muted-foreground">{t({ en: 'Show Subtitle', id: 'Tampilkan Subtitle' })}</Label>
+                      <Switch
+                        checked={membershipBenefitsData.heading.showSubtitle}
+                        onCheckedChange={(checked) => setMembershipBenefitsData({
+                          ...membershipBenefitsData,
+                          heading: { ...membershipBenefitsData.heading, showSubtitle: checked }
+                        })}
+                      />
+                    </div>
+                  </div>
+
+                  {membershipBenefitsData.heading.showSubtitle && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs">{t({ en: 'Subtitle (EN)', id: 'Subtitle (EN)' })}</Label>
+                        <Input
+                          value={membershipBenefitsData.heading.subtitleEn}
+                          onChange={(e) => setMembershipBenefitsData({
+                            ...membershipBenefitsData,
+                            heading: { ...membershipBenefitsData.heading, subtitleEn: e.target.value }
+                          })}
+                          placeholder="e.g., MEMBERSHIP TIERS"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">{t({ en: 'Subtitle (ID)', id: 'Subtitle (ID)' })}</Label>
+                        <Input
+                          value={membershipBenefitsData.heading.subtitleId}
+                          onChange={(e) => setMembershipBenefitsData({
+                            ...membershipBenefitsData,
+                            heading: { ...membershipBenefitsData.heading, subtitleId: e.target.value }
+                          })}
+                          placeholder="e.g., TINGKATAN KEANGGOTAAN"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs">{t({ en: 'Title (EN)', id: 'Judul (EN)' })}</Label>
+                      <Input
+                        value={membershipBenefitsData.heading.titleEn}
+                        onChange={(e) => setMembershipBenefitsData({
+                          ...membershipBenefitsData,
+                          heading: { ...membershipBenefitsData.heading, titleEn: e.target.value }
+                        })}
+                        placeholder="e.g., Membership Category"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">{t({ en: 'Title (ID)', id: 'Judul (ID)' })}</Label>
+                      <Input
+                        value={membershipBenefitsData.heading.titleId}
+                        onChange={(e) => setMembershipBenefitsData({
+                          ...membershipBenefitsData,
+                          heading: { ...membershipBenefitsData.heading, titleId: e.target.value }
+                        })}
+                        placeholder="e.g., Kategori Keanggotaan"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Membership Tiers */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {membershipBenefitsData.memberships.map((membership, membershipIndex) => (

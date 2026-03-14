@@ -5,6 +5,9 @@ import Link from 'next/link'
 import { useLanguage } from '@/contexts/language-context'
 
 interface JoinSectionData {
+  subtitleEn: string
+  subtitleId: string
+  showSubtitle: boolean
   titleEn: string
   titleId: string
   buttonTextEn: string
@@ -17,6 +20,9 @@ export function JoinAdigsiSection() {
   const [isVisible, setIsVisible] = useState(false)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const [joinData, setJoinData] = useState<JoinSectionData>({
+    subtitleEn: 'Join Us',
+    subtitleId: 'Bergabung',
+    showSubtitle: true,
     titleEn: "",
     titleId: '',
     buttonTextEn: '',
@@ -35,6 +41,9 @@ export function JoinAdigsiSection() {
         if (response.ok) {
           const data = await response.json()
           setJoinData((prev) => ({
+            subtitleEn: data.subtitleEn || prev.subtitleEn,
+            subtitleId: data.subtitleId || prev.subtitleId,
+            showSubtitle: data.showSubtitle ?? true,
             titleEn: data.titleEn || prev.titleEn,
             titleId: data.titleId || prev.titleId,
             buttonTextEn: data.buttonTextEn || 'Join Now',
@@ -127,14 +136,16 @@ export function JoinAdigsiSection() {
 
       <div className="relative max-w-3xl mx-auto px-4 md:px-8 text-center">
         {/* Badge */}
-        <div className={`flex justify-center mb-6 transition-all duration-700 ${animClass()}`}>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
-              {language === 'en' ? 'Join Us' : 'Bergabung'}
-            </span>
+        {joinData.showSubtitle && (
+          <div className={`flex justify-center mb-6 transition-all duration-700 ${animClass()}`}>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
+                {language === 'en' ? joinData.subtitleEn : joinData.subtitleId}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Title */}
         <h2

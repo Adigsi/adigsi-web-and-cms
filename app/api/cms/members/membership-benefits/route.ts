@@ -29,11 +29,25 @@ export async function GET() {
 
     if (data && data.memberships) {
       return NextResponse.json({
+        heading: {
+          subtitleEn: data.heading?.subtitleEn || 'MEMBERSHIP TIERS',
+          subtitleId: data.heading?.subtitleId || 'TINGKATAN KEANGGOTAAN',
+          titleEn: data.heading?.titleEn || 'Membership Category',
+          titleId: data.heading?.titleId || 'Kategori Keanggotaan',
+          showSubtitle: data.heading?.showSubtitle ?? true,
+        },
         memberships: data.memberships
       })
     }
 
     return NextResponse.json({
+      heading: {
+        subtitleEn: 'MEMBERSHIP TIERS',
+        subtitleId: 'TINGKATAN KEANGGOTAAN',
+        titleEn: 'Membership Category',
+        titleId: 'Kategori Keanggotaan',
+        showSubtitle: true,
+      },
       memberships: [
         {
           tier: 'bronze',
@@ -104,7 +118,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { memberships } = body
+    const { memberships, heading } = body
 
     // Validate memberships array
     if (!Array.isArray(memberships)) {
@@ -175,6 +189,17 @@ export async function POST(request: NextRequest) {
       {
         $set: {
           section: 'membership-benefits',
+          ...(heading
+            ? {
+                heading: {
+                  subtitleEn: heading.subtitleEn || 'MEMBERSHIP TIERS',
+                  subtitleId: heading.subtitleId || 'TINGKATAN KEANGGOTAAN',
+                  titleEn: heading.titleEn || 'Membership Category',
+                  titleId: heading.titleId || 'Kategori Keanggotaan',
+                  showSubtitle: heading.showSubtitle ?? true,
+                },
+              }
+            : {}),
           memberships,
           updatedAt: new Date(),
         },
@@ -185,7 +210,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         message: 'Membership benefits saved successfully',
-        data: { memberships },
+        data: {
+          heading: heading
+            ? {
+                subtitleEn: heading.subtitleEn || 'MEMBERSHIP TIERS',
+                subtitleId: heading.subtitleId || 'TINGKATAN KEANGGOTAAN',
+                titleEn: heading.titleEn || 'Membership Category',
+                titleId: heading.titleId || 'Kategori Keanggotaan',
+                showSubtitle: heading.showSubtitle ?? true,
+              }
+            : undefined,
+          memberships,
+        },
       },
       { status: result.upsertedId ? 201 : 200 }
     )
