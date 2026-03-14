@@ -39,26 +39,6 @@ interface ReportTag {
   active: boolean
 }
 
-interface DownloadRecord {
-  _id: string
-  fullname: string
-  company: string
-  position: string
-  email: string
-  member: string
-  reportId?: string
-  reportTitleEn?: string
-  reportTitleId?: string
-  downloadedAt: string
-}
-
-interface PaginationData {
-  total: number
-  page: number
-  limit: number
-  totalPages: number
-}
-
 export default function CMSKnowledgeHubPage() {
   const router = useRouter()
   const { t, language } = useLanguage()
@@ -85,13 +65,6 @@ export default function CMSKnowledgeHubPage() {
   const [editingTag, setEditingTag] = useState<ReportTag | null>(null)
   const [tagFormData, setTagFormData] = useState({ nameEn: '', nameId: '' })
   const [isSavingTag, setIsSavingTag] = useState(false)
-
-  // Downloads
-  const [downloads, setDownloads] = useState<DownloadRecord[]>([])
-  const [dlPagination, setDlPagination] = useState<PaginationData>({ total: 0, page: 1, limit: 10, totalPages: 0 })
-  const [dlSearch, setDlSearch] = useState('')
-  const [dlMemberFilter, setDlMemberFilter] = useState('')
-  const [isDlLoading, setIsDlLoading] = useState(false)
 
   // Fetch banner on mount
   useEffect(() => {
@@ -149,7 +122,6 @@ export default function CMSKnowledgeHubPage() {
   useEffect(() => {
     if (activeTab === 'tags') fetchTags()
     else if (activeTab === 'reports') fetchReports(1, reportSearch, reportPublishedFilter)
-    else if (activeTab === 'downloads') fetchDownloads(1, dlSearch, dlMemberFilter)
   }, [activeTab])
 
   const handleOpenTagModal = (tag?: ReportTag) => {
@@ -342,47 +314,13 @@ export default function CMSKnowledgeHubPage() {
     }
   }
 
-  // Downloads
-  const fetchDownloads = useCallback(async (page: number, search: string, member: string) => {
-    setIsDlLoading(true)
-    try {
-      const params = new URLSearchParams({ page: page.toString(), limit: '10' })
-      if (search) params.set('search', search)
-      if (member) params.set('member', member)
-      const res = await fetch(`/api/cms/report-downloads?${params}`)
-      if (res.ok) {
-        const data = await res.json()
-        setDownloads(data.downloads)
-        setDlPagination(data.pagination)
-      }
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setIsDlLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (activeTab !== 'downloads') return
-    const timeout = setTimeout(() => fetchDownloads(1, dlSearch, dlMemberFilter), 400)
-    return () => clearTimeout(timeout)
-  }, [dlSearch, dlMemberFilter])
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('id-ID', {
-      year: 'numeric', month: 'short', day: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    })
-  }
-
   if (isLoading) {
     return (
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Knowledge Hub Management', id: 'Manajemen Knowledge Hub' })}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t({ en: 'Manage reports, banner, and download records', id: 'Kelola laporan, banner, dan riwayat unduhan' })}
+            {t({ en: 'Manage reports, tags, and page title banner', id: 'Kelola laporan, tag, dan banner judul halaman' })}
           </p>
         </div>
         <Card className="p-6">
@@ -399,13 +337,12 @@ export default function CMSKnowledgeHubPage() {
         <div className="sticky top-16 md:top-0 z-20 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 pt-4 pb-3 bg-background/95 backdrop-blur-sm border-b border-border mb-6">
           <h1 className="text-2xl font-bold text-foreground">{t({ en: 'Knowledge Hub Management', id: 'Manajemen Knowledge Hub' })}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t({ en: 'Manage reports, banner, and download records', id: 'Kelola laporan, banner, dan riwayat unduhan' })}
+            {t({ en: 'Manage reports, tags, and page title banner', id: 'Kelola laporan, tag, dan banner judul halaman' })}
           </p>
           <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-primary/10 p-1 rounded-md mt-3">
             <TabsTrigger value="banner">{t({ en: 'Page Title', id: 'Judul Halaman' })}</TabsTrigger>
             <TabsTrigger value="tags">{t({ en: 'Report Tags', id: 'Tag Laporan' })}</TabsTrigger>
             <TabsTrigger value="reports">{t({ en: 'Reports', id: 'Laporan' })}</TabsTrigger>
-            <TabsTrigger value="downloads">{t({ en: 'Download Records', id: 'Riwayat Unduhan' })}</TabsTrigger>
           </TabsList>
         </div>
 
@@ -690,105 +627,6 @@ export default function CMSKnowledgeHubPage() {
           </Card>
         </TabsContent>
 
-        {/* Downloads Tab */}
-        <TabsContent value="downloads">
-          <Card className="p-6">
-            <div className="space-y-4">
-              {/* Filters */}
-              <div className="flex flex-col md:flex-row gap-3">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    className="pl-9"
-                    placeholder={t({ en: 'Search by name, company, email...', id: 'Cari nama, perusahaan, email...' })}
-                    value={dlSearch}
-                    onChange={(e) => setDlSearch(e.target.value)}
-                  />
-                </div>
-                <select
-                  className="h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  value={dlMemberFilter}
-                  onChange={(e) => setDlMemberFilter(e.target.value)}
-                >
-                  <option value="">{t({ en: 'All', id: 'Semua' })}</option>
-                  <option value="Anggota ADIGSI">{t({ en: 'ADIGSI Members', id: 'Anggota ADIGSI' })}</option>
-                  <option value="Non-Anggota">{t({ en: 'Non-Members', id: 'Non-Anggota' })}</option>
-                </select>
-                {(dlSearch || dlMemberFilter) && (
-                  <Button variant="ghost" size="sm" onClick={() => { setDlSearch(''); setDlMemberFilter('') }}>
-                    <X className="h-4 w-4 mr-1" />{t({ en: 'Reset', id: 'Reset' })}
-                  </Button>
-                )}
-              </div>
-
-              {/* Downloads Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-left">
-                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Full Name', id: 'Nama Lengkap' })}</th>
-                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Company', id: 'Perusahaan' })}</th>
-                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Position', id: 'Jabatan' })}</th>
-                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Email', id: 'Email' })}</th>
-                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Member', id: 'Anggota' })}</th>
-                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Report', id: 'Laporan' })}</th>
-                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Downloaded At', id: 'Diunduh Pada' })}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {isDlLoading ? (
-                      <tr>
-                        <td colSpan={7} className="py-8 text-center text-muted-foreground">{t({ en: 'Loading...', id: 'Memuat...' })}</td>
-                      </tr>
-                    ) : downloads.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="py-8 text-center text-muted-foreground">{t({ en: 'No records found', id: 'Tidak ada catatan ditemukan' })}</td>
-                      </tr>
-                    ) : (
-                      downloads.map((record) => (
-                        <tr key={record._id.toString()} className="border-b border-border hover:bg-muted/30">
-                          <td className="py-3 px-2 font-medium text-foreground">{record.fullname}</td>
-                          <td className="py-3 px-2 text-muted-foreground">{record.company}</td>
-                          <td className="py-3 px-2 text-muted-foreground">{record.position}</td>
-                          <td className="py-3 px-2 text-muted-foreground">{record.email}</td>
-                          <td className="py-3 px-2">
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${record.member === 'Anggota ADIGSI'
-                                ? 'bg-green-500/10 text-green-600'
-                                : 'bg-muted text-muted-foreground'
-                              }`}>
-                              {record.member}
-                            </span>
-                          </td>
-                          <td className="py-3 px-2 text-muted-foreground text-xs max-w-40 line-clamp-2">
-                            {record.reportTitleEn || record.reportTitleId || '—'}
-                          </td>
-                          <td className="py-3 px-2 text-muted-foreground text-xs whitespace-nowrap">{formatDate(record.downloadedAt)}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Downloads Pagination */}
-              {dlPagination.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-2">
-                  <p className="text-sm text-muted-foreground">
-                    {t({ en: 'Showing', id: 'Menampilkan' })} {Math.min((dlPagination.page - 1) * dlPagination.limit + 1, dlPagination.total)}–{Math.min(dlPagination.page * dlPagination.limit, dlPagination.total)} {t({ en: 'of', id: 'dari' })} {dlPagination.total}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" disabled={dlPagination.page <= 1} onClick={() => fetchDownloads(dlPagination.page - 1, dlSearch, dlMemberFilter)}>
-                      {t({ en: 'Previous', id: 'Sebelumnya' })}
-                    </Button>
-                    <Button variant="outline" size="sm" disabled={dlPagination.page >= dlPagination.totalPages} onClick={() => fetchDownloads(dlPagination.page + 1, dlSearch, dlMemberFilter)}>
-                      {t({ en: 'Next', id: 'Selanjutnya' })}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </Card>
-        </TabsContent>
       </Tabs>
 
       {/* Tag Modal */}
