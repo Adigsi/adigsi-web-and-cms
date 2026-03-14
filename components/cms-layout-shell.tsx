@@ -10,6 +10,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ClipboardList,
+  Download,
   House,
   Info,
   Inbox,
@@ -81,6 +82,12 @@ const cmsNavigation: NavigationSection[] = [
         href: '/cms/analytics',
         icon: ChartLine,
       },
+    ],
+  },
+  {
+    title: 'Communication',
+    titleTranslation: { en: 'Communication', id: 'Komunikasi' },
+    items: [
       {
         label: 'Inbox',
         labelTranslation: { en: 'Inbox', id: 'Kotak Masuk' },
@@ -92,6 +99,12 @@ const cmsNavigation: NavigationSection[] = [
         labelTranslation: { en: 'Registration Forms', id: 'Formulir Pendaftaran' },
         href: '/cms/registration-forms',
         icon: ClipboardList,
+      },
+      {
+        label: 'Download Records',
+        labelTranslation: { en: 'Download Records', id: 'Riwayat Unduhan' },
+        href: '/cms/downloads',
+        icon: Download,
       },
     ],
   },
