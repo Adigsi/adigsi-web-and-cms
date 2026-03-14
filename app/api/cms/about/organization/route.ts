@@ -11,6 +11,11 @@ export async function GET() {
 
     if (!data) {
       return NextResponse.json({
+        headingSubtitleEn: 'Organization',
+        headingSubtitleId: 'Organisasi',
+        headingTitleEn: 'Organization Structure',
+        headingTitleId: 'Struktur Organisasi',
+        showSubtitle: true,
         groups: [
           {
             titleEn: '',
@@ -29,6 +34,11 @@ export async function GET() {
     }
 
     return NextResponse.json({
+      headingSubtitleEn: data.headingSubtitleEn || 'Organization',
+      headingSubtitleId: data.headingSubtitleId || 'Organisasi',
+      headingTitleEn: data.headingTitleEn || 'Organization Structure',
+      headingTitleId: data.headingTitleId || 'Struktur Organisasi',
+      showSubtitle: data.showSubtitle ?? true,
       groups: data.groups || []
     })
   } catch (error) {
@@ -40,7 +50,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { groups } = body
+    const { headingSubtitleEn, headingSubtitleId, headingTitleEn, headingTitleId, showSubtitle, groups } = body
 
     // Validate required fields
     if (!groups || !Array.isArray(groups)) {
@@ -73,6 +83,11 @@ export async function POST(request: NextRequest) {
       {
         $set: {
           section: 'organization',
+          headingSubtitleEn: headingSubtitleEn || 'Organization',
+          headingSubtitleId: headingSubtitleId || 'Organisasi',
+          headingTitleEn: headingTitleEn || 'Organization Structure',
+          headingTitleId: headingTitleId || 'Struktur Organisasi',
+          showSubtitle: showSubtitle ?? true,
           groups,
           updatedAt: new Date()
         }

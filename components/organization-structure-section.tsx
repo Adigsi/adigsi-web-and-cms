@@ -17,7 +17,22 @@ interface Group {
   members: Member[]
 }
 
+interface OrganizationHeading {
+  headingSubtitleEn: string
+  headingSubtitleId: string
+  headingTitleEn: string
+  headingTitleId: string
+  showSubtitle: boolean
+}
+
 export function OrganizationStructureSection() {
+  const [heading, setHeading] = useState<OrganizationHeading>({
+    headingSubtitleEn: 'Organization',
+    headingSubtitleId: 'Organisasi',
+    headingTitleEn: 'Organization Structure',
+    headingTitleId: 'Struktur Organisasi',
+    showSubtitle: true,
+  })
   const [groups, setGroups] = useState<Group[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isVisible, setIsVisible] = useState(true)
@@ -70,6 +85,13 @@ export function OrganizationStructureSection() {
         const response = await fetch('/api/cms/about/organization')
         if (response.ok) {
           const data = await response.json()
+          setHeading({
+            headingSubtitleEn: data.headingSubtitleEn || 'Organization',
+            headingSubtitleId: data.headingSubtitleId || 'Organisasi',
+            headingTitleEn: data.headingTitleEn || 'Organization Structure',
+            headingTitleId: data.headingTitleId || 'Struktur Organisasi',
+            showSubtitle: data.showSubtitle ?? true,
+          })
           if (data.groups && data.groups.length > 0) {
             setGroups(data.groups)
           }
@@ -126,15 +148,16 @@ export function OrganizationStructureSection() {
           className={`flex flex-col items-center text-center mb-14 ${animClass()}`}
           style={animStyle('0ms')}
         >
-          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
-              {t({ en: 'Organization', id: 'Organisasi' })}
-            </span>
-          </div>
+          {heading.showSubtitle && (
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-primary/30 bg-primary/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
+                {language === 'en' ? heading.headingSubtitleEn : heading.headingSubtitleId}
+              </span>
+            </div>
+          )}
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-            {t({ en: 'Organization', id: 'Struktur' })}{' '}
-            <span className="text-primary">{t({ en: 'Structure', id: 'Organisasi' })}</span>
+            {language === 'en' ? heading.headingTitleEn : heading.headingTitleId}
           </h2>
           <div className="mt-3 h-px w-16 bg-linear-to-r from-primary to-accent" />
         </div>

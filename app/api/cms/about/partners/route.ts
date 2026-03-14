@@ -10,16 +10,32 @@ interface Logo {
 interface Category {
   titleEn: string
   titleId: string
+  homeLimit?: number
   logos: Logo[]
 }
 
 interface PartnersData {
+  heading: {
+    subtitleEn: string
+    subtitleId: string
+    titleEn: string
+    titleId: string
+    showSubtitle: boolean
+  }
   categories: Category[]
 }
 
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json() as PartnersData
+
+    const heading = {
+      subtitleEn: data.heading?.subtitleEn || 'Partners & Members',
+      subtitleId: data.heading?.subtitleId || 'Mitra & Anggota',
+      titleEn: data.heading?.titleEn || 'Our Ecosystem',
+      titleId: data.heading?.titleId || 'Ekosistem Kami',
+      showSubtitle: data.heading?.showSubtitle ?? true,
+    }
 
     // Validate structure
     if (!data.categories || !Array.isArray(data.categories)) {
@@ -63,6 +79,7 @@ export async function POST(request: NextRequest) {
       {
         $set: {
           section: 'partners',
+          heading,
           categories: data.categories,
           updatedAt: new Date()
         }
@@ -74,6 +91,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Partners data saved successfully',
       data: {
+        heading,
         categories: data.categories
       }
     })
@@ -96,25 +114,36 @@ export async function GET() {
     if (!partnersData) {
       // Return default structure
       const defaultData = {
+        heading: {
+          subtitleEn: 'Partners & Members',
+          subtitleId: 'Mitra & Anggota',
+          titleEn: 'Our Ecosystem',
+          titleId: 'Ekosistem Kami',
+          showSubtitle: true,
+        },
         categories: [
           {
             titleEn: 'Government Organizations',
             titleId: 'Organisasi Pemerintah',
+            homeLimit: 0,
             logos: []
           },
           {
             titleEn: 'International Institutions',
             titleId: 'Institusi Internasional',
+            homeLimit: 0,
             logos: []
           },
           {
             titleEn: 'Associations',
             titleId: 'Asosiasi',
+            homeLimit: 0,
             logos: []
           },
           {
             titleEn: 'Companies',
             titleId: 'Perusahaan',
+            homeLimit: 0,
             logos: []
           }
         ]
@@ -123,7 +152,17 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      categories: partnersData.categories || []
+      heading: {
+        subtitleEn: partnersData.heading?.subtitleEn || 'Partners & Members',
+        subtitleId: partnersData.heading?.subtitleId || 'Mitra & Anggota',
+        titleEn: partnersData.heading?.titleEn || 'Our Ecosystem',
+        titleId: partnersData.heading?.titleId || 'Ekosistem Kami',
+        showSubtitle: partnersData.heading?.showSubtitle ?? true,
+      },
+      categories: (partnersData.categories || []).map((category: Category) => ({
+        ...category,
+        homeLimit: category.homeLimit ?? 0,
+      }))
     })
   } catch (error) {
     console.error('Error fetching partners data:', error)
