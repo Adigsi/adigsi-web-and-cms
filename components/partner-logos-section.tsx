@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, ElementType } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
@@ -9,6 +9,7 @@ import { useLanguage } from '@/contexts/language-context'
 interface PartnerLogo {
   alt: string
   imageUrl: string
+  link?: string
 }
 
 interface PartnerCategory {
@@ -186,9 +187,11 @@ export function PartnerLogosSection() {
               <div className="flex flex-wrap justify-center items-center gap-4">
                 {visibleLogos.map((logo, logoIndex) => {
                   const size = getResponsiveSize(category.width)
+                  const Tag = (logo.link ? 'a' : 'div') as ElementType
                   return (
-                    <div
+                    <Tag
                       key={logoIndex}
+                      {...(logo.link ? { href: logo.link, target: '_blank', rel: 'noopener noreferrer' } : {})}
                       className={`group relative rounded-xl border border-border bg-card
                         hover:border-primary/40 hover:shadow-[0_4px_20px_rgba(58,111,247,0.12)]
                         hover:-translate-y-0.5 transition-all duration-300
@@ -221,7 +224,7 @@ export function PartnerLogosSection() {
                           {logo.alt || '—'}
                         </span>
                       )}
-                    </div>
+                    </Tag>
                   )
                 })}
               </div>
