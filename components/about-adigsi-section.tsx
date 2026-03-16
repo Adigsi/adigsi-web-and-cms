@@ -22,6 +22,7 @@ interface AboutData {
 interface Logo {
   alt: string
   imageUrl: string
+  websiteUrl?: string
 }
 
 interface Category {
@@ -40,6 +41,14 @@ interface PartnersData {
     showSubtitle: boolean
   }
   categories: Category[]
+}
+
+function normalizePartnerWebsiteUrl(url?: string) {
+  if (!url) return null
+  const trimmed = url.trim()
+  if (!trimmed) return null
+  if (!/^https?:\/\//i.test(trimmed)) return null
+  return trimmed
 }
 
 // ─── Shared animation hook ───────────────────────────────────────────────────
@@ -363,18 +372,41 @@ export function PartnersSection() {
                       : category.logos
                   return logosToShow?.length > 0 ? (
                     logosToShow.map((logo, logoIndex) => (
-                    <div
-                      key={logoIndex}
-                      className="relative h-40 w-40 flex items-center justify-center rounded-xl border border-border bg-muted/30 px-4 py-3 hover:border-primary/30 hover:bg-muted/60 transition-all duration-200"
-                    >
-                      <Image
-                        src={logo.imageUrl || '/placeholder.svg'}
-                        alt={logo.alt}
-                        height={148}
-                        width={148}
-                        className="object-contain h-full w-auto"
-                      />
-                    </div>
+                      (() => {
+                        const websiteUrl = normalizePartnerWebsiteUrl(logo.websiteUrl)
+                        const logoCard = (
+                          <div className="relative h-40 w-40 flex items-center justify-center rounded-xl border border-border bg-muted/30 px-4 py-3 hover:border-primary/30 hover:bg-muted/60 transition-all duration-200">
+                            <Image
+                              src={logo.imageUrl || '/placeholder.svg'}
+                              alt={logo.alt}
+                              height={148}
+                              width={148}
+                              className="object-contain h-full w-auto"
+                            />
+                          </div>
+                        )
+
+                        if (!websiteUrl) {
+                          return (
+                            <div key={logoIndex}>
+                              {logoCard}
+                            </div>
+                          )
+                        }
+
+                        return (
+                          <a
+                            key={logoIndex}
+                            href={websiteUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`${logo.alt || 'Partner'} website`}
+                            className="group inline-block"
+                          >
+                            {logoCard}
+                          </a>
+                        )
+                      })()
                   ))
                   ) : (
                     <p className="text-muted-foreground text-sm">

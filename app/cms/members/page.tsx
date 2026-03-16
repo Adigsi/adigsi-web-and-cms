@@ -56,6 +56,7 @@ interface HeadingData {
 interface PartnerLogo {
   alt: string
   imageUrl: string
+  link?: string
 }
 
 interface PartnerCategory {
@@ -1101,6 +1102,20 @@ export default function CMSMembersPage() {
                                     {logo.imageUrl ? t({ en: 'Change', id: 'Ubah' }) : t({ en: 'Upload', id: 'Upload' })}
                                   </div>
                                 </label>
+                                <div>
+                                  <Label className="text-[10px]">{t({ en: 'Website Link', id: 'Link Website' })}</Label>
+                                  <input
+                                    type="url"
+                                    value={logo.link ?? ''}
+                                    onChange={(e) => {
+                                      const newCategories = [...partnerLogosData.categories]
+                                      newCategories[catIndex].logos[logoIndex] = { ...logo, link: e.target.value }
+                                      setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
+                                    }}
+                                    placeholder="https://example.com"
+                                    className="h-6 w-full text-xs border border-border rounded px-2 bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                  />
+                                </div>
                                 {category.logos.length > 0 && (
                                   <Button
                                     variant="ghost"
@@ -1128,7 +1143,8 @@ export default function CMSMembersPage() {
                             const newCategories = [...partnerLogosData.categories]
                             newCategories[catIndex].logos.push({
                               alt: '',
-                              imageUrl: ''
+                              imageUrl: '',
+                              link: '',
                             })
                             setPartnerLogosData({ ...partnerLogosData, categories: newCategories })
                           }}

@@ -5,6 +5,7 @@ import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
 interface Logo {
   alt: string
   imageUrl: string
+  websiteUrl?: string
 }
 
 interface Category {
@@ -66,6 +67,14 @@ export async function POST(request: NextRequest) {
         const imageError = getMediaUrlValidationError(logo.imageUrl, `categories[${i}].logos[${logoIndex}].imageUrl`)
         if (imageError) {
           return NextResponse.json({ error: imageError }, { status: 400 })
+        }
+
+        const websiteUrl = logo.websiteUrl?.trim()
+        if (websiteUrl && !/^https?:\/\//i.test(websiteUrl)) {
+          return NextResponse.json(
+            { error: `categories[${i}].logos[${logoIndex}].websiteUrl must start with http:// or https://` },
+            { status: 400 }
+          )
         }
       }
     }
@@ -162,6 +171,10 @@ export async function GET() {
       categories: (partnersData.categories || []).map((category: Category) => ({
         ...category,
         homeLimit: category.homeLimit ?? 0,
+        logos: (category.logos || []).map((logo) => ({
+          ...logo,
+          websiteUrl: logo.websiteUrl || ''
+        })),
       }))
     })
   } catch (error) {

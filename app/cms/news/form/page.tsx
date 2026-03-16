@@ -355,6 +355,7 @@ interface NewsData {
   contentId: string
   image: string
   published: boolean
+  publishedDate?: string
   createdAt?: string
 }
 
@@ -376,6 +377,7 @@ function NewsFormContent() {
     contentId: '',
     image: '',
     published: true,
+    publishedDate: '',
   })
 
   const editorEn = useEditor({
@@ -560,7 +562,7 @@ function NewsFormContent() {
   }
 
   return (
-    <div className="mx-auto px-5 ">
+    <div className="mx-auto px-5 mt-4">
       {/* Header */}
       <div className="mb-6">
         <Button
@@ -716,7 +718,17 @@ function NewsFormContent() {
             <h3 className="text-lg font-semibold text-foreground border-b pb-2">
               {t({ en: 'Publish Settings', id: 'Pengaturan Publikasi' })}
             </h3>
-            
+
+            <div>
+              <Label htmlFor="published-date">{t({ en: 'Published Date', id: 'Tanggal Publikasi' })}</Label>
+              <Input
+                id="published-date"
+                type="date"
+                value={formData.publishedDate || ''}
+                onChange={(e) => setFormData({ ...formData, publishedDate: e.target.value })}
+              />
+            </div>
+
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"

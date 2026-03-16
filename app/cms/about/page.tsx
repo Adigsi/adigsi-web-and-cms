@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 interface Logo {
   alt: string
   imageUrl: string
+  websiteUrl: string
 }
 
 interface Category {
@@ -244,6 +245,10 @@ export default function CMSAboutPage() {
               ? data.categories.map((cat: Category) => ({
                   ...cat,
                   homeLimit: cat.homeLimit ?? 0,
+                  logos: (cat.logos || []).map((logo) => ({
+                    ...logo,
+                    websiteUrl: logo.websiteUrl || ''
+                  })),
                 }))
               : [
                   {
@@ -1118,6 +1123,21 @@ export default function CMSAboutPage() {
                                     {logo.imageUrl ? t({ en: 'Change', id: 'Ubah' }) : t({ en: 'Upload', id: 'Upload' })}
                                   </div>
                                 </label>
+
+                                <div>
+                                  <Label className="text-[10px]">{t({ en: 'Website Link', id: 'Link Website' })}</Label>
+                                  <Input
+                                    value={logo.websiteUrl || ''}
+                                    onChange={(e) => {
+                                      const newCategories = [...partnersData.categories]
+                                      newCategories[categoryIndex].logos[logoIndex].websiteUrl = e.target.value
+                                      setPartnersData({ ...partnersData, categories: newCategories })
+                                    }}
+                                    placeholder="https://example.com"
+                                    className="text-xs h-8 mt-1"
+                                  />
+                                </div>
+
                                 {category.logos.length > 0 && (
                                   <Button
                                     variant="ghost"
@@ -1145,7 +1165,8 @@ export default function CMSAboutPage() {
                             const newCategories = [...partnersData.categories]
                             newCategories[categoryIndex].logos.push({
                               alt: '',
-                              imageUrl: ''
+                              imageUrl: '',
+                              websiteUrl: ''
                             })
                             setPartnersData({ ...partnersData, categories: newCategories })
                           }}

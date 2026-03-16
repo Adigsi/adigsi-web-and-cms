@@ -29,6 +29,7 @@ interface ReportData {
   published: boolean
   pinned: boolean
   hasPdf: boolean
+  publishedDate?: string
   createdAt: string
 }
 
@@ -508,6 +509,7 @@ export default function CMSKnowledgeHubPage() {
                       <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Tags', id: 'Tag' })}</th>
                       <th className="py-3 px-2 font-semibold text-muted-foreground text-center">{t({ en: 'PDF', id: 'PDF' })}</th>
                       <th className="py-3 px-2 font-semibold text-muted-foreground text-center">{t({ en: 'Published', id: 'Publikasi' })}</th>
+                      <th className="py-3 px-2 font-semibold text-muted-foreground">{t({ en: 'Published Date', id: 'Tanggal Publikasi' })}</th>
                       <th className="py-3 px-2 font-semibold text-muted-foreground text-center">{t({ en: 'Pin', id: 'Pin' })}</th>
                       <th className="py-3 px-2 font-semibold text-muted-foreground text-center">{t({ en: 'Actions', id: 'Aksi' })}</th>
                     </tr>
@@ -515,7 +517,7 @@ export default function CMSKnowledgeHubPage() {
                   <tbody>
                     {reports.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                        <td colSpan={8} className="py-8 text-center text-muted-foreground">
                           {t({ en: 'No reports found', id: 'Tidak ada laporan ditemukan' })}
                         </td>
                       </tr>
@@ -568,6 +570,13 @@ export default function CMSKnowledgeHubPage() {
                               checked={report.published}
                               onCheckedChange={() => handleTogglePublished(report._id, report.published)}
                             />
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="text-sm text-muted-foreground">
+                              {report.publishedDate
+                                ? new Date(report.publishedDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+                                : <span className="text-xs italic">{t({ en: 'Not set', id: 'Belum diset' })}</span>}
+                            </div>
                           </td>
                           <td className="py-3 px-2 text-center">
                             <button

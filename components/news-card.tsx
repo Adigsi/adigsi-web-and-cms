@@ -16,6 +16,7 @@ export interface NewsData {
   image: string
   published: boolean
   createdAt: string
+  publishedDate?: string
 }
 
 interface NewsCardProps {
@@ -122,7 +123,11 @@ export function NewsCard({ article, index, animClass }: NewsCardProps) {
             <circle cx="12" cy="12" r="9" />
             <path d="M12 7v5l3 3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span>{article.createdAt ? getTimeAgo(article.createdAt, language) : (language === 'en' ? 'Recently' : 'Baru-baru ini')}</span>
+          {article.publishedDate ? (
+            <span>{article.publishedDate ? getTimeAgo(article.publishedDate, language) : (language === 'en' ? 'Recently' : 'Baru-baru ini')}</span>
+          ) : (
+            <span>{article.createdAt ? getTimeAgo(article.createdAt, language) : (language === 'en' ? 'Recently' : 'Baru-baru ini')}</span>
+          )}
         </div>
 
         {/* Spacer */}

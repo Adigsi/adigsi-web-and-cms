@@ -28,6 +28,7 @@ interface NewsData {
   contentId: string
   image: string
   published: boolean
+  publishedDate?: string
   createdAt?: string
 }
 
@@ -628,6 +629,9 @@ export default function CMSNewsPage() {
                             {t({ en: 'Category', id: 'Kategori' })}
                           </th>
                           <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+                            {t({ en: 'Published Date', id: 'Tanggal Publikasi' })}
+                          </th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
                             {t({ en: 'Status', id: 'Status' })}
                           </th>
                           <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
@@ -669,6 +673,13 @@ export default function CMSNewsPage() {
                               </div>
                               <div className="text-sm text-foreground mt-1">
                                 <span className="font-bold">ID:</span> {newsItem.categoryId}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="text-sm text-muted-foreground">
+                                {newsItem.publishedDate
+                                  ? new Date(newsItem.publishedDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+                                  : <span className="text-xs italic text-muted-foreground">{t({ en: 'Not set', id: 'Belum diset' })}</span>}
                               </div>
                             </td>
                             <td className="px-4 py-3">

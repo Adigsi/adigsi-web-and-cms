@@ -13,6 +13,7 @@ interface ReportData {
   pdfFile: string
   published: boolean
   pinned: boolean
+  publishedDate?: string
 }
 
 export async function GET(request: NextRequest) {
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
       collection
         .find(filter)
         .project({ pdfFile: 0 })
-        .sort({ createdAt: -1 })
+        .sort({ publishedDate: -1, createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .toArray(),
@@ -122,6 +123,7 @@ export async function POST(request: NextRequest) {
       pdfFile: pdfFile || '',
       published: published ?? false,
       pinned: false,
+      publishedDate: body.publishedDate || '',
       createdAt: now,
       updatedAt: now,
     })
@@ -154,7 +156,7 @@ export async function PATCH(request: NextRequest) {
     const updateFields: Record<string, unknown> = { updatedAt: new Date() }
     const allowed = [
       'titleEn', 'titleId', 'descriptionEn', 'descriptionId',
-      'cover', 'tags', 'pdfFile', 'published', 'pinned',
+      'cover', 'tags', 'pdfFile', 'published', 'pinned', 'publishedDate',
     ] as const
 
     for (const key of allowed) {
