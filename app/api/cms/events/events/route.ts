@@ -14,6 +14,7 @@ interface EventData {
   date?: string
   time?: string
   location?: string
+  publishedDate?: string
 }
 
 export async function GET(request: NextRequest) {
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [events, total] = await Promise.all([
-      collection.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
+      collection.find(filter).sort({ publishedDate: -1, createdAt: -1 }).skip(skip).limit(limit).toArray(),
       collection.countDocuments(filter),
     ])
 
@@ -73,6 +74,7 @@ export async function GET(request: NextRequest) {
         date: event.date || '',
         time: event.time || '',
         location: event.location || '',
+        publishedDate: event.publishedDate || '',
         createdAt: event.createdAt,
         updatedAt: event.updatedAt,
       })),
@@ -115,6 +117,7 @@ export async function POST(request: NextRequest) {
             date: data.date || '',
             time: data.time || '',
             location: data.location || '',
+            publishedDate: data.publishedDate || '',
             updatedAt: new Date(),
           },
         }
@@ -139,6 +142,7 @@ export async function POST(request: NextRequest) {
       date: data.date || '',
       time: data.time || '',
       location: data.location || '',
+      publishedDate: data.publishedDate || '',
       createdAt: new Date(),
       updatedAt: new Date(),
     })

@@ -12,6 +12,7 @@ interface NewsData {
   contentId: string
   image: string
   published: boolean
+  publishedDate?: string
   slug?: string
   createdAt?: Date
 }
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
 
     const news = await collection
       .find(filter)
-      .sort({ createdAt: -1, _id: -1 })
+      .sort({ publishedDate: -1, createdAt: -1, _id: -1 })
       .skip(skip)
       .limit(limit)
       .toArray()
@@ -102,6 +103,7 @@ export async function GET(request: NextRequest) {
           contentId: item.contentId,
           image: item.image,
           published: item.published,
+          publishedDate: item.publishedDate || '',
           createdAt,
         }
       }),
@@ -124,7 +126,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const data: NewsData & { _id?: string } = await request.json()
-    const { _id, titleEn, titleId, categoryEn, categoryId, contentEn, contentId, image, published } = data
+    const { _id, titleEn, titleId, categoryEn, categoryId, contentEn, contentId, image, published, publishedDate } = data
 
     if (!titleEn || !titleId || !categoryEn || !categoryId || !contentEn || !contentId || !image) {
       return NextResponse.json(
@@ -154,6 +156,7 @@ export async function POST(request: NextRequest) {
             contentId,
             image,
             published,
+            publishedDate: publishedDate || '',
             updatedAt: new Date(),
           },
         }
@@ -173,6 +176,7 @@ export async function POST(request: NextRequest) {
         contentId,
         image,
         published,
+        publishedDate: publishedDate || '',
         createdAt: new Date(),
         updatedAt: new Date(),
       })

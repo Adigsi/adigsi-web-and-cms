@@ -22,6 +22,7 @@ interface ReportFormData {
   tags: string[]
   pdfFile: string
   published: boolean
+  publishedDate?: string
 }
 
 function CMSKnowledgeHubFormContent() {
@@ -47,6 +48,7 @@ function CMSKnowledgeHubFormContent() {
     tags: [],
     pdfFile: '',
     published: true,
+    publishedDate: '',
   })
 
   // Fetch API tags
@@ -93,6 +95,7 @@ function CMSKnowledgeHubFormContent() {
               tags: report.tags || [],
               pdfFile: '', // Can't retrieve base64 PDF; user re-uploads to change
               published: report.published ?? false,
+              publishedDate: report.publishedDate || '',
             })
             setHasPdf(report.hasPdf || false)
           }
@@ -179,6 +182,7 @@ function CMSKnowledgeHubFormContent() {
         cover: formData.cover,
         tags: formData.tags,
         published: formData.published,
+        publishedDate: formData.publishedDate || '',
       }
       // Only include pdfFile if user uploaded a new one
       if (formData.pdfFile) {
@@ -234,7 +238,7 @@ function CMSKnowledgeHubFormContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mt-4">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" onClick={() => router.push('/cms/knowledge-hub')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -400,6 +404,18 @@ function CMSKnowledgeHubFormContent() {
               {t({ en: 'Leave blank to keep existing PDF', id: 'Biarkan kosong untuk menyimpan PDF yang ada' })}
             </p>
           )}
+        </div>
+
+        {/* Published Date */}
+        <div>
+          <Label htmlFor="publishedDate">{t({ en: 'Published Date', id: 'Tanggal Publikasi' })}</Label>
+          <input
+            id="publishedDate"
+            type="date"
+            value={formData.publishedDate || ''}
+            onChange={(e) => setFormData((f) => ({ ...f, publishedDate: e.target.value }))}
+            className="w-full mt-1 px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
         </div>
 
         {/* Published */}

@@ -36,6 +36,7 @@ interface EventData {
   date?: string
   time?: string
   location?: string
+  publishedDate?: string
 }
 
 interface EventsResponse {
@@ -86,6 +87,7 @@ export default function CMSEventsPage() {
     date: '',
     time: '',
     location: '',
+    publishedDate: '',
   })
 
   // Category CRUD state
@@ -380,6 +382,7 @@ export default function CMSEventsPage() {
         date: '',
         time: '',
         location: '',
+        publishedDate: '',
       })
     }
     setIsEditingModal(true)
@@ -399,6 +402,7 @@ export default function CMSEventsPage() {
       date: '',
       time: '',
       location: '',
+      publishedDate: '',
     })
   }
 
@@ -715,6 +719,7 @@ export default function CMSEventsPage() {
                         <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Title', id: 'Judul' })}</th>
                         <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Category', id: 'Kategori' })}</th>
                         <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Date / Time / Location', id: 'Tanggal / Waktu / Tempat' })}</th>
+                        <th className="text-left py-3 px-4 font-semibold">{t({ en: 'Published Date', id: 'Tanggal Publikasi' })}</th>
                         <th className="text-center py-3 px-4 font-semibold">{t({ en: 'Status', id: 'Status' })}</th>
                         <th className="text-center py-3 px-4 font-semibold">{t({ en: 'Actions', id: 'Aksi' })}</th>
                       </tr>
@@ -755,6 +760,13 @@ export default function CMSEventsPage() {
                               {event.time && <div className="flex items-center gap-1"><span className="font-semibold text-foreground">🕐</span> {event.time}</div>}
                               {event.location && <div className="flex items-center gap-1"><span className="font-semibold text-foreground">📍</span> {event.location}</div>}
                               {!event.date && !event.time && !event.location && <span className="text-xs italic">{t({ en: 'Not set', id: 'Belum diset' })}</span>}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="text-sm text-muted-foreground">
+                              {event.publishedDate
+                                ? new Date(event.publishedDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+                                : <span className="text-xs italic">{t({ en: 'Not set', id: 'Belum diset' })}</span>}
                             </div>
                           </td>
                           <td className="py-3 px-4 text-center">
@@ -999,6 +1011,16 @@ export default function CMSEventsPage() {
                     value={formData.location || ''}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     placeholder={t({ en: 'e.g. Jakarta Convention Center', id: 'mis. Jakarta Convention Center' })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="event-published-date">{t({ en: 'Published Date', id: 'Tanggal Publikasi' })}</Label>
+                  <Input
+                    id="event-published-date"
+                    type="date"
+                    value={formData.publishedDate || ''}
+                    onChange={(e) => setFormData({ ...formData, publishedDate: e.target.value })}
                   />
                 </div>
 
