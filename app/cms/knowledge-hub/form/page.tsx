@@ -38,6 +38,8 @@ function CMSKnowledgeHubFormContent() {
   const coverInputRef = useRef<HTMLInputElement>(null)
   const pdfInputRef = useRef<HTMLInputElement>(null)
   const [hasPdf, setHasPdf] = useState(false)
+  const [isUploadingCover, setIsUploadingCover] = useState(false)
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false)
 
   const [formData, setFormData] = useState<ReportFormData>({
     titleEn: '',
@@ -72,19 +74,10 @@ function CMSKnowledgeHubFormContent() {
     if (!editId) return
     const fetchReport = async () => {
       try {
-        // Fetch list and find the one with matching _id
-        const res = await fetch(`/api/cms/reports?limit=1&page=1`)
-        // We can't easily get single by ID from GET list route; use a targeted search
-        // Actually fetch all and find — but better: we fetch with a special approach
-        // Since our GET route doesn't support single fetch by ID, we'll search by title
-        // Instead, let's add a simple workaround: fetch from the list endpoint
-        // A better approach: since we need to GET edit data including pdfFile (but pdfFile is projected out),
-        // we fetch the metadata from list (no pdfFile), which is fine for form display
-        // User can re-upload PDF if needed, or leave blank to keep existing
-        const searchRes = await fetch(`/api/cms/reports?limit=100&page=1`)
-        if (searchRes.ok) {
-          const data = await searchRes.json()
-          const report = data.data.find((r: { _id: string }) => r._id === editId)
+        const res = await fetch(`/api/cms/reports?id=${editId}`)
+        if (res.ok) {
+          const data = await res.json()
+          const report = data.data
           if (report) {
             setFormData({
               titleEn: report.titleEn || '',
@@ -93,11 +86,11 @@ function CMSKnowledgeHubFormContent() {
               descriptionId: report.descriptionId || '',
               cover: report.cover || '',
               tags: report.tags || [],
-              pdfFile: '', // Can't retrieve base64 PDF; user re-uploads to change
+              pdfFile: report.pdfFile || '',
               published: report.published ?? false,
               publishedDate: report.publishedDate || '',
             })
-            setHasPdf(report.hasPdf || false)
+            setHasPdf(!!report.pdfFile)
           }
         }
       } catch (e) {
@@ -120,6 +113,7 @@ function CMSKnowledgeHubFormContent() {
       toast({ title: t({ en: 'Error', id: 'Kesalahan' }), description: t({ en: 'Only image files allowed', id: 'Hanya file gambar yang diizinkan' }), variant: 'destructive' })
       return
     }
+    setIsUploadingCover(true)
     try {
       const result = await upload(file)
       if (result?.url) {
@@ -128,6 +122,8 @@ function CMSKnowledgeHubFormContent() {
       }
     } catch (error) {
       toast({ title: t({ en: 'Error', id: 'Kesalahan' }), description: error instanceof Error ? error.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }), variant: 'destructive' })
+    } finally {
+      setIsUploadingCover(false)
     }
   }, [upload, t, toast])
 
@@ -142,6 +138,7 @@ function CMSKnowledgeHubFormContent() {
       toast({ title: t({ en: 'Error', id: 'Kesalahan' }), description: t({ en: 'PDF must be less than 10MB', id: 'PDF harus kurang dari 10MB' }), variant: 'destructive' })
       return
     }
+    setIsUploadingPdf(true)
     try {
       const result = await upload(file)
       if (result?.url) {
@@ -151,6 +148,8 @@ function CMSKnowledgeHubFormContent() {
       }
     } catch (error) {
       toast({ title: t({ en: 'Error', id: 'Kesalahan' }), description: error instanceof Error ? error.message : t({ en: 'Failed to upload PDF', id: 'Gagal mengupload PDF' }), variant: 'destructive' })
+    } finally {
+      setIsUploadingPdf(false)
     }
   }, [upload, t, toast])
 
@@ -169,6 +168,14 @@ function CMSKnowledgeHubFormContent() {
   const handleSave = async () => {
     if (!formData.titleEn.trim() || !formData.titleId.trim()) {
       toast({ title: t({ en: 'Error', id: 'Kesalahan' }), description: t({ en: 'Title (EN and ID) is required', id: 'Judul EN dan ID wajib diisi' }), variant: 'destructive' })
+      return
+    }
+    if (!formData.cover) {
+      toast({ title: t({ en: 'Error', id: 'Kesalahan' }), description: t({ en: 'Cover image is required', id: 'Gambar cover wajib diupload' }), variant: 'destructive' })
+      return
+    }
+    if (!formData.pdfFile && !(editId && hasPdf)) {
+      toast({ title: t({ en: 'Error', id: 'Kesalahan' }), description: t({ en: 'PDF file is required', id: 'File PDF wajib diupload' }), variant: 'destructive' })
       return
     }
 
@@ -347,19 +354,24 @@ function CMSKnowledgeHubFormContent() {
 
         {/* Cover Image */}
         <div>
-          <Label>{t({ en: 'Cover Image', id: 'Gambar Cover' })}</Label>
+          <Label>{t({ en: 'Cover Image', id: 'Gambar Cover' })} *</Label>
           <p className="text-xs text-muted-foreground mb-2">{t({ en: 'Max 5MB (JPG, PNG, WebP)', id: 'Maks 5MB (JPG, PNG, WebP)' })}</p>
           <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
           {formData.cover ? (
             <div className="flex items-start gap-4">
               <div className="relative w-32 h-44 rounded-lg overflow-hidden border border-border shadow">
                 <Image src={formData.cover} alt="Cover" fill className="object-cover" />
+                {isUploadingCover && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
+                    <span className="text-white text-xs font-semibold animate-pulse">{t({ en: 'Uploading...', id: 'Mengupload...' })}</span>
+                  </div>
+                )}
               </div>
               <div className="flex flex-col gap-2 pt-1">
-                <Button type="button" variant="outline" size="sm" onClick={() => coverInputRef.current?.click()}>
+                <Button type="button" variant="outline" size="sm" onClick={() => coverInputRef.current?.click()} disabled={isUploadingCover}>
                   <Upload className="h-4 w-4 mr-2" />{t({ en: 'Change', id: 'Ganti' })}
                 </Button>
-                <Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setFormData((f) => ({ ...f, cover: '' }))}>
+                <Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setFormData((f) => ({ ...f, cover: '' }))} disabled={isUploadingCover}>
                   <X className="h-4 w-4 mr-2" />{t({ en: 'Remove', id: 'Hapus' })}
                 </Button>
               </div>
@@ -369,28 +381,37 @@ function CMSKnowledgeHubFormContent() {
               type="button"
               onClick={() => coverInputRef.current?.click()}
               className="w-full border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer"
+              disabled={isUploadingCover}
             >
-              <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">{t({ en: 'Click to upload cover image', id: 'Klik untuk upload gambar cover' })}</p>
+              {isUploadingCover ? (
+                <span className="text-sm text-muted-foreground animate-pulse">{t({ en: 'Uploading...', id: 'Mengupload...' })}</span>
+              ) : (
+                <>
+                  <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">{t({ en: 'Click to upload cover image', id: 'Klik untuk upload gambar cover' })}</p>
+                </>
+              )}
             </button>
           )}
         </div>
 
         {/* PDF Upload */}
         <div>
-          <Label>{t({ en: 'PDF File', id: 'File PDF' })}</Label>
+          <Label>{t({ en: 'PDF File', id: 'File PDF' })} *</Label>
           <p className="text-xs text-muted-foreground mb-2">{t({ en: 'Max 10MB. Only PDF files.', id: 'Maks 10MB. Hanya file PDF.' })}</p>
           <input ref={pdfInputRef} type="file" accept="application/pdf" className="hidden" onChange={handlePdfUpload} />
           <div className="flex items-center gap-3">
-            <Button type="button" variant="outline" onClick={() => pdfInputRef.current?.click()}>
+            <Button type="button" variant="outline" onClick={() => pdfInputRef.current?.click()} disabled={isUploadingPdf}>
               <Upload className="h-4 w-4 mr-2" />
-              {formData.pdfFile
+              {isUploadingPdf
+                ? t({ en: 'Uploading...', id: 'Mengupload...' })
+                : formData.pdfFile
                 ? t({ en: 'Change PDF', id: 'Ganti PDF' })
                 : hasPdf
                 ? t({ en: 'Replace Existing PDF', id: 'Ganti PDF yang Ada' })
                 : t({ en: 'Upload PDF', id: 'Upload PDF' })}
             </Button>
-            {(formData.pdfFile || hasPdf) && (
+            {(formData.pdfFile || hasPdf) && !isUploadingPdf && (
               <span className="flex items-center gap-1.5 text-sm text-green-600">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
                 {formData.pdfFile
@@ -398,11 +419,33 @@ function CMSKnowledgeHubFormContent() {
                   : t({ en: 'Existing PDF', id: 'PDF sudah ada' })}
               </span>
             )}
+            {isUploadingPdf && (
+              <span className="flex items-center gap-1.5 text-sm text-muted-foreground animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-muted-foreground animate-pulse" />
+                {t({ en: 'Uploading...', id: 'Mengupload...' })}
+              </span>
+            )}
           </div>
-          {editId && !formData.pdfFile && hasPdf && (
+          {editId && !formData.pdfFile && hasPdf && !isUploadingPdf && (
             <p className="text-xs text-muted-foreground mt-1.5">
               {t({ en: 'Leave blank to keep existing PDF', id: 'Biarkan kosong untuk menyimpan PDF yang ada' })}
             </p>
+          )}
+          {/* PDF Preview */}
+          {(formData.pdfFile || (editId && hasPdf && !formData.pdfFile)) && !isUploadingPdf && (
+            <div className="mt-3 border rounded-md overflow-hidden bg-muted">
+              <embed
+                key={formData.pdfFile || 'no-pdf'}
+                src={formData.pdfFile || undefined}
+                type="application/pdf"
+                className="w-full"
+                style={{ minHeight: 600, maxHeight: 1000 }}
+              />
+              {/* If editing and no new PDF, show info */}
+              {editId && hasPdf && !formData.pdfFile && (
+                <div className="text-xs text-muted-foreground px-2 pb-2 pt-1">{t({ en: 'Preview of existing PDF is not available. Please upload a new PDF to preview.', id: 'Pratinjau PDF lama tidak tersedia. Silakan upload PDF baru untuk melihat pratinjau.' })}</div>
+              )}
+            </div>
           )}
         </div>
 
