@@ -19,6 +19,21 @@ interface ReportData {
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
+
+    // Single record fetch by ID (includes pdfFile for edit form)
+    const singleId = searchParams.get('id')
+    if (singleId) {
+      if (!ObjectId.isValid(singleId)) {
+        return NextResponse.json({ error: 'Invalid report ID' }, { status: 400 })
+      }
+      const db = await getMongoDatabase()
+      const report = await db.collection('reports').findOne({ _id: new ObjectId(singleId) })
+      if (!report) {
+        return NextResponse.json({ error: 'Report not found' }, { status: 404 })
+      }
+      return NextResponse.json({ success: true, data: { ...report, _id: report._id.toString() } })
+    }
+
     const page = parseInt(searchParams.get('page') || '1', 10)
     const limit = parseInt(searchParams.get('limit') || '12', 10)
     const search = searchParams.get('search') || ''
