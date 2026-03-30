@@ -9,9 +9,9 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'ADIGSI - Indonesian Association for Digitalization and Cybersecurity',
+  title: 'ADIGSI - Indonesian Digitalization and Cybersecurity Association',
   description: 'Becoming a key pillar in building and strengthening a resilient, innovative, and sustainable cybersecurity ecosystem in Indonesia.',
-  generator: 'v0.app',
+  generator: 'Next.js by Zullstack',
   icons: {
     icon: [
       {
