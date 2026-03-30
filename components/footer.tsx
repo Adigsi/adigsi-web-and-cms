@@ -197,18 +197,18 @@ export function Footer() {
             Copyright © {footerData.copyrightYear} Asosiasi Digital dan Keamanan Siber Indonesia
             (ADIGSI) All Rights Reserved.
           </p>
-          <div className="flex gap-6">
+          <div className="flex gap-6 md:mr-20">
             <Link
-              href="#"
+              href="/terms-conditions"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
-              Terms & Conditions
+              {language === 'id' ? 'Syarat & Ketentuan' : 'Terms & Conditions'}
             </Link>
             <Link
-              href="#"
+              href="/privacy-policy"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
-              Privacy Policy
+              {language === 'id' ? 'Kebijakan Privasi' : 'Privacy Policy'}
             </Link>
           </div>
         </div>
