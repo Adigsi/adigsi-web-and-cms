@@ -24,6 +24,8 @@ import {
   ChartLine,
   Menu,
   X,
+  Scale,
+  ShieldCheck,
 } from 'lucide-react'
 
 import { CMSLogoutButton } from '@/components/cms-logout-button'
@@ -160,6 +162,24 @@ const cmsNavigation: NavigationSection[] = [
         labelTranslation: { en: 'Latest News', id: 'Berita Terbaru' },
         href: '/cms/news',
         icon: Newspaper,
+      },
+    ],
+  },
+  {
+    title: 'Legal',
+    titleTranslation: { en: 'Legal', id: 'Legal' },
+    items: [
+      {
+        label: 'Terms & Conditions',
+        labelTranslation: { en: 'Terms & Conditions', id: 'Syarat & Ketentuan' },
+        href: '/cms/terms-conditions',
+        icon: Scale,
+      },
+      {
+        label: 'Privacy Policy',
+        labelTranslation: { en: 'Privacy Policy', id: 'Kebijakan Privasi' },
+        href: '/cms/privacy-policy',
+        icon: ShieldCheck,
       },
     ],
   },
