@@ -53,7 +53,37 @@ export async function GET(request: NextRequest) {
     const db = await getMongoDatabase()
     const collection = db.collection('news_content')
 
+    const slug = searchParams.get('slug') || ''
+
     const filter: any = { section: 'news' }
+
+    // Single-article lookup by slug — skip pagination and return immediately
+    if (slug) {
+      const item = await collection.findOne({ ...filter, slug })
+      if (!item) {
+        return NextResponse.json({ success: false, data: null })
+      }
+      const createdAt = item.createdAt
+        ? new Date(item.createdAt).toISOString()
+        : new Date(item._id.getTimestamp()).toISOString()
+      return NextResponse.json({
+        success: true,
+        data: {
+          _id: item._id.toString(),
+          slug: item.slug,
+          titleEn: item.titleEn,
+          titleId: item.titleId,
+          categoryEn: item.categoryEn,
+          categoryId: item.categoryId,
+          contentEn: item.contentEn,
+          contentId: item.contentId,
+          image: item.image,
+          published: item.published,
+          publishedDate: item.publishedDate || '',
+          createdAt,
+        },
+      })
+    }
 
     if (search) {
       filter.$or = [

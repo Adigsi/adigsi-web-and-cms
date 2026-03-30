@@ -32,17 +32,22 @@ export default function NewsDetailPage({
     const fetchNewsDetail = async () => {
       setIsLoading(true)
       try {
-        const response = await fetch('/api/cms/news/news?page=1')
+        // Fetch the article directly by slug (works regardless of pagination)
+        const response = await fetch(`/api/cms/news/news?slug=${encodeURIComponent(newsSlug)}`)
         const data = await response.json()
-        if (data.success) {
-          const publishedNews = data.data.filter((item: NewsData) => item.published)
-          const currentNews = publishedNews.find((item: NewsData) => item.slug === newsSlug)
-          if (!currentNews) notFound()
-          setArticle(currentNews)
-          const related = publishedNews
-            .filter((item: NewsData) => item._id !== currentNews._id)
-            .slice(0, 3)
-          setRelatedNews(related)
+        if (data.success && data.data && data.data.published) {
+          setArticle(data.data)
+          // Fetch a few recent articles for the related section
+          const relatedRes = await fetch('/api/cms/news/news?page=1&published=true')
+          const relatedData = await relatedRes.json()
+          if (relatedData.success) {
+            const related = (relatedData.data as NewsData[])
+              .filter((item) => item._id !== data.data._id)
+              .slice(0, 3)
+            setRelatedNews(related)
+          }
+        } else {
+          notFound()
         }
       } catch (error) {
         console.error('Error fetching news:', error)

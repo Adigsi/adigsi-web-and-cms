@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { Menu, X, Moon, Sun } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
 
@@ -72,6 +73,7 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const { language, setLanguage, t } = useLanguage()
+  const pathname = usePathname()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -134,7 +136,9 @@ export function Navbar() {
                   >
                     <button
                       onClick={() => setCommunityDropdownOpen(!communityDropdownOpen)}
-                      className="text-sm font-medium text-foreground hover:text-primary transition-colors duration-200 bg-transparent border-0 cursor-pointer flex items-center gap-1.5 py-2"
+                      className={`text-sm text-foreground hover:text-primary transition-colors duration-200 bg-transparent border-0 cursor-pointer flex items-center gap-1.5 py-2 ${
+                        item.submenu?.some(sub => pathname === sub.href) ? 'font-bold' : 'font-medium'
+                      }`}
                     >
                       {t(item.label)}
                       <svg
@@ -166,7 +170,9 @@ export function Navbar() {
                 ) : (
                   <Link
                     href={item.href || '#'}
-                    className="text-sm font-medium text-foreground hover:text-primary transition-colors duration-200 no-underline"
+                    className={`text-sm text-foreground hover:text-primary transition-colors duration-200 no-underline ${
+                      pathname === item.href ? 'font-bold' : 'font-medium'
+                    }`}
                   >
                     {t(item.label)}
                   </Link>
@@ -317,7 +323,9 @@ export function Navbar() {
                 ) : (
                   <Link
                     href={item.href || '#'}
-                    className="text-base font-bold dark:text-white uppercase my-3 no-underline hover:text-accent transition-colors duration-200 px-5 py-2 block"
+                    className={`text-base dark:text-white uppercase my-3 no-underline hover:text-accent transition-colors duration-200 px-5 py-2 block ${
+                      pathname === item.href ? 'font-extrabold' : 'font-bold'
+                    }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {t(item.label)}
