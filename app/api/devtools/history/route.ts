@@ -194,15 +194,25 @@ async function getCurrentSpecs() {
     const platform = os.platform()
     if (platform === 'win32') {
       const output = execSync('wmic logicaldisk get size /format:csv', { encoding: 'utf8' })
-      const lines = output.trim().split('\n').filter(l => l.trim())
-      if (lines.length >= 2) {
-        storageTotalGB = Math.round(parseInt(lines[1].split(',')[1] || '0') / (1024 * 1024 * 1024))
+      const lines = output.trim().split('\n').filter((l: string) => l.trim())
+      for (let i = 1; i < lines.length; i++) {
+        storageTotalGB += Math.round(parseInt(lines[i].split(',')[1] || '0') / (1024 * 1024 * 1024))
       }
     } else {
-      // Use df -k (1K-blocks) which works on both Linux and macOS
-      const output = execSync('df -k /', { encoding: 'utf8' })
-      const parts = output.trim().split('\n')[1]?.split(/\s+/)
-      storageTotalGB = Math.round((parseInt(parts?.[1] || '0') * 1024) / (1024 * 1024 * 1024))
+      // Use df -k and sum all real disks (exclude virtual filesystems)
+      const output = execSync('df -k', { encoding: 'utf8' })
+      const lines = output.trim().split('\n')
+      const seen = new Set<string>()
+      for (let i = 1; i < lines.length; i++) {
+        const parts = lines[i].split(/\s+/)
+        const fs = parts[0]
+        if (!fs.startsWith('/')) continue
+        const baseFs = fs.replace(/s\d+$/, '')
+        if (seen.has(baseFs)) continue
+        seen.add(baseFs)
+        storageTotalGB += (parseInt(parts[1] || '0') * 1024) / (1024 * 1024 * 1024)
+      }
+      storageTotalGB = Math.round(storageTotalGB)
     }
   } catch {
     storageTotalGB = 0

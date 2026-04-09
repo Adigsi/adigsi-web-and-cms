@@ -56,6 +56,8 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
     )
   }
 
+  const disks: Array<{ mountPoint: string; filesystem: string; totalBytes: number; usedBytes: number; usagePercent: number }> = stats.storage.disks || []
+
   const cards = [
     {
       label: 'CPU',
@@ -75,7 +77,8 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
       label: 'Storage',
       icon: HardDrive,
       value: `${stats.storage.usagePercent}%`,
-      detail: `${formatBytes(stats.storage.usedBytes)} / ${formatBytes(stats.storage.totalBytes)}`,
+      detail: `${formatBytes(stats.storage.usedBytes)} / ${formatBytes(stats.storage.totalBytes)}` +
+        (disks.length > 1 ? ` · ${disks.length} disks` : ''),
       percent: stats.storage.usagePercent,
     },
     {
@@ -95,34 +98,67 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
   ]
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-      {cards.map((card) => (
-        <div
-          key={card.label}
-          className={`bg-zinc-900 border rounded-lg p-4 ${
-            card.percent >= 0 ? getBorderColor(card.percent) : 'border-zinc-800'
-          }`}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <card.icon className="w-3.5 h-3.5 text-zinc-500" />
-            <span className="text-xs text-zinc-500 font-medium">{card.label}</span>
-          </div>
-          <p className={`text-xl font-semibold tabular-nums ${
-            card.percent >= 0 ? getStatusColor(card.percent) : 'text-zinc-200'
-          }`}>
-            {card.value}
-          </p>
-          <p className="text-[11px] text-zinc-500 mt-1 truncate">{card.detail}</p>
-          {card.percent >= 0 && (
-            <div className="mt-2 h-1 bg-zinc-800 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${getBarColor(card.percent)}`}
-                style={{ width: `${Math.min(card.percent, 100)}%` }}
-              />
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {cards.map((card) => (
+          <div
+            key={card.label}
+            className={`bg-zinc-900 border rounded-lg p-4 ${
+              card.percent >= 0 ? getBorderColor(card.percent) : 'border-zinc-800'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <card.icon className="w-3.5 h-3.5 text-zinc-500" />
+              <span className="text-xs text-zinc-500 font-medium">{card.label}</span>
             </div>
-          )}
+            <p className={`text-xl font-semibold tabular-nums ${
+              card.percent >= 0 ? getStatusColor(card.percent) : 'text-zinc-200'
+            }`}>
+              {card.value}
+            </p>
+            <p className="text-[11px] text-zinc-500 mt-1 truncate">{card.detail}</p>
+            {card.percent >= 0 && (
+              <div className="mt-2 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${getBarColor(card.percent)}`}
+                  style={{ width: `${Math.min(card.percent, 100)}%` }}
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Per-disk breakdown (only shown when multiple disks) */}
+      {disks.length > 1 && (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <HardDrive className="w-3.5 h-3.5 text-zinc-500" />
+            <span className="text-xs text-zinc-500 font-medium">Disk Breakdown</span>
+          </div>
+          <div className="space-y-2">
+            {disks.map((disk, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <span className="text-[11px] text-zinc-400 w-24 shrink-0 truncate font-mono" title={disk.filesystem}>
+                  {disk.mountPoint}
+                </span>
+                <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${getBarColor(disk.usagePercent)}`}
+                    style={{ width: `${Math.min(disk.usagePercent, 100)}%` }}
+                  />
+                </div>
+                <span className={`text-[11px] tabular-nums w-10 text-right ${getStatusColor(disk.usagePercent)}`}>
+                  {disk.usagePercent}%
+                </span>
+                <span className="text-[11px] text-zinc-500 w-28 text-right shrink-0">
+                  {formatBytes(disk.usedBytes)} / {formatBytes(disk.totalBytes)}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
+      )}
     </div>
   )
 }

@@ -29,7 +29,14 @@ export interface ServerStats {
     usedBytes: number
     availableBytes: number
     usagePercent: number
-    mountPoint: string
+    disks: Array<{
+      mountPoint: string
+      filesystem: string
+      totalBytes: number
+      usedBytes: number
+      availableBytes: number
+      usagePercent: number
+    }>
   }
   loadAverage: {
     '1m': number
@@ -95,46 +102,163 @@ function getCpuUsage(): Promise<{ usagePercent: number; perCore: number[] }> {
   })
 }
 
-function getStorageInfo(): { totalBytes: number; usedBytes: number; availableBytes: number; usagePercent: number; mountPoint: string } {
+interface DiskInfo {
+  mountPoint: string
+  filesystem: string
+  totalBytes: number
+  usedBytes: number
+  availableBytes: number
+  usagePercent: number
+}
+
+interface StorageInfo {
+  totalBytes: number
+  usedBytes: number
+  availableBytes: number
+  usagePercent: number
+  disks: DiskInfo[]
+}
+
+// Filesystems to exclude (virtual/pseudo filesystems)
+const EXCLUDED_FS_TYPES = new Set([
+  'tmpfs', 'devtmpfs', 'sysfs', 'proc', 'devpts', 'securityfs',
+  'cgroup', 'cgroup2', 'pstore', 'debugfs', 'hugetlbfs', 'mqueue',
+  'configfs', 'fusectl', 'tracefs', 'bpf', 'overlay', 'squashfs',
+  'nsfs', 'ramfs', 'rpc_pipefs', 'nfsd', 'autofs',
+])
+
+// Filesystem name patterns to exclude
+const EXCLUDED_FS_PATTERNS = [
+  /^\/dev\/loop/, // snap loop devices
+  /^none$/,
+  /^udev$/,
+  /^shm$/,
+]
+
+function getStorageInfo(): StorageInfo {
   try {
     const os = getOs()
     const platform = os.platform()
-    let output: string
 
     if (platform === 'win32') {
-      output = exec('wmic logicaldisk get size,freespace,caption /format:csv')
+      const output = exec('wmic logicaldisk get size,freespace,caption,filesystem /format:csv')
       const lines = output.trim().split('\n').filter(l => l.trim())
-      if (lines.length < 2) throw new Error('No disk info')
-      const parts = lines[1].split(',')
-      const freeSpace = parseInt(parts[1]) || 0
-      const size = parseInt(parts[2]) || 0
+      const disks: DiskInfo[] = []
+
+      for (let i = 1; i < lines.length; i++) {
+        const parts = lines[i].split(',')
+        if (parts.length < 4) continue
+        const freeSpace = parseInt(parts[2]) || 0
+        const size = parseInt(parts[3]) || 0
+        if (size === 0) continue
+        disks.push({
+          mountPoint: parts[0] || `Drive${i}`,
+          filesystem: parts[1] || 'NTFS',
+          totalBytes: size,
+          usedBytes: size - freeSpace,
+          availableBytes: freeSpace,
+          usagePercent: Math.round(((size - freeSpace) / size) * 100 * 100) / 100,
+        })
+      }
+
+      const totalBytes = disks.reduce((s, d) => s + d.totalBytes, 0)
+      const usedBytes = disks.reduce((s, d) => s + d.usedBytes, 0)
+      const availableBytes = disks.reduce((s, d) => s + d.availableBytes, 0)
+
       return {
-        totalBytes: size,
-        usedBytes: size - freeSpace,
-        availableBytes: freeSpace,
-        usagePercent: size > 0 ? Math.round(((size - freeSpace) / size) * 100 * 100) / 100 : 0,
-        mountPoint: parts[0] || 'C:',
+        totalBytes,
+        usedBytes,
+        availableBytes,
+        usagePercent: totalBytes > 0 ? Math.round((usedBytes / totalBytes) * 100 * 100) / 100 : 0,
+        disks,
       }
     }
 
-    // Use df -k (1K-blocks) which works on both Linux and macOS
-    output = exec('df -k /')
+    // Linux / macOS: use df -kT (with filesystem type) on Linux, df -k on macOS
+    let output: string
+    let hasType = false
+    try {
+      // df -kT includes filesystem type column (Linux only)
+      output = exec('df -kT')
+      hasType = true
+    } catch {
+      // macOS doesn't support -T, use df -k
+      output = exec('df -k')
+    }
+
     const lines = output.trim().split('\n')
     if (lines.length < 2) throw new Error('No disk info')
 
-    const parts = lines[1].split(/\s+/)
-    // df -k output columns: Filesystem, 1K-blocks, Used, Available, Use%, Mounted on
-    const total = (parseInt(parts[1]) || 0) * 1024
-    const used = (parseInt(parts[2]) || 0) * 1024
-    const available = (parseInt(parts[3]) || 0) * 1024
-    const mountPoint = parts[parts.length - 1] || '/'
+    const disks: DiskInfo[] = []
+
+    for (let i = 1; i < lines.length; i++) {
+      const parts = lines[i].split(/\s+/)
+      if (parts.length < 6) continue
+
+      const filesystem = parts[0]
+      let fsType: string
+      let kBlocks: number
+      let used: number
+      let available: number
+      let mountPoint: string
+
+      if (hasType) {
+        // df -kT columns: Filesystem, Type, 1K-blocks, Used, Available, Use%, Mounted on
+        fsType = parts[1]
+        kBlocks = parseInt(parts[2]) || 0
+        used = parseInt(parts[3]) || 0
+        available = parseInt(parts[4]) || 0
+        mountPoint = parts[6] || parts[parts.length - 1]
+      } else {
+        // df -k columns: Filesystem, 1K-blocks, Used, Available, Use%, Mounted on
+        fsType = ''
+        kBlocks = parseInt(parts[1]) || 0
+        used = parseInt(parts[2]) || 0
+        available = parseInt(parts[3]) || 0
+        mountPoint = parts[5] || parts[parts.length - 1]
+      }
+
+      // Skip virtual/pseudo filesystems
+      if (fsType && EXCLUDED_FS_TYPES.has(fsType)) continue
+      if (EXCLUDED_FS_PATTERNS.some(p => p.test(filesystem))) continue
+      if (!filesystem.startsWith('/') && filesystem !== 'map') continue // only real device paths
+      if (kBlocks === 0) continue
+
+      const totalBytes = kBlocks * 1024
+      const usedBytes = used * 1024
+      const availableBytes = available * 1024
+
+      disks.push({
+        mountPoint,
+        filesystem,
+        totalBytes,
+        usedBytes,
+        availableBytes,
+        usagePercent: totalBytes > 0 ? Math.round((usedBytes / totalBytes) * 100 * 100) / 100 : 0,
+      })
+    }
+
+    // Deduplicate: on macOS, same device can appear for multiple mount points (e.g. /dev/disk3s1 and /dev/disk3s1s1)
+    // Keep the entry mounted at / and other unique devices
+    const seen = new Set<string>()
+    const uniqueDisks = disks.filter(d => {
+      // Normalize filesystem name (strip snapshot suffix like s1s1 → s1)
+      const baseFs = d.filesystem.replace(/s\d+$/, '')
+      if (seen.has(baseFs)) return false
+      seen.add(baseFs)
+      return true
+    })
+
+    const totalBytes = uniqueDisks.reduce((s, d) => s + d.totalBytes, 0)
+    const usedBytes = uniqueDisks.reduce((s, d) => s + d.usedBytes, 0)
+    const availableBytes = uniqueDisks.reduce((s, d) => s + d.availableBytes, 0)
 
     return {
-      totalBytes: total,
-      usedBytes: used,
-      availableBytes: available,
-      usagePercent: total > 0 ? Math.round((used / total) * 100 * 100) / 100 : 0,
-      mountPoint,
+      totalBytes,
+      usedBytes,
+      availableBytes,
+      usagePercent: totalBytes > 0 ? Math.round((usedBytes / totalBytes) * 100 * 100) / 100 : 0,
+      disks: uniqueDisks,
     }
   } catch {
     return {
@@ -142,7 +266,7 @@ function getStorageInfo(): { totalBytes: number; usedBytes: number; availableByt
       usedBytes: 0,
       availableBytes: 0,
       usagePercent: 0,
-      mountPoint: '/',
+      disks: [],
     }
   }
 }
@@ -175,7 +299,7 @@ export async function captureServerStats(): Promise<ServerStats> {
       usedBytes: storage.usedBytes,
       availableBytes: storage.availableBytes,
       usagePercent: storage.usagePercent,
-      mountPoint: storage.mountPoint,
+      disks: storage.disks,
     },
     loadAverage: {
       '1m': Math.round(load1 * 100) / 100,
