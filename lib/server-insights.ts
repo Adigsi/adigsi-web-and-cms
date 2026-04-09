@@ -20,6 +20,11 @@ export interface Recommendation {
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
+/** Convert a Date to a new Date whose local fields reflect Asia/Jakarta (WIB) */
+function toJakarta(date: Date): Date {
+  return new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }))
+}
+
 export function calculateInsights(
   historyData: Array<{
     capturedAt: string
@@ -37,9 +42,9 @@ export function calculateInsights(
   const dayHourBuckets: Record<string, { cpu: number[]; ram: number[] }> = {}
 
   for (const d of historyData) {
-    const date = new Date(d.capturedAt)
-    const hour = date.getUTCHours()
-    const dayOfWeek = date.getUTCDay()
+    const date = toJakarta(new Date(d.capturedAt))
+    const hour = date.getHours()
+    const dayOfWeek = date.getDay()
     const key = `${dayOfWeek}-${hour}`
 
     if (!hourBuckets[hour]) hourBuckets[hour] = { cpu: [], ram: [] }
@@ -69,7 +74,7 @@ export function calculateInsights(
       type: 'peak',
       severity: top[0].combined > 80 ? 'critical' : top[0].combined > 50 ? 'warning' : 'info',
       title: 'Peak Usage Hours',
-      description: `Highest server load occurs at ${hourStr} UTC. Peak combined usage: ${Math.round(top[0].combined)}%.`,
+      description: `Highest server load occurs at ${hourStr} WIB. Peak combined usage: ${Math.round(top[0].combined)}%.`,
     })
   }
 
@@ -91,7 +96,7 @@ export function calculateInsights(
       type: 'peak',
       severity: 'info',
       title: 'Peak Day & Time',
-      description: `Highest load on ${DAY_NAMES[top.day]} at ${String(top.hour).padStart(2, '0')}:00 UTC (avg ${Math.round(top.combined)}%).`,
+      description: `Highest load on ${DAY_NAMES[top.day]} at ${String(top.hour).padStart(2, '0')}:00 WIB (avg ${Math.round(top.combined)}%).`,
     })
   }
 

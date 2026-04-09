@@ -44,9 +44,9 @@ export function TrafficHeatmap({ headers }: TrafficHeatmapProps) {
         const buckets: Record<string, number[]> = {}
 
         for (const d of json.data) {
-          const date = new Date(d.timestamp)
-          const day = date.getUTCDay()
-          const hour = date.getUTCHours()
+          const jakartaDate = new Date(new Date(d.timestamp).toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }))
+          const day = jakartaDate.getDay()
+          const hour = jakartaDate.getHours()
           const key = `${day}-${hour}`
           if (!buckets[key]) buckets[key] = []
           const value = metric === 'cpu' ? d.cpu : d.ram
@@ -72,7 +72,7 @@ export function TrafficHeatmap({ headers }: TrafficHeatmapProps) {
   }, [fetchData])
 
   // Get the past 7 days in order (today last)
-  const today = new Date().getUTCDay()
+  const today = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' })).getDay()
   const dayOrder = Array.from({ length: 7 }, (_, i) => (today - 6 + i + 7) % 7)
 
   return (
@@ -80,7 +80,7 @@ export function TrafficHeatmap({ headers }: TrafficHeatmapProps) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-sm font-medium text-zinc-200">Usage Heatmap</h2>
-          <p className="text-xs text-zinc-500 mt-0.5">Last 7 days · Hourly average · UTC</p>
+          <p className="text-xs text-zinc-500 mt-0.5">Last 7 days · Hourly average · WIB</p>
         </div>
         <div className="flex items-center bg-zinc-800 rounded-md p-0.5">
           {(['cpu', 'ram'] as const).map((m) => (
@@ -98,12 +98,12 @@ export function TrafficHeatmap({ headers }: TrafficHeatmapProps) {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-[200px]">
+        <div className="flex items-center justify-center h-50">
           <div className="h-5 w-5 border-2 border-zinc-600 border-t-zinc-300 rounded-full animate-spin" />
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <div className="min-w-[600px]">
+          <div className="min-w-150">
             {/* Hour labels */}
             <div className="flex mb-1 ml-10">
               {HOURS.map((h) => (
@@ -119,7 +119,7 @@ export function TrafficHeatmap({ headers }: TrafficHeatmapProps) {
                 <span className="text-[10px] text-zinc-500 w-8 text-right shrink-0">
                   {DAY_LABELS[day]}
                 </span>
-                <div className="flex flex-1 gap-[2px]">
+                <div className="flex flex-1 gap-0.5">
                   {HOURS.map((hour) => {
                     const key = `${day}-${hour}`
                     const value = heatData[key] ?? -1

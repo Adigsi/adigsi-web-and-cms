@@ -71,7 +71,7 @@ export function InsightsPanel({ headers }: InsightsPanelProps) {
           <p className="text-xs mt-1">Insights will appear as more data is collected</p>
         </div>
       ) : (
-        <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+        <div className="space-y-2 max-h-85 overflow-y-auto pr-1">
           {insights
             .sort((a, b) => {
               const order = { critical: 0, warning: 1, info: 2 }

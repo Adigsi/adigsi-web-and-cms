@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Lock, Server, RefreshCw } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Lock, Server, RefreshCw, LogOut } from 'lucide-react'
 import { StatsOverview } from './_components/stats-overview'
 import { StatsChart } from './_components/stats-chart'
 import { TrafficHeatmap } from './_components/traffic-heatmap'
 import { InsightsPanel } from './_components/insights-panel'
 import { RecommendationPanel } from './_components/recommendation-panel'
+
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes
 
 export default function DevtoolsPage() {
   const [password, setPassword] = useState('')
@@ -14,13 +16,59 @@ export default function DevtoolsPage() {
   const [authError, setAuthError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [storedPassword, setStoredPassword] = useState('')
+  const [checkingSession, setCheckingSession] = useState(true)
 
+  const handleLogout = useCallback(() => {
+    sessionStorage.removeItem('devtools_password')
+    sessionStorage.removeItem('devtools_login_at')
+    setIsAuthenticated(false)
+    setStoredPassword('')
+    setPassword('')
+  }, [])
+
+  // Restore & validate saved session
   useEffect(() => {
-    const saved = sessionStorage.getItem('devtools_password')
-    if (saved) {
-      setStoredPassword(saved)
-      setIsAuthenticated(true)
+    async function restoreSession() {
+      const saved = sessionStorage.getItem('devtools_password')
+      const loginAt = sessionStorage.getItem('devtools_login_at')
+
+      if (!saved || !loginAt) {
+        setCheckingSession(false)
+        return
+      }
+
+      // Check if session expired
+      if (Date.now() - parseInt(loginAt, 10) > SESSION_TIMEOUT_MS) {
+        sessionStorage.removeItem('devtools_password')
+        sessionStorage.removeItem('devtools_login_at')
+        setCheckingSession(false)
+        return
+      }
+
+      // Re-validate password (in case it was changed in .env)
+      try {
+        const res = await fetch('/api/devtools/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: saved }),
+        })
+        if (res.ok) {
+          setStoredPassword(saved)
+          setIsAuthenticated(true)
+          // Refresh login timestamp on successful restore
+          sessionStorage.setItem('devtools_login_at', String(Date.now()))
+        } else {
+          sessionStorage.removeItem('devtools_password')
+          sessionStorage.removeItem('devtools_login_at')
+        }
+      } catch {
+        // Network error — allow offline access with existing session
+        setStoredPassword(saved)
+        setIsAuthenticated(true)
+      }
+      setCheckingSession(false)
     }
+    restoreSession()
   }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -37,6 +85,7 @@ export default function DevtoolsPage() {
 
       if (res.ok) {
         sessionStorage.setItem('devtools_password', password)
+        sessionStorage.setItem('devtools_login_at', String(Date.now()))
         setStoredPassword(password)
         setIsAuthenticated(true)
       } else {
@@ -47,6 +96,14 @@ export default function DevtoolsPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="h-5 w-5 border-2 border-zinc-600 border-t-zinc-300 rounded-full animate-spin" />
+      </div>
+    )
   }
 
   if (!isAuthenticated) {
@@ -86,16 +143,38 @@ export default function DevtoolsPage() {
     )
   }
 
-  return <Dashboard password={storedPassword} />
+  return <Dashboard password={storedPassword} onLogout={handleLogout} />
 }
 
-function Dashboard({ password }: { password: string }) {
+function Dashboard({ password, onLogout }: { password: string; onLogout: () => void }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [liveStats, setLiveStats] = useState<any>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const lastActivityRef = useRef(Date.now())
 
   const headers = { 'x-devtools-password': password }
+
+  // Track user activity to reset inactivity timer
+  useEffect(() => {
+    const resetActivity = () => {
+      lastActivityRef.current = Date.now()
+      sessionStorage.setItem('devtools_login_at', String(Date.now()))
+    }
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'] as const
+    events.forEach((e) => window.addEventListener(e, resetActivity))
+    return () => events.forEach((e) => window.removeEventListener(e, resetActivity))
+  }, [])
+
+  // Auto-logout after 30 min of inactivity
+  useEffect(() => {
+    const check = setInterval(() => {
+      if (Date.now() - lastActivityRef.current > SESSION_TIMEOUT_MS) {
+        onLogout()
+      }
+    }, 60000) // check every minute
+    return () => clearInterval(check)
+  }, [onLogout])
 
   const fetchLiveStats = useCallback(async () => {
     try {
@@ -105,13 +184,16 @@ function Dashboard({ password }: { password: string }) {
         const data = await res.json()
         setLiveStats(data)
         setLastUpdate(new Date())
+      } else if (res.status === 401) {
+        // Password changed on server — force logout
+        onLogout()
       }
     } catch (error) {
       console.error('Failed to fetch live stats:', error)
     } finally {
       setRefreshing(false)
     }
-  }, [password])
+  }, [password, onLogout])
 
   useEffect(() => {
     fetchLiveStats()
@@ -123,7 +205,7 @@ function Dashboard({ password }: { password: string }) {
     <div className="min-h-screen">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+        <div className="max-w-400 mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Server className="w-4 h-4 text-zinc-400" />
             <h1 className="text-sm font-medium text-zinc-200">Server Monitor</h1>
@@ -136,7 +218,7 @@ function Dashboard({ password }: { password: string }) {
           <div className="flex items-center gap-3">
             {lastUpdate && (
               <span className="text-xs text-zinc-500">
-                Updated {lastUpdate.toLocaleTimeString()}
+                Updated {lastUpdate.toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit' })} WIB
               </span>
             )}
             <button
@@ -147,12 +229,20 @@ function Dashboard({ password }: { password: string }) {
             >
               <RefreshCw className={`w-3.5 h-3.5 text-zinc-400 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
+            <div className="w-px h-4 bg-zinc-800" />
+            <button
+              onClick={onLogout}
+              className="p-1.5 rounded-md hover:bg-zinc-800 transition-colors group"
+              title="Logout"
+            >
+              <LogOut className="w-3.5 h-3.5 text-zinc-500 group-hover:text-red-400 transition-colors" />
+            </button>
           </div>
         </div>
       </header>
 
       {/* Content */}
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <main className="max-w-400 mx-auto px-4 sm:px-6 py-6 space-y-6">
         {/* Live Stats Overview */}
         <StatsOverview stats={liveStats} />
 

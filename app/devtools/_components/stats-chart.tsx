@@ -13,6 +13,11 @@ import {
 } from 'recharts'
 import { format } from 'date-fns'
 
+/** Convert a Date to a new Date whose local fields reflect Asia/Jakarta (WIB) */
+function toJakarta(date: Date): Date {
+  return new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }))
+}
+
 const RANGES = ['1h', '6h', '24h', '7d', '30d', '90d', '1y'] as const
 type Range = typeof RANGES[number]
 
@@ -90,7 +95,7 @@ export function StatsChart({ headers }: StatsChartProps) {
   }
 
   const formatXAxis = (timestamp: number) => {
-    const date = new Date(timestamp)
+    const date = toJakarta(new Date(timestamp))
     if (['1h', '6h'].includes(range)) return format(date, 'HH:mm')
     if (range === '24h') return format(date, 'HH:mm')
     if (['7d', '30d'].includes(range)) return format(date, 'MMM d HH:mm')
@@ -107,7 +112,7 @@ export function StatsChart({ headers }: StatsChartProps) {
   }
 
   const formatTooltipLabel = (timestamp: number) => {
-    return format(new Date(timestamp), 'MMM d, yyyy HH:mm')
+    return format(toJakarta(new Date(timestamp)), 'MMM d, yyyy HH:mm') + ' WIB'
   }
 
   return (
@@ -159,7 +164,7 @@ export function StatsChart({ headers }: StatsChartProps) {
         </div>
       </div>
 
-      <div className="h-[300px] sm:h-[350px]">
+      <div className="h-75 sm:h-87.5">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="h-5 w-5 border-2 border-zinc-600 border-t-zinc-300 rounded-full animate-spin" />
