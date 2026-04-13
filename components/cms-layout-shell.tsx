@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   BookOpen,
   CalendarDays,
+  ChevronDown,
   ChevronsLeft,
   ChevronsRight,
   ClipboardList,
@@ -14,9 +15,12 @@ import {
   House,
   Info,
   Inbox,
+  KeyRound,
+  LogOut,
   Moon,
   Newspaper,
   Sun,
+  User2,
   UserPlus,
   Users,
   Monitor,
@@ -28,8 +32,10 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 
-import { CMSLogoutButton } from '@/components/cms-logout-button'
+import { CMSChangePasswordDialog } from '@/components/cms-change-password-dialog'
 import { Button } from '@/components/ui/button'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/contexts/language-context'
 
@@ -185,15 +191,43 @@ const cmsNavigation: NavigationSection[] = [
   },
 ]
 
+function getActiveSectionTitle(pathname: string): string | null {
+  const path = pathname === '/cms' || pathname === '/cms/' ? '/cms/dashboard' : pathname
+  for (const section of cmsNavigation) {
+    for (const item of section.items) {
+      if (item.href && (path === item.href || path.startsWith(`${item.href}/`))) {
+        return section.title
+      }
+      if (item.children) {
+        for (const child of item.children) {
+          if (child.href && (path === child.href || path.startsWith(`${child.href}/`))) {
+            return section.title
+          }
+        }
+      }
+    }
+  }
+  return null
+}
+
 export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const router = useRouter()
+  const { language, setLanguage, t } = useLanguage()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['Community'])
+  const [expandedSections, setExpandedSections] = useState<string[]>(() => {
+    const active = getActiveSectionTitle(pathname)
+    return active ? [active] : [cmsNavigation[0].title]
+  })
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const [unreadRegFormsCount, setUnreadRegFormsCount] = useState(0)
-  const pathname = usePathname()
-  const { language, setLanguage, t } = useLanguage()
+  const [profileData, setProfileData] = useState<{ name: string | null; email: string } | null>(null)
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   useEffect(() => {
     const fetchUnreadCount = () => {
@@ -225,6 +259,17 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
     setIsDarkMode(document.documentElement.classList.contains('dark'))
   }, [])
 
+  useEffect(() => {
+    fetch('/api/cms/user/profile')
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.user) {
+          setProfileData({ name: data.user.name ?? null, email: data.user.email })
+        }
+      })
+      .catch(() => {})
+  }, [])
+
   const toggleDarkMode = () => {
     const newMode = !isDarkMode
     setIsDarkMode(newMode)
@@ -249,6 +294,23 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
     setExpandedGroups((prev) =>
       prev.includes(label) ? prev.filter((g) => g !== label) : [...prev, label],
     )
+  }
+
+  const toggleSection = (title: string) => {
+    setExpandedSections((prev) =>
+      prev.includes(title) ? [] : [title],
+    )
+  }
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      await fetch('/api/cms/logout', { method: 'POST' })
+    } finally {
+      router.push('/login')
+      router.refresh()
+      setIsLoggingOut(false)
+    }
   }
 
   const renderNavItem = (item: NavigationItem, isChild = false) => {
@@ -461,12 +523,38 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
             <div className="space-y-4">
               {cmsNavigation.map((section, index) => (
                 <div key={section.title}>
-                  {!isSidebarCollapsed && (<div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 pb-3">
-                    {section.titleTranslation ? t(section.titleTranslation) : section.title}
-                  </div>)}
-                  <div className="space-y-1">
-                    {section.items.map((item) => renderNavItem(item))}
-                  </div>
+                  {isSidebarCollapsed ? (
+                    <div className="space-y-1">
+                      {section.items.map((item) => renderNavItem(item))}
+                    </div>
+                  ) : (
+                    <Collapsible
+                      open={expandedSections.includes(section.title)}
+                      onOpenChange={() => toggleSection(section.title)}
+                    >
+                      <CollapsibleTrigger asChild>
+                        <button
+                          type="button"
+                          className="flex w-full cursor-pointer items-center justify-between px-3 pb-2 group"
+                        >
+                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            {section.titleTranslation ? t(section.titleTranslation) : section.title}
+                          </span>
+                          <ChevronDown
+                            className={cn(
+                              'size-3 text-muted-foreground/60 transition-transform duration-200',
+                              expandedSections.includes(section.title) ? '' : '-rotate-90',
+                            )}
+                          />
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+                        <div className="space-y-1 pb-1">
+                          {section.items.map((item) => renderNavItem(item))}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
                   {index < cmsNavigation.length - 1 && <Separator className="my-2" />}
                 </div>
               ))}
@@ -474,65 +562,130 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="space-y-2 border-t border-border p-4">
-            {/* Theme toggle */}
-            <button
-              onClick={toggleDarkMode}
-              aria-label="Toggle dark mode"
-              className={cn(
-                'gradient-primary text-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 rounded-lg flex items-center gap-2',
-                isSidebarCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'w-full px-3 py-2.5',
-              )}
-            >
-              {isDarkMode ? <Sun className="size-4 shrink-0" /> : <Moon className="size-4 shrink-0" />}
-              {!isSidebarCollapsed && (
-                <span className="text-sm font-semibold">
-                  {isDarkMode
-                    ? t({ en: 'Light Mode', id: 'Mode Terang' })
-                    : t({ en: 'Dark Mode', id: 'Mode Gelap' })}
-                </span>
-              )}
-            </button>
-
-            {/* Language selector */}
-            <div className={cn('relative group', isSidebarCollapsed && 'flex justify-center')}>
+            {/* Theme + Language side by side */}
+            <div className={cn('flex gap-2', isSidebarCollapsed ? 'justify-center' : '')}>
+              {/* Theme toggle */}
               <button
+                onClick={toggleDarkMode}
+                aria-label="Toggle dark mode"
+                title={isSidebarCollapsed
+                  ? (isDarkMode ? t({ en: 'Light Mode', id: 'Mode Terang' }) : t({ en: 'Dark Mode', id: 'Mode Gelap' }))
+                  : undefined}
                 className={cn(
                   'gradient-primary text-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 rounded-lg flex items-center gap-2',
-                  isSidebarCollapsed ? 'justify-center w-10 h-10' : 'w-full px-3 py-2.5',
+                  isSidebarCollapsed ? 'justify-center w-10 h-10' : 'flex-1 px-3 py-2.5',
                 )}
               >
-                {language === 'en' ? <FlagEN /> : <FlagID />}
+                {isDarkMode ? <Sun className="size-4 shrink-0" /> : <Moon className="size-4 shrink-0" />}
                 {!isSidebarCollapsed && (
-                  <span className="text-sm font-medium">{language.toUpperCase()}</span>
+                  <span className="text-sm font-semibold">
+                    {isDarkMode
+                      ? t({ en: 'Light Mode', id: 'Mode Terang' })
+                      : t({ en: 'Dark Mode', id: 'Mode Gelap' })}
+                  </span>
                 )}
               </button>
-              <div className={cn(
-                'absolute z-50 p-2 bg-popover/95 backdrop-blur-md shadow-lg rounded-xl border border-border',
-                'opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200',
-                isSidebarCollapsed
-                  ? 'bottom-0 left-full ml-2 w-32'
-                  : 'bottom-full mb-2 left-0 w-full',
-              )}>
+
+              {/* Language selector */}
+              <div className={cn('relative group', isSidebarCollapsed ? '' : 'flex-1')}>
                 <button
-                  onClick={() => setLanguage('en')}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg"
+                  className={cn(
+                    'gradient-primary text-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 rounded-lg flex items-center gap-2',
+                    isSidebarCollapsed ? 'justify-center w-10 h-10' : 'w-full px-3 py-2.5',
+                  )}
                 >
-                  <FlagEN />
-                  <span>English</span>
+                  {language === 'en' ? <FlagEN /> : <FlagID />}
+                  {!isSidebarCollapsed && (
+                    <span className="text-sm font-medium">{language.toUpperCase()}</span>
+                  )}
                 </button>
-                <button
-                  onClick={() => setLanguage('id')}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg"
-                >
-                  <FlagID />
-                  <span>Indonesia</span>
-                </button>
+                <div className={cn(
+                  'absolute z-50 p-2 bg-popover/95 backdrop-blur-md shadow-lg rounded-xl border border-border',
+                  'opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200',
+                  isSidebarCollapsed
+                    ? 'bottom-0 left-full ml-2 w-32'
+                    : 'bottom-full mb-2 left-0 right-0',
+                )}>
+                  <button
+                    onClick={() => setLanguage('en')}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg"
+                  >
+                    <FlagEN />
+                    <span>English</span>
+                  </button>
+                  <button
+                    onClick={() => setLanguage('id')}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg"
+                  >
+                    <FlagID />
+                    <span>Indonesia</span>
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-center">
-              <CMSLogoutButton />
-            </div>
+            {/* Profile popover */}
+            <Popover open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    'rounded-lg text-sm transition-colors flex items-center gap-2',
+                    'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                    isSidebarCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'w-full px-3 py-2.5',
+                  )}
+                  title={isSidebarCollapsed ? t({ en: 'Profile', id: 'Profil' }) : undefined}
+                >
+                  <User2 className="size-4 shrink-0" />
+                  {!isSidebarCollapsed && (
+                    <span>{t({ en: 'Profile', id: 'Profil' })}</span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent side="top" align="start" className="w-64 p-0">
+                {/* Profile header */}
+                <div className="flex items-center gap-3 p-4">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
+                    {profileData?.name
+                      ? profileData.name.charAt(0).toUpperCase()
+                      : profileData?.email?.charAt(0).toUpperCase() ?? 'A'}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {profileData?.name ?? 'Admin'}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {profileData?.email ?? ''}
+                    </p>
+                  </div>
+                </div>
+                <Separator />
+                <div className="p-2 space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileOpen(false)
+                      setIsChangePasswordOpen(true)
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                  >
+                    <KeyRound className="size-4 shrink-0 text-muted-foreground" />
+                    {t({ en: 'Change Password', id: 'Ganti Password' })}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                  >
+                    <LogOut className="size-4 shrink-0" />
+                    {isLoggingOut
+                      ? t({ en: 'Logging out...', id: 'Sedang keluar...' })
+                      : t({ en: 'Logout', id: 'Keluar' })}
+                  </button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </aside>
 
@@ -545,6 +698,11 @@ export function CMSLayoutShell({ children }: { children: React.ReactNode }) {
           </main>
         </div>
       </div>
+
+      <CMSChangePasswordDialog
+        open={isChangePasswordOpen}
+        onOpenChange={setIsChangePasswordOpen}
+      />
     </div>
   )
 }
