@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 import { useLanguage } from '@/contexts/language-context'
 import { useToast } from '@/components/ui/use-toast'
 import { useEditor, EditorContent } from '@tiptap/react'
@@ -771,26 +772,26 @@ interface NewsImageUploadProps {
 function NewsImageUpload({ currentImage, onImageUpload }: NewsImageUploadProps) {
   const { t } = useLanguage()
   const { toast } = useToast()
-  const { upload, status } = useFileUpload()
+  const { upload, status, progress, error } = useFileUpload()
   const isUploading = status === 'uploading' || status === 'compressing'
 
   const handleImageChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    // Reset input so same file can be re-selected after error
+    e.target.value = ''
 
     try {
       const result = await upload(file)
-      if (result?.url) {
-        onImageUpload(result.url)
-        toast({
-          title: t({ en: 'Success', id: 'Berhasil' }),
-          description: t({ en: 'Image uploaded successfully', id: 'Gambar berhasil diupload' }),
-        })
-      }
-    } catch (error) {
+      onImageUpload(result.url)
+      toast({
+        title: t({ en: 'Success', id: 'Berhasil' }),
+        description: t({ en: 'Image uploaded successfully', id: 'Gambar berhasil diupload' }),
+      })
+    } catch (err) {
       toast({
         title: t({ en: 'Error', id: 'Kesalahan' }),
-        description: error instanceof Error ? error.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }),
+        description: err instanceof Error ? err.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }),
         variant: 'destructive',
       })
     }
@@ -801,10 +802,24 @@ function NewsImageUpload({ currentImage, onImageUpload }: NewsImageUploadProps) 
       <Label htmlFor="image">{t({ en: 'Image', id: 'Gambar' })} *</Label>
       <div className="mt-2">
         <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-          {currentImage && (
+          {currentImage && !isUploading && (
             <div className="mb-4">
               <img src={currentImage} alt="Preview" className="h-48 w-auto mx-auto rounded object-cover" />
             </div>
+          )}
+          {isUploading && (
+            <div className="mb-4 space-y-2">
+              <p className="text-sm text-muted-foreground">
+                {status === 'compressing'
+                  ? t({ en: 'Compressing image…', id: 'Mengompresi gambar…' })
+                  : t({ en: 'Uploading…', id: 'Mengupload…' })}
+              </p>
+              <Progress value={progress} className="h-2" />
+              <p className="text-xs text-muted-foreground">{progress}%</p>
+            </div>
+          )}
+          {status === 'error' && error && (
+            <p className="text-xs text-destructive mb-2">{error}</p>
           )}
           <input
             id="image"
@@ -816,13 +831,12 @@ function NewsImageUpload({ currentImage, onImageUpload }: NewsImageUploadProps) 
           />
           <label htmlFor="image" className={`cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
             <div className="text-sm text-muted-foreground">
-              {isUploading 
-                ? t({ en: 'Uploading...', id: 'Mengupload...' })
-                : t({ en: 'Click to upload image', id: 'Klik untuk upload gambar' })
-              }
+              {isUploading
+                ? ''
+                : t({ en: 'Click to upload image', id: 'Klik untuk upload gambar' })}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              {t({ en: 'PNG, JPG, GIF up to 10MB', id: 'PNG, JPG, GIF hingga 10MB' })}
+              {!isUploading && t({ en: 'PNG, JPG, WebP up to 20MB', id: 'PNG, JPG, WebP hingga 20MB' })}
             </div>
           </label>
         </div>

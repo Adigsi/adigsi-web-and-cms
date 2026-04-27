@@ -1,7 +1,7 @@
 import { Storage } from '@google-cloud/storage'
 import { randomBytes } from 'crypto'
 import path from 'path'
-import type { IUploadProvider, UploadResult } from './types'
+import type { IUploadProvider, UploadResult, PresignDirectResult } from './types'
 
 function generateKey(originalName: string, folder?: string): string {
   const ext = path.extname(originalName)
@@ -73,6 +73,34 @@ export class GCSProvider implements IUploadProvider {
       size: file.size,
       mimeType: file.type,
       provider: 'gcs',
+    }
+  }
+
+  /**
+   * Generate a GCS v4 signed URL for direct client-side upload.
+   * The signed URL is valid for 15 minutes and authorises a single PUT request
+   * with the specified content type.
+   */
+  async presign(filename: string, mimeType: string, folder?: string): Promise<PresignDirectResult> {
+    const defaultFolder = process.env.GCS_FOLDER || ''
+    const targetFolder = folder || defaultFolder || undefined
+    const key = generateKey(filename, targetFolder)
+
+    const bucketRef = this.storage.bucket(this.bucket)
+    const fileRef = bucketRef.file(key)
+
+    const [signedUrl] = await fileRef.getSignedUrl({
+      version: 'v4',
+      action: 'write',
+      expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+      contentType: mimeType,
+    })
+
+    return {
+      method: 'direct',
+      signedUrl,
+      publicUrl: `${this.publicUrl}/${key}`,
+      key,
     }
   }
 }

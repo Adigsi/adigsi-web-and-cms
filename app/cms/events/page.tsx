@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
+import { Progress } from '@/components/ui/progress'
 import { useLanguage } from '@/contexts/language-context'
 import { useToast } from '@/hooks/use-toast'
 import { useFileUpload } from '@/hooks/use-file-upload'
@@ -1071,26 +1072,25 @@ interface EventsImageUploadProps {
 function EventsImageUpload({ currentImage, onImageUpload }: EventsImageUploadProps) {
   const { t } = useLanguage()
   const { toast } = useToast()
-  const { upload, status } = useFileUpload()
+  const { upload, status, progress, error } = useFileUpload()
   const isUploading = status === 'uploading' || status === 'compressing'
 
   const handleImageChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    e.target.value = ''
 
     try {
       const result = await upload(file)
-      if (result?.url) {
-        onImageUpload(result.url)
-        toast({
-          title: t({ en: 'Success', id: 'Berhasil' }),
-          description: t({ en: 'Image uploaded successfully', id: 'Gambar berhasil diupload' }),
-        })
-      }
-    } catch (error) {
+      onImageUpload(result.url)
+      toast({
+        title: t({ en: 'Success', id: 'Berhasil' }),
+        description: t({ en: 'Image uploaded successfully', id: 'Gambar berhasil diupload' }),
+      })
+    } catch (err) {
       toast({
         title: t({ en: 'Error', id: 'Kesalahan' }),
-        description: error instanceof Error ? error.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }),
+        description: err instanceof Error ? err.message : t({ en: 'Failed to upload image', id: 'Gagal mengupload gambar' }),
         variant: 'destructive',
       })
     }
@@ -1098,10 +1098,24 @@ function EventsImageUpload({ currentImage, onImageUpload }: EventsImageUploadPro
 
   return (
     <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
-      {currentImage && (
+      {currentImage && !isUploading && (
         <div className="mb-2">
           <img src={currentImage} alt="Event preview" className="h-24 w-auto mx-auto rounded object-cover" />
         </div>
+      )}
+      {isUploading && (
+        <div className="mb-2 space-y-1.5">
+          <p className="text-xs text-muted-foreground">
+            {status === 'compressing'
+              ? t({ en: 'Compressing…', id: 'Mengompresi…' })
+              : t({ en: 'Uploading…', id: 'Mengupload…' })}
+          </p>
+          <Progress value={progress} className="h-1.5" />
+          <p className="text-xs text-muted-foreground">{progress}%</p>
+        </div>
+      )}
+      {status === 'error' && error && (
+        <p className="text-xs text-destructive mb-1">{error}</p>
       )}
       <input
         id="event-image"
@@ -1113,10 +1127,7 @@ function EventsImageUpload({ currentImage, onImageUpload }: EventsImageUploadPro
       />
       <label htmlFor="event-image" className={`cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
         <div className="text-xs text-muted-foreground">
-          {isUploading 
-            ? t({ en: 'Uploading...', id: 'Mengupload...' })
-            : t({ en: 'Click to upload', id: 'Klik untuk upload' })
-          }
+          {!isUploading && t({ en: 'Click to upload', id: 'Klik untuk upload' })}
         </div>
       </label>
     </div>
