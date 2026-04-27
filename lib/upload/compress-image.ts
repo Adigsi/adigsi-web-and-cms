@@ -2,7 +2,9 @@
 
 import imageCompression from 'browser-image-compression'
 
-export const IMAGE_MAX_SIZE_MB = 5
+// Pre-compression limit for images — browser compresses to ~1MB before upload,
+// so this limit applies to the original file before any compression.
+export const IMAGE_MAX_SIZE_MB = 20
 export const PDF_MAX_SIZE_MB = 20
 export const OTHER_MAX_SIZE_MB = 10
 
