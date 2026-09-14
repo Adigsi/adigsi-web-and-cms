@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
-import { ObjectId } from 'mongodb'
+import { ObjectId, type Document, type WithId } from 'mongodb'
 import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
 
 interface NewsData {
@@ -40,6 +40,27 @@ async function ensureUniqueSlug(baseSlug: string, collection: any): Promise<stri
   }
 }
 
+function serializeNews(item: WithId<Document>) {
+  const createdAt = item.createdAt
+    ? new Date(item.createdAt).toISOString()
+    : new Date(item._id.getTimestamp()).toISOString()
+
+  return {
+    _id: item._id.toString(),
+    slug: item.slug,
+    titleEn: item.titleEn,
+    titleId: item.titleId,
+    categoryEn: item.categoryEn,
+    categoryId: item.categoryId,
+    contentEn: item.contentEn,
+    contentId: item.contentId,
+    image: item.image,
+    published: item.published,
+    publishedDate: item.publishedDate || '',
+    createdAt,
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -53,9 +74,22 @@ export async function GET(request: NextRequest) {
     const db = await getMongoDatabase()
     const collection = db.collection('news_content')
 
+    const id = searchParams.get('id') || ''
     const slug = searchParams.get('slug') || ''
 
     const filter: any = { section: 'news' }
+
+    // Single-article lookup by ID (used by the CMS edit form)
+    if (id) {
+      if (!ObjectId.isValid(id)) {
+        return NextResponse.json({ error: 'Invalid news ID' }, { status: 400 })
+      }
+      const item = await collection.findOne({ ...filter, _id: new ObjectId(id) })
+      if (!item) {
+        return NextResponse.json({ success: false, error: 'News not found' }, { status: 404 })
+      }
+      return NextResponse.json({ success: true, data: serializeNews(item) })
+    }
 
     // Single-article lookup by slug — skip pagination and return immediately
     if (slug) {
@@ -63,26 +97,7 @@ export async function GET(request: NextRequest) {
       if (!item) {
         return NextResponse.json({ success: false, data: null })
       }
-      const createdAt = item.createdAt
-        ? new Date(item.createdAt).toISOString()
-        : new Date(item._id.getTimestamp()).toISOString()
-      return NextResponse.json({
-        success: true,
-        data: {
-          _id: item._id.toString(),
-          slug: item.slug,
-          titleEn: item.titleEn,
-          titleId: item.titleId,
-          categoryEn: item.categoryEn,
-          categoryId: item.categoryId,
-          contentEn: item.contentEn,
-          contentId: item.contentId,
-          image: item.image,
-          published: item.published,
-          publishedDate: item.publishedDate || '',
-          createdAt,
-        },
-      })
+      return NextResponse.json({ success: true, data: serializeNews(item) })
     }
 
     if (search) {
@@ -117,26 +132,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: news.map((item) => {
-        const createdAt = item.createdAt
-          ? new Date(item.createdAt).toISOString()
-          : new Date(item._id.getTimestamp()).toISOString()
-
-        return {
-          _id: item._id.toString(),
-          slug: item.slug,
-          titleEn: item.titleEn,
-          titleId: item.titleId,
-          categoryEn: item.categoryEn,
-          categoryId: item.categoryId,
-          contentEn: item.contentEn,
-          contentId: item.contentId,
-          image: item.image,
-          published: item.published,
-          publishedDate: item.publishedDate || '',
-          createdAt,
-        }
-      }),
+      data: news.map(serializeNews),
       pagination: {
         page,
         limit,

@@ -481,17 +481,22 @@ function NewsFormContent() {
       // Fetch news data for editing
       const fetchNews = async () => {
         try {
-          const response = await fetch('/api/cms/news/news?page=1')
+          const response = await fetch(`/api/cms/news/news?id=${encodeURIComponent(id)}`)
           const data = await response.json()
-          
-          if (data.success) {
-            const news = data.data.find((item: NewsData) => item._id === id)
-            if (news) {
-              setFormData(news)
-            }
+
+          if (!response.ok || !data.success || !data.data) {
+            throw new Error(data.error || 'News not found')
           }
+
+          setFormData(data.data)
         } catch (error) {
           console.error('Error fetching news:', error)
+          toast({
+            title: 'Error',
+            description: t({ en: 'News not found', id: 'Berita tidak ditemukan' }),
+            variant: 'destructive',
+          })
+          router.push('/cms/news')
         } finally {
           setIsLoading(false)
         }
