@@ -14,7 +14,8 @@ ARCHIVE="${2:?archive path is required}"
 
 export APP_DIR="${APP_DIR:-/home/ubuntu/app/adigsi-web-and-cms}"
 PM2_APP="adigsi-web"
-HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:3000/api/health}"
+APP_PORT="${APP_PORT:-3000}"
+HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:$APP_PORT/api/health}"
 HEALTH_TIMEOUT_SECONDS="${HEALTH_TIMEOUT_SECONDS:-60}"
 KEEP_RELEASES="${KEEP_RELEASES:-5}"
 # pm2 process from the old manual setup (git clone + pnpm start); only needed for the first deploy
@@ -50,15 +51,34 @@ command -v pm2 >/dev/null 2>&1 || fail "pm2 not found in PATH"
 [ -f "$ARCHIVE" ] || fail "missing archive $ARCHIVE"
 [ -e "$RELEASE_DIR" ] && fail "release $RELEASE_ID already exists"
 
-log "Extracting release $RELEASE_ID"
-mkdir -p "$RELEASE_DIR"
-tar -xzf "$ARCHIVE" -C "$RELEASE_DIR"
-rm -f "$ARCHIVE"
+DEPLOY_USER="$(id -un)"
+FIX_OWNER_HINT="fix with: sudo chown -R $DEPLOY_USER:$DEPLOY_USER $APP_DIR"
+[ -w "$APP_DIR" ] || fail "$APP_DIR is not writable by $DEPLOY_USER; $FIX_OWNER_HINT"
+mkdir -p "$RELEASES_DIR" || fail "cannot create $RELEASES_DIR; $FIX_OWNER_HINT"
+[ -w "$RELEASES_DIR" ] || fail "$RELEASES_DIR is not writable by $DEPLOY_USER; $FIX_OWNER_HINT"
 
 PREVIOUS_RELEASE=""
 if [ -L "$APP_DIR/current" ]; then
   PREVIOUS_RELEASE="$(readlink "$APP_DIR/current")"
 fi
+
+port_in_use() {
+  # Linux only; without ss the check is skipped
+  command -v ss >/dev/null 2>&1 || return 1
+  [ -n "$(ss -Hltn "sport = :$APP_PORT" 2>/dev/null)" ]
+}
+
+# First deploy: the port must be free or held by the legacy process that this user's pm2 can stop
+if [ -z "$PREVIOUS_RELEASE" ] && port_in_use; then
+  if [ -z "$LEGACY_PM2_NAME" ] || ! pm2 describe "$LEGACY_PM2_NAME" >/dev/null 2>&1; then
+    fail "port $APP_PORT is in use by a process that $DEPLOY_USER's pm2 does not manage (LEGACY_PM2_NAME='$LEGACY_PM2_NAME'). Check 'pm2 ls' and 'sudo pm2 ls'; if the old app runs under root, stop it with: sudo pm2 delete <name> && sudo pm2 save"
+  fi
+fi
+
+log "Extracting release $RELEASE_ID"
+mkdir -p "$RELEASE_DIR"
+tar -xzf "$ARCHIVE" -C "$RELEASE_DIR"
+rm -f "$ARCHIVE"
 
 start_app() {
   pm2 startOrReload "$APP_DIR/current/ecosystem.config.js" --update-env
@@ -90,8 +110,9 @@ rollback() {
     rm -f "$APP_DIR/current"
     pm2 start pnpm --name "$LEGACY_PM2_NAME" --cwd "$APP_DIR" -- start || true
   else
-    log "No previous release to roll back to"
-    return
+    log "No previous release to roll back to; removing $PM2_APP"
+    pm2 delete "$PM2_APP" >/dev/null 2>&1 || true
+    rm -f "$APP_DIR/current"
   fi
 
   pm2 save || true
@@ -111,6 +132,10 @@ log "Starting $PM2_APP"
 if ! start_app || ! check_health; then
   log "Health check failed: $HEALTH_URL"
   pm2 logs "$PM2_APP" --lines 50 --nostream || true
+  if command -v ss >/dev/null 2>&1; then
+    log "Listening on port $APP_PORT:"
+    ss -ltnp "sport = :$APP_PORT" || true
+  fi
   rollback
   fail "release $RELEASE_ID was not activated"
 fi
