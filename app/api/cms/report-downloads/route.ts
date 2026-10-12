@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
+import { notDeleted } from '@/lib/soft-delete'
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
     const reportsCollection = db.collection('reports')
 
     // Fetch the report to get PDF and title
-    const reportDoc = await reportsCollection.findOne({ _id: new ObjectId(reportId) })
+    const reportDoc = await reportsCollection.findOne({ _id: new ObjectId(reportId), ...notDeleted })
 
     if (!reportDoc || !reportDoc.pdfFile) {
       return NextResponse.json(

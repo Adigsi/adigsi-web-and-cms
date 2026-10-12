@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
 import { ObjectId, type Document, type WithId } from 'mongodb'
 import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
+import { getCmsSessionFromRequest, notDeleted, softDeleteOne } from '@/lib/soft-delete'
 
 interface NewsData {
   titleEn: string
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get('id') || ''
     const slug = searchParams.get('slug') || ''
 
-    const filter: any = { section: 'news' }
+    const filter: any = { section: 'news', ...notDeleted }
 
     // Single-article lookup by ID (used by the CMS edit form)
     if (id) {
@@ -171,7 +172,7 @@ export async function POST(request: NextRequest) {
 
     if (_id) {
       await collection.updateOne(
-        { _id: new ObjectId(_id) },
+        { _id: new ObjectId(_id), ...notDeleted },
         {
           $set: {
             titleEn,
@@ -223,6 +224,11 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await getCmsSessionFromRequest(request)
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const searchParams = request.nextUrl.searchParams
     const id = searchParams.get('id')
 
@@ -236,12 +242,14 @@ export async function DELETE(request: NextRequest) {
     const db = await getMongoDatabase()
     const collection = db.collection('news_content')
 
-    const result = await collection.deleteOne({
-      _id: new ObjectId(id),
-      section: 'news',
-    })
+    const deleted = await softDeleteOne(
+      collection,
+      { _id: new ObjectId(id), section: 'news' },
+      session,
+      ['slug']
+    )
 
-    if (result.deletedCount === 0) {
+    if (!deleted) {
       return NextResponse.json(
         { error: 'News not found' },
         { status: 404 }
@@ -279,7 +287,7 @@ export async function PATCH(request: NextRequest) {
     const collection = db.collection('news_content')
 
     await collection.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(id), ...notDeleted },
       {
         $set: {
           published,

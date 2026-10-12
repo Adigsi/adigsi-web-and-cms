@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
+import { notDeleted } from '@/lib/soft-delete'
 
 export async function GET() {
   try {
     const db = await getMongoDatabase()
     const collection = db.collection('reports')
 
-    const report = await collection.findOne({ pinned: true, published: true })
+    const report = await collection.findOne({ pinned: true, published: true, ...notDeleted })
 
     if (!report) {
       return NextResponse.json({ pinned: false })
