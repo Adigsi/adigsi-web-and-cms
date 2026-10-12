@@ -107,9 +107,16 @@ jobs:
           SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
         run: |
           install -m 700 -d ~/.ssh
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s\n' "$SSH_KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
+
+          KNOWN_HOST="$SSH_HOST"
+          [ "$SSH_PORT" != "22" ] && KNOWN_HOST="[$SSH_HOST]:$SSH_PORT"
+          if ! ssh-keygen -F "$KNOWN_HOST" -f ~/.ssh/known_hosts >/dev/null; then
+            echo "::error::SSH_KNOWN_HOSTS has no entry for $KNOWN_HOST. Regenerate it with: ssh-keyscan -p $SSH_PORT $SSH_HOST"
+            exit 1
+          fi
 
       - name: Upload release
         run: |
