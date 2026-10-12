@@ -111,10 +111,18 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "$SSH_KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
 
-          KNOWN_HOST="$SSH_HOST"
-          [ "$SSH_PORT" != "22" ] && KNOWN_HOST="[$SSH_HOST]:$SSH_PORT"
+          # Secrets pasted in the GitHub UI can carry stray spaces or newlines
+          HOST="$(printf '%s' "$SSH_HOST" | tr -d '[:space:]')"
+          USER_NAME="$(printf '%s' "$SSH_USER" | tr -d '[:space:]')"
+          echo "SSH_TARGET=$USER_NAME@$HOST" >> "$GITHUB_ENV"
+
+          KNOWN_HOST="$HOST"
+          [ "$SSH_PORT" != "22" ] && KNOWN_HOST="[$HOST]:$SSH_PORT"
           if ! ssh-keygen -F "$KNOWN_HOST" -f ~/.ssh/known_hosts >/dev/null; then
-            echo "::error::SSH_KNOWN_HOSTS has no entry for $KNOWN_HOST. Regenerate it with: ssh-keyscan -p $SSH_PORT $SSH_HOST"
+            echo "SSH_HOST is ${#SSH_HOST} characters (${#HOST} after trimming whitespace)"
+            echo "Hosts found in SSH_KNOWN_HOSTS:"
+            awk 'NF >= 3 && $1 !~ /^#/ { print "  " $1 " (" $2 ")" }' ~/.ssh/known_hosts
+            echo "::error::SSH_KNOWN_HOSTS has no entry for SSH_HOST. Both must use the same host (IP vs domain). Regenerate with: ssh-keyscan -p $SSH_PORT <SSH_HOST>"
             exit 1
           fi
 
@@ -124,10 +132,10 @@ jobs:
           echo "RELEASE_ID=$RELEASE_ID" >> "$GITHUB_ENV"
 
           SSH_OPTS=(-i ~/.ssh/deploy_key -o BatchMode=yes -o ServerAliveInterval=30)
-          scp "${SSH_OPTS[@]}" -P "$SSH_PORT" release.tgz "$SSH_USER@$SSH_HOST:/tmp/adigsi-release-$RELEASE_ID.tgz"
-          scp "${SSH_OPTS[@]}" -P "$SSH_PORT" scripts/deploy/activate-release.sh "$SSH_USER@$SSH_HOST:/tmp/adigsi-activate-release.sh"
+          scp "${SSH_OPTS[@]}" -P "$SSH_PORT" release.tgz "$SSH_TARGET:/tmp/adigsi-release-$RELEASE_ID.tgz"
+          scp "${SSH_OPTS[@]}" -P "$SSH_PORT" scripts/deploy/activate-release.sh "$SSH_TARGET:/tmp/adigsi-activate-release.sh"
 
       - name: Activate release
         run: |
-          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ServerAliveInterval=30 -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ServerAliveInterval=30 -p "$SSH_PORT" "$SSH_TARGET" \
             "LEGACY_PM2_NAME='$LEGACY_PM2_NAME' bash /tmp/adigsi-activate-release.sh '$RELEASE_ID' '/tmp/adigsi-release-$RELEASE_ID.tgz'"
