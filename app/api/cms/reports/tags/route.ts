@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
+import { getCmsSessionFromRequest, notDeleted, softDeleteOne } from '@/lib/soft-delete'
 
 interface TagData {
   nameEn: string
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
     const db = await getMongoDatabase()
     const collection = db.collection('report_tags')
 
-    const filter = activeOnly ? { active: true } : {}
+    const filter = { ...notDeleted, ...(activeOnly ? { active: true } : {}) }
 
     const tags = await collection
       .find(filter)
@@ -89,7 +90,7 @@ export async function PUT(request: NextRequest) {
     const collection = db.collection('report_tags')
 
     const result = await collection.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(id), ...notDeleted },
       {
         $set: {
           nameEn: data.nameEn.trim(),
@@ -126,7 +127,7 @@ export async function PATCH(request: NextRequest) {
     const collection = db.collection('report_tags')
 
     const result = await collection.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(id), ...notDeleted },
       { $set: { active: body.active, updatedAt: new Date() } }
     )
 
@@ -146,6 +147,11 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await getCmsSessionFromRequest(request)
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const id = request.nextUrl.searchParams.get('id')
     if (!id) {
       return NextResponse.json({ error: 'Tag ID is required' }, { status: 400 })
@@ -154,9 +160,9 @@ export async function DELETE(request: NextRequest) {
     const db = await getMongoDatabase()
     const collection = db.collection('report_tags')
 
-    const result = await collection.deleteOne({ _id: new ObjectId(id) })
+    const deleted = await softDeleteOne(collection, { _id: new ObjectId(id) }, session)
 
-    if (result.deletedCount === 0) {
+    if (!deleted) {
       return NextResponse.json({ error: 'Tag not found' }, { status: 404 })
     }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
+import { getCmsSessionFromRequest, notDeleted, softDeleteOne } from '@/lib/soft-delete'
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -20,7 +21,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const collection = db.collection('registration_forms')
 
     const result = await collection.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(id), ...notDeleted },
       { $set: update },
     )
 
@@ -35,8 +36,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const session = await getCmsSessionFromRequest(request)
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { id } = await params
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ error: 'Invalid registration form ID' }, { status: 400 })
@@ -45,9 +51,9 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     const db = await getMongoDatabase()
     const collection = db.collection('registration_forms')
 
-    const result = await collection.deleteOne({ _id: new ObjectId(id) })
+    const deleted = await softDeleteOne(collection, { _id: new ObjectId(id) }, session)
 
-    if (result.deletedCount === 0) {
+    if (!deleted) {
       return NextResponse.json({ error: 'Registration form not found' }, { status: 404 })
     }
 

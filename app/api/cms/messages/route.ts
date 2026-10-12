@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
+import { notDeleted } from '@/lib/soft-delete'
 import { ObjectId } from 'mongodb'
 
 export async function GET(request: NextRequest) {
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     // Build filter
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const filter: Record<string, any> = {}
+    const filter: Record<string, any> = { ...notDeleted }
     if (status) filter.status = status
     if (isRead === 'true') filter.isRead = true
     if (isRead === 'false') filter.isRead = false

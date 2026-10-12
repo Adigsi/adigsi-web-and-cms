@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
+import { getCmsSessionFromRequest, notDeleted, softDeleteOne } from '@/lib/soft-delete'
 import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
 
 interface ReportData {
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Invalid report ID' }, { status: 400 })
       }
       const db = await getMongoDatabase()
-      const report = await db.collection('reports').findOne({ _id: new ObjectId(singleId) })
+      const report = await db.collection('reports').findOne({ _id: new ObjectId(singleId), ...notDeleted })
       if (!report) {
         return NextResponse.json({ error: 'Report not found' }, { status: 404 })
       }
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
     const collection = db.collection('reports')
     const skip = (page - 1) * limit
 
-    const filter: Record<string, unknown> = {}
+    const filter: Record<string, unknown> = { ...notDeleted }
 
     if (search) {
       filter.$or = [
@@ -194,7 +195,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const result = await collection.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(id), ...notDeleted },
       { $set: updateFields }
     )
 
@@ -211,6 +212,11 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await getCmsSessionFromRequest(request)
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const searchParams = request.nextUrl.searchParams
     const id = searchParams.get('id')
 
@@ -221,9 +227,9 @@ export async function DELETE(request: NextRequest) {
     const db = await getMongoDatabase()
     const collection = db.collection('reports')
 
-    const result = await collection.deleteOne({ _id: new ObjectId(id) })
+    const deleted = await softDeleteOne(collection, { _id: new ObjectId(id) }, session)
 
-    if (result.deletedCount === 0) {
+    if (!deleted) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 })
     }
 

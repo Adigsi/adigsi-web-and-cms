@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 import { getMediaUrlValidationError } from '@/lib/upload/validate-media-payload'
+import { getCmsSessionFromRequest, notDeleted, softDeleteOne } from '@/lib/soft-delete'
 
 interface EventData {
   titleEn: string
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
     const collection = db.collection('events_content')
 
     const skip = (page - 1) * limit
-    const filter: any = { section: 'event' }
+    const filter: any = { section: 'event', ...notDeleted }
 
     if (search) {
       filter.$or = [
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest) {
 
     if (data._id) {
       const result = await collection.updateOne(
-        { _id: new ObjectId(data._id), section: 'event' },
+        { _id: new ObjectId(data._id), section: 'event', ...notDeleted },
         {
           $set: {
             titleEn: data.titleEn,
@@ -160,6 +161,11 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await getCmsSessionFromRequest(request)
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const searchParams = request.nextUrl.searchParams
     const id = searchParams.get('id')
 
@@ -170,9 +176,9 @@ export async function DELETE(request: NextRequest) {
     const db = await getMongoDatabase()
     const collection = db.collection('events_content')
 
-    const result = await collection.deleteOne({ _id: new ObjectId(id), section: 'event' })
+    const deleted = await softDeleteOne(collection, { _id: new ObjectId(id), section: 'event' }, session)
 
-    if (result.deletedCount === 0) {
+    if (!deleted) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 })
     }
 
@@ -202,7 +208,7 @@ export async function PATCH(request: NextRequest) {
     const collection = db.collection('events_content')
 
     const result = await collection.updateOne(
-      { _id: new ObjectId(id), section: 'event' },
+      { _id: new ObjectId(id), section: 'event', ...notDeleted },
       { $set: { published, updatedAt: new Date() } }
     )
 

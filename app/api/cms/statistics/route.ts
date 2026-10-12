@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getMongoDatabase } from '@/lib/mongodb'
+import { notDeleted } from '@/lib/soft-delete'
 
 export async function GET() {
   try {
@@ -18,10 +19,10 @@ export async function GET() {
       registrationsCount
     ] = await Promise.all([
       // News count - count documents with section: 'news'
-      db.collection('news_content').countDocuments({ section: 'news' }),
+      db.collection('news_content').countDocuments({ section: 'news', ...notDeleted }),
       
       // Events count - count documents with section: 'event'
-      db.collection('events_content').countDocuments({ section: 'event' }),
+      db.collection('events_content').countDocuments({ section: 'event', ...notDeleted }),
       
       // Organization structure count
       db.collection('about_content').findOne({ section: 'organization' }),
