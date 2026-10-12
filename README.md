@@ -266,15 +266,23 @@ Production env vars are loaded from `shared/.env.production` at runtime (`node -
    - `uname -m` must be `x86_64`, because releases are built for linux-x64.
    - Run `pm2 ls` and note the name of the existing process.
    - `gs --version` should confirm ghostscript is installed.
+   - **Pick the deploy user.** It must be the Linux user that owns the app folder and runs pm2; in production this is `adigsi_id`. Check with:
+     ```bash
+     ls -ld /home/ubuntu/app/adigsi-web-and-cms
+     ps -eo user,cmd | grep "PM2" | grep -v grep
+     ```
+     All SSH and pm2 steps below use this user.
 
 2. **Create a deploy SSH key** on your own machine (not the server):
    ```bash
    ssh-keygen -t ed25519 -f adigsi_deploy -C github-actions -N ""
    ```
-   - Add `adigsi_deploy.pub` to `/home/ubuntu/.ssh/authorized_keys` on the VM, or via GCP Console → Compute Engine → Metadata → SSH Keys.
+   - Add `adigsi_deploy.pub` to `~/.ssh/authorized_keys` of the deploy user on the VM.
+     - This can also be done via GCP Console → Compute Engine → Metadata → SSH Keys.
+     - In GCP metadata, the last word of the key line is the username, so it must be the deploy user (e.g. `adigsi_id`).
    - Then check that it works from outside GCP:
      ```bash
-     ssh -i adigsi_deploy ubuntu@<VM_IP> 'echo ok'
+     ssh -i adigsi_deploy <DEPLOY_USER>@<VM_IP> 'whoami'
      ```
    - If this fails, GitHub Actions can't reach the VM either. Common causes are a firewall rule that only allows certain IPs, or OS Login being enabled. In that case the workflow needs to be switched to an IAP tunnel (`gcloud compute ssh --tunnel-through-iap`).
 
@@ -292,9 +300,9 @@ Production env vars are loaded from `shared/.env.production` at runtime (`node -
      | Secret | Value |
      |---|---|
      | `SSH_HOST` | VM external IP |
-     | `SSH_USER` | `ubuntu` |
+     | `SSH_USER` | the deploy user from step 1 (production: `adigsi_id`) |
      | `SSH_PRIVATE_KEY` | contents of `adigsi_deploy` (private key) |
-     | `SSH_KNOWN_HOSTS` | output of `ssh-keyscan -H <VM_IP>` |
+     | `SSH_KNOWN_HOSTS` | output of `ssh-keyscan <VM_IP>` (must use the same host as `SSH_HOST`) |
 
    - **Secrets and variables → Actions → Variables (repository):**
 
@@ -316,7 +324,7 @@ Production env vars are loaded from `shared/.env.production` at runtime (`node -
    - Merge to `main`, or run the workflow manually. The first deploy removes the old pm2 process (`LEGACY_PM2_NAME`) and starts `adigsi-web` in its place, with a few seconds of downtime. If the new release fails its health check, the old process is started again.
    - Once the site is confirmed working:
      - Delete the `LEGACY_PM2_NAME` variable.
-     - Make sure `pm2 startup` is configured, so the app comes back after a reboot.
+     - Make sure pm2 starts on boot. As the deploy user, run `pm2 startup` and then the `sudo …` command it prints. `systemctl list-unit-files 'pm2-*'` should then list `pm2-<deploy user>.service`.
      - Remove the files of the old manual clone:
        ```bash
        cd /home/ubuntu/app/adigsi-web-and-cms

@@ -129,13 +129,21 @@ jobs:
       - name: Upload release
         run: |
           RELEASE_ID="$(date -u +%Y%m%dT%H%M%S)-${GITHUB_SHA::7}"
-          echo "RELEASE_ID=$RELEASE_ID" >> "$GITHUB_ENV"
+          # Unique per release so a leftover file from another run or user never blocks the upload
+          REMOTE_ARCHIVE="/tmp/adigsi-release-$RELEASE_ID.tgz"
+          REMOTE_SCRIPT="/tmp/adigsi-activate-release-$RELEASE_ID.sh"
+          {
+            echo "RELEASE_ID=$RELEASE_ID"
+            echo "REMOTE_ARCHIVE=$REMOTE_ARCHIVE"
+            echo "REMOTE_SCRIPT=$REMOTE_SCRIPT"
+          } >> "$GITHUB_ENV"
 
           SSH_OPTS=(-i ~/.ssh/deploy_key -o BatchMode=yes -o ServerAliveInterval=30)
-          scp "${SSH_OPTS[@]}" -P "$SSH_PORT" release.tgz "$SSH_TARGET:/tmp/adigsi-release-$RELEASE_ID.tgz"
-          scp "${SSH_OPTS[@]}" -P "$SSH_PORT" scripts/deploy/activate-release.sh "$SSH_TARGET:/tmp/adigsi-activate-release.sh"
+          scp "${SSH_OPTS[@]}" -P "$SSH_PORT" release.tgz "$SSH_TARGET:$REMOTE_ARCHIVE"
+          scp "${SSH_OPTS[@]}" -P "$SSH_PORT" scripts/deploy/activate-release.sh "$SSH_TARGET:$REMOTE_SCRIPT"
 
       - name: Activate release
         run: |
+          # Remove the uploaded files whether activation succeeds or fails
           ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ServerAliveInterval=30 -p "$SSH_PORT" "$SSH_TARGET" \
-            "LEGACY_PM2_NAME='$LEGACY_PM2_NAME' bash /tmp/adigsi-activate-release.sh '$RELEASE_ID' '/tmp/adigsi-release-$RELEASE_ID.tgz'"
+            "LEGACY_PM2_NAME='$LEGACY_PM2_NAME' bash '$REMOTE_SCRIPT' '$RELEASE_ID' '$REMOTE_ARCHIVE'; status=\$?; rm -f '$REMOTE_SCRIPT' '$REMOTE_ARCHIVE'; exit \$status"
