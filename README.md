@@ -3,6 +3,7 @@
 ## Table of Contents
 
 - [Running on Server (Production)](#running-on-server-production)
+- [Deploying with CI/CD (GitHub Actions)](#deploying-with-cicd-github-actions)
 - [CMS Login with MongoDB](#cms-login-with-mongodb)
 - [File Upload API](#file-upload-api)
 - [Image & PDF Compression](#image--pdf-compression)
@@ -225,13 +226,122 @@ sudo chown -R <user>:<group> /var/uploads/adigsi-cms
 
 ### Deploying updates
 
-```bash
-cd /var/www/adigsi-cms
-git pull
-pnpm install --frozen-lockfile
-pnpm build
-pm2 restart adigsi-cms
+Updates are deployed automatically by GitHub Actions. See [Deploying with CI/CD](#deploying-with-cicd-github-actions).
+
+---
+
+## Deploying with CI/CD (GitHub Actions)
+
+Every push or merge to `main` builds the app on GitHub Actions and deploys it to the production VM. Pull requests to `main` only run the build (plus a smoke test) as a check. A deploy can also be started manually from **Actions → Build & Deploy → Run workflow**.
+
+### How it works
+
+1. **Build** (`.github/workflows/deploy.yml`, job `build`):
+   - `pnpm build` with `output: 'standalone'`, producing `server.js` and a minimal `node_modules`.
+   - A smoke test starts the server and checks that `sharp` loads.
+   - The result is packed as `release.tgz`.
+2. **Deploy** (job `deploy`): the archive is copied to the VM over SSH, then [`scripts/deploy/activate-release.sh`](scripts/deploy/activate-release.sh) runs there:
+   - extracts it to `releases/<timestamp>-<sha>`;
+   - points the `current` symlink at it;
+   - runs `pm2 startOrReload` with [`ecosystem.config.js`](ecosystem.config.js);
+   - waits for `GET /api/health` to return 200.
+3. If the health check fails, `current` is switched back to the previous release automatically and the workflow fails.
+4. The last 5 releases are kept on the VM.
+
+Server layout:
+
 ```
+/home/ubuntu/app/adigsi-web-and-cms/
+  current -> releases/20261012T101500-ab12cd3   # pm2 app "adigsi-web" runs from here
+  releases/                                      # last 5 releases
+  shared/.env.production                         # production env vars, never touched by deploys
+```
+
+Production env vars are loaded from `shared/.env.production` at runtime (`node --env-file`). The only exceptions are the `NEXT_PUBLIC_*` values, which are inlined at build time and therefore come from GitHub repository variables.
+
+### One-time setup
+
+1. **Check the server:**
+   - `node -v` must be **≥ 20.9**, as required by Next.js 16.
+   - `uname -m` must be `x86_64`, because releases are built for linux-x64.
+   - Run `pm2 ls` and note the name of the existing process.
+   - `gs --version` should confirm ghostscript is installed.
+
+2. **Create a deploy SSH key** on your own machine (not the server):
+   ```bash
+   ssh-keygen -t ed25519 -f adigsi_deploy -C github-actions -N ""
+   ```
+   - Add `adigsi_deploy.pub` to `/home/ubuntu/.ssh/authorized_keys` on the VM, or via GCP Console → Compute Engine → Metadata → SSH Keys.
+   - Then check that it works from outside GCP:
+     ```bash
+     ssh -i adigsi_deploy ubuntu@<VM_IP> 'echo ok'
+     ```
+   - If this fails, GitHub Actions can't reach the VM either. Common causes are a firewall rule that only allows certain IPs, or OS Login being enabled. In that case the workflow needs to be switched to an IAP tunnel (`gcloud compute ssh --tunnel-through-iap`).
+
+3. **Prepare the deploy folders on the VM.** The running app is not affected by this step.
+   ```bash
+   cd /home/ubuntu/app/adigsi-web-and-cms
+   mkdir -p releases shared
+   cp .env.local shared/.env.production
+   chmod 600 shared/.env.production
+   ```
+
+4. **Configure GitHub** (repository → Settings):
+   - **Environments → `production` → Environment secrets:**
+
+     | Secret | Value |
+     |---|---|
+     | `SSH_HOST` | VM external IP |
+     | `SSH_USER` | `ubuntu` |
+     | `SSH_PRIVATE_KEY` | contents of `adigsi_deploy` (private key) |
+     | `SSH_KNOWN_HOSTS` | output of `ssh-keyscan -H <VM_IP>` |
+
+   - **Secrets and variables → Actions → Variables (repository):**
+
+     | Variable | Value |
+     |---|---|
+     | `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | same as in the server `.env.local` |
+     | `NEXT_PUBLIC_UMAMI_ANALYTICS_URL` | same as in the server `.env.local` |
+     | `LEGACY_PM2_NAME` | name of the old pm2 process from step 1 (first deploy only) |
+     | `SSH_PORT` | optional, defaults to `22` |
+
+5. **Point nginx at IPv4 localhost.** The app listens on `127.0.0.1:3000` only.
+   - In the site config (production: `/etc/nginx/sites-available/adigsi-cms`), change `proxy_pass http://localhost:3000;` to `proxy_pass http://127.0.0.1:3000;`.
+   - Then run:
+     ```bash
+     sudo nginx -t && sudo systemctl reload nginx
+     ```
+
+6. **First deploy (cutover):**
+   - Merge to `main`, or run the workflow manually. The first deploy removes the old pm2 process (`LEGACY_PM2_NAME`) and starts `adigsi-web` in its place, with a few seconds of downtime. If the new release fails its health check, the old process is started again.
+   - Once the site is confirmed working:
+     - Delete the `LEGACY_PM2_NAME` variable.
+     - Make sure `pm2 startup` is configured, so the app comes back after a reboot.
+     - Remove the files of the old manual clone:
+       ```bash
+       cd /home/ubuntu/app/adigsi-web-and-cms
+       find . -mindepth 1 -maxdepth 1 ! -name releases ! -name shared ! -name current -exec rm -rf {} +
+       ```
+
+### Day-to-day operations
+
+```bash
+pm2 status                      # process status
+pm2 logs adigsi-web             # live logs
+curl -s http://127.0.0.1:3000/api/health
+
+# Change production env vars, then restart
+nano /home/ubuntu/app/adigsi-web-and-cms/shared/.env.production
+pm2 restart adigsi-web
+
+# Manual rollback to an earlier release
+cd /home/ubuntu/app/adigsi-web-and-cms
+ls releases/                                  # pick a release id
+ln -sfn releases/<release-id> current
+pm2 reload current/ecosystem.config.js --update-env && pm2 save
+```
+
+Each deploy restarts the single pm2 instance, so expect 1–3 seconds of 502 responses from nginx while it restarts. This is intentional: the app runs one instance because `instrumentation.ts` starts the server-stats timer once per process.
 
 ---
 

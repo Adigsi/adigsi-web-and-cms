@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Self-contained build (server.js + minimal node_modules) shipped to the VM by .github/workflows/deploy.yml
+  output: 'standalone',
   typescript: {
     ignoreBuildErrors: true,
   },
