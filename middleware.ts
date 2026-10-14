@@ -4,6 +4,20 @@ import type { NextRequest } from 'next/server'
 import { CMS_AUTH_COOKIE } from '@/lib/cms-auth-constants'
 import { verifyCmsSessionToken } from '@/lib/cms-session'
 
+// Behind nginx, request.url is the internal server address (e.g. https://localhost:3000/cms),
+// so redirects use the Host header the browser actually sent (nginx: proxy_set_header Host $host)
+function redirectTo(request: NextRequest, pathname: string) {
+  const url = new URL(pathname, request.url)
+  const host = request.headers.get('host')
+
+  if (host) {
+    url.port = ''
+    url.host = host
+  }
+
+  return NextResponse.redirect(url)
+}
+
 export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get(CMS_AUTH_COOKIE)?.value
   const session = sessionCookie
@@ -16,11 +30,11 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (pathname.startsWith('/cms') && !isLoggedIn) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return redirectTo(request, '/login')
   }
 
   if (pathname === '/login' && isLoggedIn) {
-    return NextResponse.redirect(new URL('/cms/dashboard', request.url))
+    return redirectTo(request, '/cms/dashboard')
   }
 
   return NextResponse.next()
