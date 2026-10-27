@@ -160,7 +160,7 @@ export function HeroSection() {
 
       {/* Mobile Carousel */}
       <div className="lg:hidden px-4 md:px-8 pb-4 md:pb-6">
-        <div className="relative">
+        <div className="relative max-w-xl mx-auto">
           <div className="absolute -top-4 -right-4 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-4 -left-4 w-64 h-64 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10">
